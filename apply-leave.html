@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Apply Leave - MEPCO ERP</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: url('bg.jpg') no-repeat center center fixed;
+      background-size: cover;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .form-container {
+      background-color: rgba(255, 255, 255, 0.95);
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    h2 {
+      text-align: center;
+      color: #002147;
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      font-weight: bold;
+      color: #003366;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #004080;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+
+    textarea {
+      resize: vertical;
+      height: 100px;
+    }
+
+    button {
+      background-color: #004080;
+      color: white;
+      padding: 12px 20px;
+      margin-top: 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #002147;
+    }
+
+    .preview {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #e6f2ff;
+      border-radius: 8px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <h2>📝 Apply for Leave</h2>
+    <form id="leaveForm">
+      <label for="fromDate">From Date</label>
+      <input type="date" id="fromDate" required>
+
+      <label for="toDate">To Date</label>
+      <input type="date" id="toDate" required>
+
+      <label for="leaveType">Leave Type</label>
+      <select id="leaveType" required>
+        <option value="">Select Leave Type</option>
+        <option value="Medical">Medical Leave</option>
+        <option value="Casual">Casual Leave</option>
+        <option value="OD">On Duty (OD)</option>
+        <option value="Personal">Personal Leave</option>
+      </select>
+
+      <label for="reason">Reason for Leave</label>
+      <textarea id="reason" placeholder="Enter reason" required></textarea>
+
+      <button type="submit">Submit Leave Request</button>
+    </form>
+
+    <div class="preview" id="previewBox">
+      <h3>📄 Leave Request Preview</h3>
+      <p><strong>From:</strong> <span id="pFrom"></span></p>
+      <p><strong>To:</strong> <span id="pTo"></span></p>
+      <p><strong>Type:</strong> <span id="pType"></span></p>
+      <p><strong>Reason:</strong> <span id="pReason"></span></p>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("leaveForm");
+    const previewBox = document.getElementById("previewBox");
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault(); // Prevent page reload
+
+      // Fill preview
+      document.getElementById("pFrom").textContent = document.getElementById("fromDate").value;
+      document.getElementById("pTo").textContent = document.getElementById("toDate").value;
+      document.getElementById("pType").textContent = document.getElementById("leaveType").value;
+      document.getElementById("pReason").textContent = document.getElementById("reason").value;
+
+      previewBox.style.display = "block";
+    });
+  </script>
+
+</body>
+</html>

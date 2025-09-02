@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College ERP Admin Dashboard</title>
+    <body>
+    <style>
+        * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+.basic_frame {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+.left_bar {
+    width: 25%;
+    background: linear-gradient(to right, #d66d9b, #7d77ff);;
+    border-right: 2px solid #9900ff;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    overflow-y: auto;
+}
+.right_bar {
+                        font-size: 13px;
+                        padding-top: 15px;
+                        padding-left: 10px;
+                        font-weight: bold;
+                        display: flex;
+                        background-color: rgb(255, 255, 255);
+                        width: 100%;
+                    }
+.conversation-list {
+    padding: 15px;
+    background-color: white;
+    margin: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 5px 5px 5px rgb(204, 0, 255);
+    text-align: center;
+    font-weight: bold;
+}
+
+
+.erp{
+    border-radius: 11px;
+    font-weight: bold;
+    padding-bottom: 25px;
+}
+.buttons{
+    padding: 20px 20px 20px 20px;
+    border-radius:15px;
+    padding-left: 20px;
+    padding-right: 20px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 10px 10px 10px darkmagenta;
+    width: 250px;
+    cursor: pointer;
+}
+#co-frame{
+    width: 100%;
+    display: flex;
+}
+.logout {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+    }
+
+    .logout button {
+      background-color: #ff038e;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .logout button:hover {
+      background-color: #e30000;
+    }
+    #para{
+        font-weight: bold;
+    }
+</style>
+    <div class="basic_frame">
+        <div class="left_bar">
+            <div class="logout">
+                <button onclick="logout()">🔓 Logout</button>
+            </div>
+            <nav>
+                <div class="erp"><br>
+                </div>
+                <br>
+                    <div>
+                    <button onclick="loadPage('Dashboard.html')" class="buttons">Dashboard</button>
+                    </div><br>
+                    <div>
+                    <button onclick="loadPage('Students.html')" class="buttons">Student</button>
+                    </div><br>
+                    <div>
+                    <button onclick="loadPage('Faculty.html')" class="buttons">Faculty</button>
+                    </div><br>
+                    <div>
+                    <button onclick="loadPage('Courses.html')" class="buttons">Courses</button>
+                    </div><br>
+
+                    <div>
+                    <button onclick="loadPage('Fees.html')" class="buttons">Fees</button>
+                    </div><br>
+                    <div>
+                    <button onclick="loadPage('Reports.html')" class="buttons">Reports</button>
+                    </div><br>
+                    <div>
+                    <button onclick="loadPage('Exam.html')" class="buttons">Exam</button>
+                    </div><br>
+                    <div>
+                    <button onclick="loadPage('Settings.html')" class="buttons">Settings</button>
+                    </div><br>
+                </nav>
+        </div>
+        <div class="right_bar">
+            <iframe id="co-frame" src="Dashboard.html"></iframe>
+        </div>
+    </div>
+        
+    <script>
+        function loadPage(page){
+                document.getElementById("co-frame").src = page;
+        }
+        function logout(page){
+            window.location.href="index.html";
+        }
+
+    </script>
+ 
+    </body>
+</head>
+</html>

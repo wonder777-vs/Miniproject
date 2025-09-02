@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Profile</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: url('bg.jpg') no-repeat center center fixed;
+      background-size: cover;
+      margin: 0;
+      padding: 20px;
+    }
+    h2 {
+      color: #0069e0;
+      text-align: center;
+    }
+    .search-box {
+      max-width: 400px;
+      margin: 10px auto;
+      display: flex;
+      justify-content: center;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #004080;
+      border-radius: 5px;
+    }
+    .profile-container {
+      max-width: 900px;
+      margin: 20px auto;
+      border: 2px solid #004080;
+      border-radius: 10px;
+      padding: 20px;
+      background-color: rgba(240, 248, 255, 0.95);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .profile-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+    }
+    .profile-label {
+      font-weight: bold;
+      color: #003366;
+      width: 40%;
+    }
+    .profile-value {
+      color: #000000;
+      width: 55%;
+    }
+  </style>
+</head>
+<body>
+  <h2> Student Profile 👤</h2>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search any field" onkeyup="filterProfile()">
+  </div>
+  <div class="profile-container" id="profileData">
+    <div class="profile-row"><div class="profile-label">Name:</div><div class="profile-value">Ruban .M</div></div>
+    <div class="profile-row"><div class="profile-label">Gender:</div><div class="profile-value">Male</div></div>
+    <div class="profile-row"><div class="profile-label">Date of Birth:</div><div class="profile-value">26/05/2003</div></div>
+    <div class="profile-row"><div class="profile-label">Phone Number:</div><div class="profile-value">9876543210</div></div>
+    <div class="profile-row"><div class="profile-label">Email ID:</div><div class="profile-value">ruban.m@gmail.com</div></div>
+    <div class="profile-row"><div class="profile-label">Blood Group:</div><div class="profile-value">O+ve</div></div>
+    <div class="profile-row"><div class="profile-label">Religion:</div><div class="profile-value">Hindu</div></div>
+    <div class="profile-row"><div class="profile-label">Caste:</div><div class="profile-value">MBC</div></div>
+    <div class="profile-row"><div class="profile-label">Admission Number:</div><div class="profile-value">LES1916</div></div>
+    <div class="profile-row"><div class="profile-label">Roll Number:</div><div class="profile-value">23BCSL06</div></div>
+    <div class="profile-row"><div class="profile-label">Register Number:</div><div class="profile-value">9517202304257</div></div>
+    <div class="profile-row"><div class="profile-label">Aadhar Number:</div><div class="profile-value">333530617854</div></div>
+    <div class="profile-row"><div class="profile-label">Application Number:</div><div class="profile-value">---</div></div>
+    <div class="profile-row"><div class="profile-label">Application Date:</div><div class="profile-value">01/04/2024</div></div>
+    <div class="profile-row"><div class="profile-label">DOTE ID;</div><div class="profile-value">---</div></div>
+    <div class="profile-row"><div class="profile-label">EMIS Number:</div><div class="profile-value">---</div></div>
+    <div class="profile-row"><div class="profile-label">UMIS Number:</div><div class="profile-value">9993524646</div></div>
+    <div class="profile-row"><div class="profile-label">AU UMIS Number:</div><div class="profile-value">---</div></div>
+    <div class="profile-row"><div class="profile-label">Date of Admission:</div><div class="profile-value">03/06/2024</div></div>
+    <div class="profile-row"><div class="profile-label">Department:</div><div class="profile-value">Computer Science and Engineering</div></div>
+    <div class="profile-row"><div class="profile-label">Semester:</div><div class="profile-value">II Year / Semester 3</div></div>
+    <div class="profile-row"><div class="profile-label">12th Percentage:</div><div class="profile-value">85.2%</div></div>
+    <div class="profile-row"><div class="profile-label">SSLC Percentage:</div><div class="profile-value">91.5%</div></div>
+    <div class="profile-row"><div class="profile-label">Father’s Name:</div><div class="profile-value">xxxx</div></div>
+    <div class="profile-row"><div class="profile-label">Mother’s Name:</div><div class="profile-value">xxxx</div></div>
+    <div class="profile-row"><div class="profile-label">Parent Contact:</div><div class="profile-value">9876501234</div></div>
+    <div class="profile-row"><div class="profile-label">Hostel / Day Scholar:</div><div class="profile-value">Day Scholar</div></div>
+    <div class="profile-row"><div class="profile-label">Scholarship:</div><div class="profile-value">BC/MBC Scholarship</div></div>
+    <div class="profile-row"><div class="profile-label">Address:</div><div class="profile-value">123, Gandhi Street, Sivakasi, Tamil Nadu - 626123</div></div>
+  </div>
+
+  <script>
+    function filterProfile() {
+      const input = document.getElementById("searchInput").value.toLowerCase();
+      const rows = document.querySelectorAll(".profile-row");
+      rows.forEach(row => {
+        const rowText = row.innerText.toLowerCase();
+        row.style.display = rowText.includes(input) ? "flex" : "none";
+      });
+    }
+  </script>
+</body>
+</html>

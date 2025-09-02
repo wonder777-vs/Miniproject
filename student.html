@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: url('bg.jpg') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    .logout {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+    }
+
+    .logout button {
+      background-color: #cc0000;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .logout button:hover {
+      background-color: #990000;
+    }
+
+    header {
+      background-color: #002147cc;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    nav {
+      background-color: #004080cc;
+      padding: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    nav button {
+      background-color: #ffffffee;
+      color: #004080;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    nav button:hover {
+      background-color: #cce6ff;
+    }
+
+    iframe {
+      width: 100%;
+      height: 80vh;
+      border: none;
+      background-color: white;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Logout Button -->
+<div class="logout">
+  <button onclick="logout()">🔓 Logout</button>
+</div>
+
+<!-- Header -->
+<header>
+  <h1>Student Dashboard - MEPCO ERP</h1>
+</header>
+
+<!-- Navigation Menu -->
+<nav>
+  <button onclick="loadPage('profile.html')">Student Profile</button>
+  <button onclick="loadPage('attendance.html')">Attendance</button>
+  <button onclick="loadPage('internal.html')">Internal Marks</button>
+  <button onclick="loadPage('university.html')">University Marks</button>
+  <button onclick="loadPage('apply-leave.html')">Apply Leave</button>
+</nav>
+
+<!-- Frame Content -->
+<iframe id="content-frame" src="profile.html"></iframe>
+
+<!-- Scripts -->
+<script>
+  function loadPage(page) {
+    document.getElementById("content-frame").src = page;
+  }
+
+  function logout() {
+    window.location.href = 'index.html';
+  }
+</script>
+
+</body>
+</html>
