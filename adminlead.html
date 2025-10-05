@@ -4,146 +4,360 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>College ERP Admin Dashboard</title>
-    <body>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #7b1fa2;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --hover-color: #e9ecef;
+            --gradient-start: #d66d9b;
+            --gradient-end: #7d77ff;
+        }
+
         * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
-}
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-.basic_frame {
-    display: flex;
-    height: 100vh;
-    width: 100vw;
-}
+        body {
+            background: linear-gradient(to right, #f2d7ee, #c6e7f0, #b5e3c3);
+            color: var(--dark-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
 
-.left_bar {
-    width: 25%;
-    background: linear-gradient(to right, #d66d9b, #7d77ff);;
-    border-right: 2px solid #9900ff;
-    display: flex;
-    flex-direction: column;
-    padding: 10px;
-    overflow-y: auto;
-}
-.right_bar {
-                        font-size: 13px;
-                        padding-top: 15px;
-                        padding-left: 10px;
-                        font-weight: bold;
-                        display: flex;
-                        background-color: rgb(255, 255, 255);
-                        width: 100%;
-                    }
-.conversation-list {
-    padding: 15px;
-    background-color: white;
-    margin: 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 5px 5px 5px rgb(204, 0, 255);
-    text-align: center;
-    font-weight: bold;
-}
+        .basic_frame {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
 
+        .left_bar {
+            width: 250px;
+            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+            border-right: 2px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
 
-.erp{
-    border-radius: 11px;
-    font-weight: bold;
-    padding-bottom: 25px;
-}
-.buttons{
-    padding: 20px 20px 20px 20px;
-    border-radius:15px;
-    padding-left: 20px;
-    padding-right: 20px;
-    text-align: center;
-    font-weight: bold;
-    box-shadow: 10px 10px 10px darkmagenta;
-    width: 250px;
-    cursor: pointer;
-}
-#co-frame{
-    width: 100%;
-    display: flex;
-}
-.logout {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 1000;
-    }
+        .logo-container {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
 
-    .logout button {
-      background-color: #ff038e;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
-    }
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
 
-    .logout button:hover {
-      background-color: #e30000;
-    }
-    #para{
-        font-weight: bold;
-    }
-</style>
+        .nav-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            margin: 8px 15px;
+        }
+
+        .nav-button {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .nav-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .nav-button.active {
+            background-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .logout-container {
+            padding: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logout-button {
+            width: 100%;
+            padding: 10px 15px;
+            background-color: rgba(220, 53, 69, 0.8);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .logout-button:hover {
+            background-color: rgba(220, 53, 69, 1);
+        }
+
+        .right_bar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .iframe-container {
+            flex: 1;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        #co-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 4px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 3000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background-color: var(--success-color);
+        }
+
+        .notification.error {
+            background-color: var(--danger-color);
+        }
+
+        .notification.warning {
+            background-color: var(--warning-color);
+            color: var(--dark-color);
+        }
+
+        @media (max-width: 768px) {
+            .basic_frame {
+                flex-direction: column;
+            }
+            
+            .left_bar {
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            }
+            
+            .nav-container {
+                display: flex;
+                flex-wrap: wrap;
+                padding: 10px;
+            }
+            
+            .nav-item {
+                margin: 5px;
+                flex: 1 0 calc(50% - 10px);
+            }
+        }
+    </style>
+</head>
+<body>
     <div class="basic_frame">
         <div class="left_bar">
-            <div class="logout">
-                <button onclick="logout()">🔓 Logout</button>
-            </div>
-            <nav>
-                <div class="erp"><br>
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>College ERP</span>
                 </div>
-                <br>
-                    <div>
-                    <button onclick="loadPage('Dashboard.html')" class="buttons">Dashboard</button>
-                    </div><br>
-                    <div>
-                    <button onclick="loadPage('Students.html')" class="buttons">Student</button>
-                    </div><br>
-                    <div>
-                    <button onclick="loadPage('Faculty.html')" class="buttons">Faculty</button>
-                    </div><br>
-                    <div>
-                    <button onclick="loadPage('Courses.html')" class="buttons">Courses</button>
-                    </div><br>
-
-                    <div>
-                    <button onclick="loadPage('Fees.html')" class="buttons">Fees</button>
-                    </div><br>
-                    <div>
-                    <button onclick="loadPage('Reports.html')" class="buttons">Reports</button>
-                    </div><br>
-                    <div>
-                    <button onclick="loadPage('Exam.html')" class="buttons">Exam</button>
-                    </div><br>
-                    <div>
-                    <button onclick="loadPage('Settings.html')" class="buttons">Settings</button>
-                    </div><br>
-                </nav>
+            </div>
+            
+            <div class="nav-container">
+                <div class="nav-item">
+                    <button onclick="loadPage('Dashboard.html')" class="nav-button active">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </button>
+                </div>
+                <div class="nav-item">
+                    <button onclick="loadPage('Students.html')" class="nav-button">
+                        <i class="fas fa-user-graduate"></i>
+                        <span>Students</span>
+                    </button>
+                </div>
+                <div class="nav-item">
+                    <button onclick="loadPage('Faculty.html')" class="nav-button">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <span>Faculty</span>
+                    </button>
+                </div>
+                <div class="nav-item">
+                    <button onclick="loadPage('Courses.html')" class="nav-button">
+                        <i class="fas fa-book"></i>
+                        <span>Courses</span>
+                    </button>
+                </div>
+                <div class="nav-item">
+                    <button onclick="loadPage('Fees.html')" class="nav-button">
+                        <i class="fas fa-money-check-alt"></i>
+                        <span>Fees</span>
+                    </button>
+                </div>
+                <div class="nav-item">
+                    <button onclick="loadPage('Reports.html')" class="nav-button">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
+                    </button>
+                </div>
+                <div class="nav-item">
+                    <button onclick="loadPage('Exam.html')" class="nav-button">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Exams</span>
+                    </button>
+                </div>
+                <div class="nav-item">
+                    <button onclick="loadPage('Settings.html')" class="nav-button">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="logout-container">
+                <button onclick="logout()" class="logout-button">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
         </div>
-        <div class="right_bar">
-            <iframe id="co-frame" src="Dashboard.html"></iframe>
+    
+            
+            <div class="iframe-container">
+                <iframe id="co-frame" src="Dashboard.html"></iframe>
+            </div>
         </div>
     </div>
-        
+    
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+    
     <script>
-        function loadPage(page){
-                document.getElementById("co-frame").src = page;
+        function loadPage(page) {
+            document.getElementById("co-frame").src = page;
+            
+            // Update active navigation button
+            const navButtons = document.querySelectorAll('.nav-button');
+            navButtons.forEach(button => {
+                button.classList.remove('active');
+                if (button.getAttribute('onclick').includes(page)) {
+                    button.classList.add('active');
+                }
+            });
+            
+            // Show notification
+            showNotification(`Navigated to ${page.replace('.html', '')}`, 'success');
         }
-        function logout(page){
-            window.location.href="index.html";
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                showNotification('Logging out...', 'success');
+                setTimeout(() => {
+                    window.location.href = "index.html";
+                }, 1000);
+            }
         }
-
+        
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
     </script>
- 
-    </body>
-</head>
+</body>
 </html>

@@ -1,0 +1,1966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard - MEPCO ERP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a6bdf;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --hover-color: #e9ecef;
+            --gradient-start: #6a11cb;
+            --gradient-end: #2575fc;
+            --pink-gradient-start: #ff9a9e;
+            --pink-gradient-end: #fad0c4;
+            --sidebar-bg: #002147;
+            --sidebar-active: #ff007f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            background: linear-gradient(to right, #f2d7ee, #c6e7f0, #b5e3c3);
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .sidebar h2 {
+            padding: 0 20px 20px;
+            font-size: 1.5rem;
+            color: var(--sidebar-active);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: var(--sidebar-active);
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .main {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            color: var(--dark-color);
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: var(--dark-color);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .card-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            font-size: 1.1rem;
+            background-color: #f8f9fa;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 107, 223, 0.25);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--pink-gradient-start), var(--pink-gradient-end));
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid var(--border-color);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: var(--light-color);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 4px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1100;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background-color: var(--success-color);
+        }
+
+        .notification.error {
+            background-color: var(--danger-color);
+        }
+
+        .notification.warning {
+            background-color: var(--warning-color);
+            color: var(--dark-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--secondary-color);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--border-color);
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            color: var(--secondary-color);
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: var(--primary-color);
+        }
+
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .student-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .student-card h3 {
+            color: var(--dark-color);
+            margin-bottom: 10px;
+        }
+
+        .student-card p {
+            margin-bottom: 5px;
+        }
+
+        .student-card .student-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .student-card .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .attendance-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .attendance-controls .form-group {
+            margin-bottom: 0;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .attendance-controls .btn {
+            margin-left: 15px;
+        }
+
+        .exam-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .exam-card h4 {
+            color: var(--dark-color);
+            margin-bottom: 10px;
+        }
+
+        .exam-card .exam-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .exam-card .exam-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .leave-table {
+            width: 100%;
+        }
+
+        .leave-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .leave-table tr:nth-child(even) {
+            background-color: rgba(0, 33, 71, 0.1);
+        }
+
+        .status-approved {
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .status-rejected {
+            color: var(--danger-color);
+            font-weight: bold;
+        }
+
+        .status-pending {
+            color: var(--warning-color);
+            font-weight: bold;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 50%;
+            max-width: 500px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        .subject-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .subject-name {
+            flex-grow: 1;
+        }
+
+        .subject-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        /* Document Upload Styles */
+        .document-upload-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .upload-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px dashed var(--border-color);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .upload-section:hover {
+            border-color: var(--primary-color);
+            background-color: #f1f8ff;
+        }
+
+        .upload-section i {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .upload-section h3 {
+            margin-bottom: 15px;
+            color: var(--dark-color);
+            font-size: 22px;
+        }
+
+        .upload-section p {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .upload-btn:hover {
+            background-color: #3a5bd9;
+        }
+
+        .upload-btn i {
+            margin-right: 8px;
+        }
+
+        .file-list {
+            margin-top: 30px;
+        }
+
+        .file-list h2 {
+            margin-bottom: 20px;
+            color: var(--dark-color);
+            font-size: 22px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .file-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .file-icon {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            margin-right: 15px;
+            color: white;
+            font-size: 20px;
+        }
+
+        .file-icon.pdf { background-color: #e74c3c; }
+        .file-icon.ppt, .file-icon.pptx { background-color: #f39c12; }
+        .file-icon.default { background-color: #7f8c8d; }
+
+        .file-details h4 {
+            margin-bottom: 5px;
+            color: var(--dark-color);
+            font-size: 16px;
+        }
+
+        .file-details p {
+            font-size: 14px;
+            color: var(--secondary-color);
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 10px;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: #f1f5f9;
+            color: var(--dark-color);
+        }
+
+        .action-btn.download:hover {
+            color: var(--success-color);
+        }
+
+        .action-btn.delete:hover {
+            color: var(--danger-color);
+        }
+
+        .file-viewer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            overflow: auto;
+        }
+
+        .file-viewer-content {
+            position: relative;
+            margin: 30px auto;
+            max-width: 90%;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .file-viewer-header {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-viewer-header h3 {
+            margin: 0;
+        }
+
+        .close-viewer {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .file-viewer-body {
+            padding: 20px;
+            max-height: 80vh;
+            overflow: auto;
+            text-align: center;
+        }
+
+        .file-viewer-body iframe {
+            width: 100%;
+            height: 70vh;
+            border: none;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .sidebar h2, .sidebar a span {
+                display: none;
+            }
+            
+            .sidebar a {
+                text-align: center;
+                padding: 12px 0;
+            }
+            
+            .sidebar a i {
+                margin: 0;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 90%;
+                margin: 20% auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2><i class="fas fa-graduation-cap"></i> Staff ERP</h2>
+        <a href="#" onclick="loadPage('dashboard', event)" class="active"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
+        <a href="#" onclick="loadPage('students', event)"><i class="fas fa-users"></i> <span>View Students</span></a>
+        <a href="#" onclick="loadPage('attendance', event)"><i class="fas fa-calendar-check"></i> <span>Attendance</span></a>
+        <a href="#" onclick="loadPage('marks', event)"><i class="fas fa-chart-line"></i> <span>Internal Marks</span></a>
+        <a href="#" onclick="loadPage('leave', event)"><i class="fas fa-calendar-alt"></i> <span>Leave Requests</span></a>
+        <a href="#" onclick="loadPage('documents', event)"><i class="fas fa-file-upload"></i> <span>Document Upload</span></a>
+        <a href="#" onclick="loadPage('logout', event)"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
+    </div>
+    
+    <div class="main" id="mainContent">
+        <!-- Dashboard content will be loaded here -->
+    </div>
+    
+    <!-- Modal for editing subjects -->
+    <div id="subjectModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSubjectModal()">&times;</span>
+            <h2>Manage Subjects</h2>
+            <div class="form-group">
+                <label class="form-label" for="newSubjectInput">Add New Subject</label>
+                <input type="text" id="newSubjectInput" class="form-control" placeholder="Enter subject name" />
+                <button class="btn btn-primary" onclick="addSubjectFromModal()">Add Subject</button>
+            </div>
+            <div id="subjectsList"></div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+    
+    <!-- File Viewer -->
+    <div id="fileViewer" class="file-viewer">
+        <div class="file-viewer-content">
+            <div class="file-viewer-header">
+                <h3 id="viewerTitle">Document Viewer</h3>
+                <button class="close-viewer" onclick="closeFileViewer()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="file-viewer-body" id="viewerContent">
+                <!-- Content will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize data structures
+        let students = JSON.parse(localStorage.getItem('students')) || [];
+        let subjects = JSON.parse(localStorage.getItem('subjects')) || [];
+        let exams = JSON.parse(localStorage.getItem('exams')) || [];
+        let attendanceRecords = JSON.parse(localStorage.getItem('attendanceRecords')) || {};
+        let leaveRequests = JSON.parse(localStorage.getItem('leaveRequests')) || [];
+        let uploadedDocuments = JSON.parse(localStorage.getItem('uploadedDocuments')) || [];
+        
+        // Page templates
+        const pages = {
+            dashboard: `
+                <div class="page-header">
+                    <h1 class="page-title">Staff Dashboard</h1>
+                    <div class="user-info">
+                        <span>Staff Member</span>
+                        <div class="user-avatar">S</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Dashboard Overview</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="data-card">
+                                <h4>Total Students</h4>
+                                <p style="font-size: 2rem; font-weight: bold;">${students.length}</p>
+                            </div>
+                            <div class="data-card">
+                                <h4>Total Subjects</h4>
+                                <p style="font-size: 2rem; font-weight: bold;">${subjects.length}</p>
+                            </div>
+                            <div class="data-card">
+                                <h4>Total Exams</h4>
+                                <p style="font-size: 2rem; font-weight: bold;">${exams.length}</p>
+                            </div>
+                            <div class="data-card">
+                                <h4>Pending Leaves</h4>
+                                <p style="font-size: 2rem; font-weight: bold;">${leaveRequests.filter(req => req.status === 'pending').length}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Recent Activities</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <i class="fas fa-history"></i>
+                            <p>No recent activities to display</p>
+                        </div>
+                    </div>
+                </div>
+            `,
+            
+            students: `
+                <div class="page-header">
+                    <h1 class="page-title">Student Management</h1>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Add New Student</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="addStudentForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="newRollNo">Roll Number</label>
+                                    <input type="text" id="newRollNo" class="form-control" placeholder="Enter roll number" required />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="newName">Full Name</label>
+                                    <input type="text" id="newName" class="form-control" placeholder="Enter full name" required />
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="newDept">Department</label>
+                                    <select id="newDept" class="form-control" required>
+                                        <option value="">Select Department</option>
+                                        <option value="CSE">Computer Science</option>
+                                        <option value="ECE">Electronics</option>
+                                        <option value="MECH">Mechanical</option>
+                                        <option value="CIVIL">Civil</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="newYear">Year</label>
+                                    <select id="newYear" class="form-control" required>
+                                        <option value="">Select Year</option>
+                                        <option value="1">1st Year</option>
+                                        <option value="2">2nd Year</option>
+                                        <option value="3">3rd Year</option>
+                                        <option value="4">4th Year</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="newEmail">Email</label>
+                                <input type="email" id="newEmail" class="form-control" placeholder="Enter email address" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="newPhone">Phone</label>
+                                <input type="tel" id="newPhone" class="form-control" placeholder="Enter phone number" />
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Add Student</button>
+                                <button type="reset" class="btn btn-secondary">Reset</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Student List</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <input type="text" id="searchInput" class="form-control" placeholder="Search by Roll No or Name" onkeyup="searchStudents()" />
+                        </div>
+                        <div id="studentsList"></div>
+                    </div>
+                </div>
+            `,
+            
+            attendance: `
+                <div class="page-header">
+                    <h1 class="page-title">Mark Attendance</h1>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <div class="attendance-controls">
+                            <div class="form-group">
+                                <label class="form-label" for="attendanceDate">Select Date</label>
+                                <input type="date" id="attendanceDate" class="form-control" onchange="loadAttendance()" />
+                            </div>
+                            <button class="btn btn-primary" onclick="saveAttendance()">Submit Attendance</button>
+                        </div>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Roll No</th>
+                                    <th>Name</th>
+                                    <th>Department</th>
+                                    <th>Present</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceList"></tbody>
+                        </table>
+                    </div>
+                </div>
+            `,
+            
+            marks: `
+                <div class="page-header">
+                    <h1 class="page-title">Internal Marks Management</h1>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <div class="tabs">
+                            <div class="tab active" onclick="openTab(event, 'examListTab')">Exams List</div>
+                            <div class="tab" onclick="openTab(event, 'createExamTab')">Create New Exam</div>
+                        </div>
+                        
+                        <div id="examListTab" class="tab-content active">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h3>Exams List</h3>
+                                <button class="btn btn-secondary" onclick="openSubjectModal()">Manage Subjects</button>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="examDateFilter">Filter by Date</label>
+                                <input type="date" id="examDateFilter" class="form-control" onchange="filterExamsByDate()" />
+                            </div>
+                            <div id="examsList"></div>
+                        </div>
+                        
+                        <div id="createExamTab" class="tab-content">
+                            <h3>Create New Exam</h3>
+                            <form id="createExamForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label" for="examName">Exam Name</label>
+                                        <select id="examName" class="form-control" required>
+                                            <option value="">Select Exam Type</option>
+                                            <option value="CAT1">CAT 1</option>
+                                            <option value="CAT2">CAT 2</option>
+                                            <option value="CAT3">CAT 3</option>
+                                            <option value="Special Test">Special Test</option>
+                                            <option value="Model Exam">Model Exam</option>
+                                            <option value="Assignment">Assignment</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="examSubject">Subject</label>
+                                        <select id="examSubject" class="form-control" required>
+                                            ${subjects.length > 0 ? 
+                                                subjects.map(subject => `<option value="${subject}">${subject}</option>`).join('') : 
+                                                '<option value="" disabled selected>No subjects available</option>'}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label" for="examDate">Date</label>
+                                        <input type="date" id="examDate" class="form-control" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="examTotalMarks">Total Marks</label>
+                                        <input type="number" id="examTotalMarks" class="form-control" min="1" required />
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary" ${subjects.length === 0 ? 'disabled' : ''}>Create Exam</button>
+                                </div>
+                                ${subjects.length === 0 ? '<p style="color: red; margin-top: 10px;">Please add subjects first before creating exams.</p>' : ''}
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `,
+            
+            leave: `
+                <div class="page-header">
+                    <h1 class="page-title">Leave Requests</h1>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <table class="leave-table">
+                            <thead>
+                                <tr>
+                                    <th>Roll No</th>
+                                    <th>Name</th>
+                                    <th>Reason</th>
+                                    <th>Days</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaveList"></tbody>
+                        </table>
+                    </div>
+                </div>
+            `,
+            
+            documents: `
+                <div class="page-header">
+                    <h1 class="page-title">Document Upload</h1>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <div class="document-upload-container">
+                            <div class="upload-section">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <h3>Upload Study Materials</h3>
+                                <p>Upload PDF or PPT files for students to access</p>
+                                <input type="file" id="fileInput" class="file-input" accept=".pdf,.ppt,.pptx" multiple>
+                                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                                    <i class="fas fa-plus"></i> Select Files
+                                </button>
+                            </div>
+                            
+                            <div class="file-list">
+                                <h2>Uploaded Documents</h2>
+                                <div id="fileContainer">
+                                    ${uploadedDocuments.length === 0 ? 
+                                        '<div class="empty-state"><i class="fas fa-folder-open"></i><p>No documents uploaded yet. Use the upload section above to add files.</p></div>' : 
+                                        ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+        
+        // Initialize the app
+        window.onload = () => {
+            loadPage('dashboard');
+            // Set today's date as default for attendance
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('attendanceDate').value = today;
+        };
+        
+        // Load page content
+        function loadPage(page, evt) {
+            if (page === 'logout') {
+                if (confirm('Are you sure you want to logout?')) {
+                    window.location.href = 'index.html';
+                }
+                return;
+            }
+            
+            document.getElementById('mainContent').innerHTML = pages[page];
+            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+            if (evt) evt.currentTarget.classList.add('active');
+            
+            // Initialize page content
+            if (page === 'students') {
+                displayStudents();
+                setupStudentForm();
+            } else if (page === 'attendance') {
+                loadAttendance();
+            } else if (page === 'marks') {
+                displayExamsList();
+                setupExamForm();
+            } else if (page === 'leave') {
+                displayLeaveRequests();
+            } else if (page === 'documents') {
+                initDocumentUploadPage();
+            }
+        }
+        
+        // Tab functionality
+        function openTab(evt, tabName) {
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            const tabButtons = document.getElementsByClassName('tab');
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove('active');
+            }
+            
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+        
+        // Subject Management Functions
+        function openSubjectModal() {
+            document.getElementById('subjectModal').style.display = 'block';
+            displaySubjectsList();
+        }
+        
+        function closeSubjectModal() {
+            document.getElementById('subjectModal').style.display = 'none';
+        }
+        
+        function displaySubjectsList() {
+            const subjectsList = document.getElementById('subjectsList');
+            subjectsList.innerHTML = '';
+            
+            if (subjects.length === 0) {
+                subjectsList.innerHTML = '<div class="empty-state">No subjects added yet. Add subjects using the form above.</div>';
+                return;
+            }
+            
+            subjects.forEach((subject, index) => {
+                const subjectItem = document.createElement('div');
+                subjectItem.className = 'subject-item';
+                subjectItem.innerHTML = `
+                    <div class="subject-name">${subject}</div>
+                    <div class="subject-actions">
+                        <button class="btn btn-secondary" onclick="editSubject(${index})">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteSubject(${index})">Delete</button>
+                    </div>
+                `;
+                subjectsList.appendChild(subjectItem);
+            });
+        }
+        
+        function addSubjectFromModal() {
+            const newSubject = document.getElementById('newSubjectInput').value.trim();
+            
+            if (!newSubject) {
+                showNotification('Please enter a subject name', 'error');
+                return;
+            }
+            
+            if (subjects.includes(newSubject)) {
+                showNotification('Subject already exists', 'error');
+                return;
+            }
+            
+            subjects.push(newSubject);
+            localStorage.setItem('subjects', JSON.stringify(subjects));
+            document.getElementById('newSubjectInput').value = '';
+            displaySubjectsList();
+            
+            // Update the subject dropdown in the create exam form
+            updateSubjectDropdowns();
+            
+            showNotification('Subject added successfully', 'success');
+        }
+        
+        function editSubject(index) {
+            const currentSubject = subjects[index];
+            const newSubject = prompt('Enter new subject name:', currentSubject);
+            
+            if (newSubject && newSubject.trim() && newSubject !== currentSubject) {
+                if (subjects.includes(newSubject.trim())) {
+                    showNotification('Subject already exists', 'error');
+                    return;
+                }
+                
+                subjects[index] = newSubject.trim();
+                localStorage.setItem('subjects', JSON.stringify(subjects));
+                displaySubjectsList();
+                
+                // Update the subject dropdown in the create exam form
+                updateSubjectDropdowns();
+                
+                showNotification('Subject updated successfully', 'success');
+            }
+        }
+        
+        function deleteSubject(index) {
+            if (confirm('Are you sure you want to delete this subject?')) {
+                subjects.splice(index, 1);
+                localStorage.setItem('subjects', JSON.stringify(subjects));
+                displaySubjectsList();
+                
+                // Update the subject dropdown in the create exam form
+                updateSubjectDropdowns();
+                
+                showNotification('Subject deleted successfully', 'success');
+            }
+        }
+        
+        function updateSubjectDropdowns() {
+            // Update the subject dropdown in the create exam form
+            const examSubjectSelect = document.getElementById('examSubject');
+            if (examSubjectSelect) {
+                examSubjectSelect.innerHTML = subjects.length > 0 ? 
+                    subjects.map(subject => `<option value="${subject}">${subject}</option>`).join('') : 
+                    '<option value="" disabled selected>No subjects available</option>';
+                
+                // Enable/disable the create exam button based on whether subjects exist
+                const createExamButton = document.querySelector('#createExamForm button[type="submit"]');
+                if (createExamButton) {
+                    createExamButton.disabled = subjects.length === 0;
+                }
+                
+                // Update the message about adding subjects
+                const messageElement = document.querySelector('#createExamTab p');
+                if (messageElement) {
+                    messageElement.style.display = subjects.length === 0 ? 'block' : 'none';
+                }
+            }
+        }
+        
+        // Student Management Functions
+        function setupStudentForm() {
+            const addStudentForm = document.getElementById('addStudentForm');
+            if (addStudentForm) {
+                addStudentForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const rollNo = document.getElementById('newRollNo').value.trim();
+                    const name = document.getElementById('newName').value.trim();
+                    const dept = document.getElementById('newDept').value;
+                    const year = document.getElementById('newYear').value;
+                    const email = document.getElementById('newEmail').value.trim();
+                    const phone = document.getElementById('newPhone').value.trim();
+                    
+                    if (!rollNo || !name || !dept || !year) {
+                        showNotification('Please fill all required fields', 'error');
+                        return;
+                    }
+                    
+                    // Check if roll number already exists
+                    if (students.some(s => s.rollNo === rollNo)) {
+                        showNotification('Roll number already exists', 'error');
+                        return;
+                    }
+                    
+                    const newStudent = {
+                        rollNo,
+                        name,
+                        department: dept,
+                        year,
+                        email,
+                        phone,
+                        admissionno: rollNo, // Using rollNo as admissionNo for simplicity
+                        registerno: 'REG' + rollNo,
+                        gender: '',
+                        dob: '',
+                        bloodgroup: '',
+                        religion: '',
+                        caste: '',
+                        address: '',
+                        aadharno: '',
+                        tweleve: '',
+                        sslc: '',
+                        father: '',
+                        mother: '',
+                        parentcontact: '',
+                        applicationno: '',
+                        emisno: '',
+                        umisno: '',
+                        hostel: '',
+                        scholarship: '',
+                        status: 'Active'
+                    };
+                    
+                    students.push(newStudent);
+                    localStorage.setItem('students', JSON.stringify(students));
+                    displayStudents();
+                    
+                    // Clear form
+                    addStudentForm.reset();
+                    
+                    showNotification('Student added successfully', 'success');
+                });
+            }
+        }
+        
+        function displayStudents() {
+            const studentsList = document.getElementById('studentsList');
+            studentsList.innerHTML = '';
+            
+            if (students.length === 0) {
+                studentsList.innerHTML = '<div class="empty-state"><i class="fas fa-user-graduate"></i><p>No students added yet. Use the form above to add students.</p></div>';
+                return;
+            }
+            
+            students.forEach(student => {
+                const studentCard = document.createElement('div');
+                studentCard.className = 'student-card';
+                studentCard.innerHTML = `
+                    <h3>${student.name} (${student.rollNo})</h3>
+                    <div class="student-info">
+                        <div><strong>Department:</strong> ${student.department}</div>
+                        <div><strong>Year:</strong> ${student.year}</div>
+                        <div><strong>Email:</strong> ${student.email || 'Not provided'}</div>
+                        <div><strong>Phone:</strong> ${student.phone || 'Not provided'}</div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" onclick="editStudent('${student.rollNo}')">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteStudent('${student.rollNo}')">Delete</button>
+                    </div>
+                `;
+                studentsList.appendChild(studentCard);
+            });
+        }
+        
+        function editStudent(rollNo) {
+            const student = students.find(s => s.rollNo === rollNo);
+            if (!student) return;
+            
+            const newName = prompt('Enter new name:', student.name);
+            if (newName && newName.trim()) {
+                student.name = newName.trim();
+                localStorage.setItem('students', JSON.stringify(students));
+                displayStudents();
+                showNotification('Student updated successfully', 'success');
+            }
+        }
+        
+        function deleteStudent(rollNo) {
+            if (confirm('Are you sure you want to delete this student?')) {
+                students = students.filter(s => s.rollNo !== rollNo);
+                localStorage.setItem('students', JSON.stringify(students));
+                displayStudents();
+                showNotification('Student deleted successfully', 'success');
+            }
+        }
+        
+        function searchStudents() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const studentCards = document.querySelectorAll('.student-card');
+            
+            studentCards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(searchTerm) ? 'block' : 'none';
+            });
+        }
+        
+        // Attendance Functions
+        function loadAttendance() {
+            const date = document.getElementById('attendanceDate').value;
+            const attendanceList = document.getElementById('attendanceList');
+            attendanceList.innerHTML = '';
+            
+            if (students.length === 0) {
+                attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">No students available. Add students first.</td></tr>';
+                return;
+            }
+            
+            // Get saved attendance for this date or initialize
+            if (!attendanceRecords[date]) {
+                attendanceRecords[date] = {};
+            }
+            
+            students.forEach(student => {
+                const row = document.createElement('tr');
+                const isPresent = attendanceRecords[date][student.rollNo] || false;
+                
+                row.innerHTML = `
+                    <td>${student.rollNo}</td>
+                    <td>${student.name}</td>
+                    <td>${student.department}</td>
+                    <td>
+                        <input type="checkbox" ${isPresent ? 'checked' : ''} 
+                               onchange="updateAttendance('${date}', '${student.rollNo}', this.checked)" />
+                    </td>
+                `;
+                attendanceList.appendChild(row);
+            });
+        }
+        
+        function updateAttendance(date, rollNo, isPresent) {
+            if (!attendanceRecords[date]) {
+                attendanceRecords[date] = {};
+            }
+            attendanceRecords[date][rollNo] = isPresent;
+        }
+        
+        function saveAttendance() {
+            const date = document.getElementById('attendanceDate').value;
+            if (!date) {
+                showNotification('Please select a date', 'error');
+                return;
+            }
+            
+            localStorage.setItem('attendanceRecords', JSON.stringify(attendanceRecords));
+            showNotification(`Attendance saved for ${date}`, 'success');
+        }
+        
+        // Exam Management Functions
+        function setupExamForm() {
+            const createExamForm = document.getElementById('createExamForm');
+            if (createExamForm) {
+                createExamForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const name = document.getElementById('examName').value;
+                    const subject = document.getElementById('examSubject').value;
+                    const date = document.getElementById('examDate').value;
+                    const totalMarks = document.getElementById('examTotalMarks').value;
+                    
+                    if (!name || !subject || !date || !totalMarks) {
+                        showNotification('Please fill all fields', 'error');
+                        return;
+                    }
+                    
+                    const examId = 'exam_' + Date.now();
+                    const newExam = {
+                        id: examId,
+                        name,
+                        subject,
+                        date,
+                        totalMarks: parseInt(totalMarks)
+                    };
+                    
+                    exams.push(newExam);
+                    localStorage.setItem('exams', JSON.stringify(exams));
+                    
+                    // Clear form
+                    createExamForm.reset();
+                    
+                    showNotification('Exam created successfully', 'success');
+                    
+                    // Switch to exams list tab
+                    document.querySelector('.tab').click();
+                    displayExamsList();
+                });
+            }
+        }
+        
+        function displayExamsList() {
+            const examsList = document.getElementById('examsList');
+            examsList.innerHTML = '';
+            
+            if (exams.length === 0) {
+                examsList.innerHTML = '<div class="empty-state"><i class="fas fa-clipboard-list"></i><p>No exams created yet. Create a new exam to get started.</p></div>';
+                return;
+            }
+            
+            // Sort exams by date (newest first)
+            const sortedExams = [...exams].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedExams.forEach(exam => {
+                const examCard = document.createElement('div');
+                examCard.className = 'exam-card';
+                examCard.innerHTML = `
+                    <div class="exam-details">
+                        <div>
+                            <h4>${exam.name} - ${exam.subject}</h4>
+                            <p><strong>Date:</strong> ${exam.date} | <strong>Total Marks:</strong> ${exam.totalMarks}</p>
+                        </div>
+                    </div>
+                    <div class="exam-actions">
+                        <button class="btn btn-primary" onclick="enterMarks('${exam.id}')">Enter Marks</button>
+                        <button class="btn btn-secondary" onclick="viewMarks('${exam.id}')">View Marks</button>
+                        <button class="btn btn-success" onclick="downloadMarks('${exam.id}')">Download</button>
+                    </div>
+                `;
+                examsList.appendChild(examCard);
+            });
+        }
+        
+        function enterMarks(examId) {
+            const exam = exams.find(e => e.id === examId);
+            if (!exam) return;
+            
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = `
+                <div class="page-header">
+                    <h1 class="page-title">Enter Marks - ${exam.name} - ${exam.subject}</h1>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <div class="exam-details">
+                            <p><strong>Date:</strong> ${exam.date} | <strong>Total Marks:</strong> ${exam.totalMarks}</p>
+                        </div>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Roll No</th>
+                                    <th>Name</th>
+                                    <th>Department</th>
+                                    <th>Marks Obtained</th>
+                                </tr>
+                            </thead>
+                            <tbody id="examMarksList"></tbody>
+                        </table>
+                        
+                        <div class="form-actions">
+                            <button class="btn btn-primary" onclick="saveExamMarks('${examId}')">Save Marks</button>
+                            <button class="btn btn-success" onclick="downloadMarks('${examId}')">Download</button>
+                            <button class="btn btn-secondary" onclick="loadPage('marks', event)">Back to Exams</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Initialize marks for this exam if not exists
+            if (!exam.marks) {
+                exam.marks = {};
+            }
+            
+            // Populate the marks table
+            const marksList = document.getElementById('examMarksList');
+            marksList.innerHTML = '';
+            
+            if (students.length === 0) {
+                marksList.innerHTML = '<tr><td colspan="4" class="empty-state">No students available. Add students first.</td></tr>';
+                return;
+            }
+            
+            students.forEach(student => {
+                const row = document.createElement('tr');
+                const marks = exam.marks[student.rollNo] || '';
+                
+                row.innerHTML = `
+                    <td>${student.rollNo}</td>
+                    <td>${student.name}</td>
+                    <td>${student.department}</td>
+                    <td>
+                        <input type="number" id="marks-${student.rollNo}" value="${marks}" 
+                               min="0" max="${exam.totalMarks}" style="width: 100px;" />
+                    </td>
+                `;
+                marksList.appendChild(row);
+            });
+        }
+        
+        function saveExamMarks(examId) {
+            const exam = exams.find(e => e.id === examId);
+            if (!exam) return;
+            
+            // Update marks for each student
+            students.forEach(student => {
+                const marksInput = document.getElementById(`marks-${student.rollNo}`);
+                if (marksInput) {
+                    const marks = marksInput.value === '' ? '' : parseInt(marksInput.value);
+                    exam.marks[student.rollNo] = marks;
+                }
+            });
+            
+            localStorage.setItem('exams', JSON.stringify(exams));
+            showNotification('Marks saved successfully', 'success');
+        }
+        
+        function viewMarks(examId) {
+            const exam = exams.find(e => e.id === examId);
+            if (!exam) return;
+            
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = `
+                <div class="page-header">
+                    <h1 class="page-title">View Marks - ${exam.name} - ${exam.subject}</h1>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <div class="exam-details">
+                            <p><strong>Date:</strong> ${exam.date} | <strong>Total Marks:</strong> ${exam.totalMarks}</p>
+                        </div>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Roll No</th>
+                                    <th>Name</th>
+                                    <th>Department</th>
+                                    <th>Marks Obtained</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody id="examMarksList"></tbody>
+                        </table>
+                        
+                        <div class="form-actions">
+                            <button class="btn btn-success" onclick="downloadMarks('${examId}')">Download</button>
+                            <button class="btn btn-secondary" onclick="loadPage('marks', event)">Back to Exams</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Populate the marks table
+            const marksList = document.getElementById('examMarksList');
+            marksList.innerHTML = '';
+            
+            if (students.length === 0) {
+                marksList.innerHTML = '<tr><td colspan="5" class="empty-state">No students available.</td></tr>';
+                return;
+            }
+            
+            students.forEach(student => {
+                const row = document.createElement('tr');
+                const marks = exam.marks && exam.marks[student.rollNo] ? exam.marks[student.rollNo] : 'Not entered';
+                const percentage = marks !== 'Not entered' && marks !== '' ? 
+                                  ((marks / exam.totalMarks) * 100).toFixed(2) + '%' : 'N/A';
+                
+                row.innerHTML = `
+                    <td>${student.rollNo}</td>
+                    <td>${student.name}</td>
+                    <td>${student.department}</td>
+                    <td>${marks}</td>
+                    <td>${percentage}</td>
+                `;
+                marksList.appendChild(row);
+            });
+        }
+        
+        function downloadMarks(examId) {
+            const exam = exams.find(e => e.id === examId);
+            if (!exam) return;
+            
+            // Create CSV content
+            let csvContent = "Roll No,Name,Department,Marks Obtained,Percentage\n";
+            
+            students.forEach(student => {
+                const marks = exam.marks && exam.marks[student.rollNo] ? exam.marks[student.rollNo] : 'Not entered';
+                const percentage = marks !== 'Not entered' && marks !== '' ? 
+                                  ((marks / exam.totalMarks) * 100).toFixed(2) + '%' : 'N/A';
+                
+                csvContent += `${student.rollNo},${student.name},${student.department},${marks},${percentage}\n`;
+            });
+            
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `${exam.name}_${exam.subject}_${exam.date}.csv`);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            showNotification('Marks downloaded successfully', 'success');
+        }
+        
+        function filterExamsByDate() {
+            const filterDate = document.getElementById('examDateFilter').value;
+            const examCards = document.querySelectorAll('.exam-card');
+            
+            examCards.forEach(card => {
+                if (!filterDate) {
+                    card.style.display = 'block';
+                    return;
+                }
+                
+                const examDateText = card.querySelector('p').textContent;
+                const examDate = examDateText.match(/Date: (\d{4}-\d{2}-\d{2})/);
+                
+                if (examDate && examDate[1] === filterDate) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+        
+        // Leave Request Functions
+        function displayLeaveRequests() {
+            const leaveList = document.getElementById('leaveList');
+            leaveList.innerHTML = '';
+            
+            if (leaveRequests.length === 0) {
+                leaveList.innerHTML = '<tr><td colspan="7" class="empty-state">No leave requests to display.</td></tr>';
+                return;
+            }
+            
+            // Sort by date (newest first)
+            const sortedRequests = [...leaveRequests].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedRequests.forEach(request => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${request.rollNo}</td>
+                    <td>${request.name}</td>
+                    <td>${request.reason}</td>
+                    <td>${request.days}</td>
+                    <td>${request.date}</td>
+                    <td class="status-${request.status}">${request.status.charAt(0).toUpperCase() + request.status.slice(1)}</td>
+                    <td>
+                        ${request.status === 'pending' ? 
+                            `<div class="action-buttons">
+                                <button class="btn btn-success" onclick="processLeave(${request.id}, 'approved')">Approve</button>
+                                <button class="btn btn-danger" onclick="processLeave(${request.id}, 'rejected')">Reject</button>
+                            </div>` : 
+                            'Processed'}
+                    </td>
+                `;
+                leaveList.appendChild(row);
+            });
+        }
+        
+        function processLeave(id, status) {
+            const request = leaveRequests.find(r => r.id === id);
+            if (request) {
+                request.status = status;
+                localStorage.setItem('leaveRequests', JSON.stringify(leaveRequests));
+                displayLeaveRequests();
+                showNotification(`Leave request ${status} for ${request.name}`, 'success');
+            }
+        }
+        
+        // Document Upload Functions
+        function initDocumentUploadPage() {
+            const fileInput = document.getElementById('fileInput');
+            const fileContainer = document.getElementById('fileContainer');
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            const fileViewer = document.getElementById('fileViewer');
+            const viewerTitle = document.getElementById('viewerTitle');
+            const viewerContent = document.getElementById('viewerContent');
+            
+            // Handle file selection
+            fileInput.addEventListener('change', function(e) {
+                const files = e.target.files;
+                
+                if (files.length === 0) return;
+                
+                // Remove empty state if it exists
+                const emptyState = fileContainer.querySelector('.empty-state');
+                if (emptyState) {
+                    emptyState.remove();
+                }
+                
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const fileObj = {
+                        name: file.name,
+                        type: file.name.split('.').pop().toLowerCase(),
+                        size: formatFileSize(file.size),
+                        date: new Date().toISOString().split('T')[0],
+                        file: file
+                    };
+                    
+                    // Create a data URL for the file
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        fileObj.dataUrl = event.target.result;
+                        uploadedDocuments.push(fileObj);
+                        localStorage.setItem('uploadedDocuments', JSON.stringify(uploadedDocuments.map(doc => {
+                            // Don't store the actual file in localStorage, just metadata
+                            return {
+                                name: doc.name,
+                                type: doc.type,
+                                size: doc.size,
+                                date: doc.date
+                            };
+                        })));
+                        addFileToList(fileObj);
+                    };
+                    reader.readAsDataURL(file);
+                }
+                
+                showNotification(`${files.length} file(s) uploaded successfully!`);
+                
+                // Reset the input
+                fileInput.value = '';
+            });
+            
+            // Add file to the list
+            function addFileToList(file) {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                
+                const fileIconClass = getFileIconClass(file.type);
+                
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-icon ${fileIconClass}">
+                            <i class="fas ${getFileIcon(file.type)}"></i>
+                        </div>
+                        <div class="file-details">
+                            <h4>${file.name}</h4>
+                            <p>${file.size} • ${file.date}</p>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <button class="action-btn download" title="Download" onclick="downloadFile('${file.name}')">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button class="action-btn delete" title="Delete" onclick="deleteFile('${file.name}')">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+                
+                // Add click event to the entire file item for preview
+                fileItem.addEventListener('click', function(e) {
+                    // Don't trigger preview if clicking on action buttons
+                    if (!e.target.closest('.file-actions')) {
+                        viewFile(file.name);
+                    }
+                });
+                
+                fileContainer.appendChild(fileItem);
+            }
+            
+            // View file in the viewer
+            window.viewFile = function(fileName) {
+                const file = uploadedDocuments.find(f => f.name === fileName);
+                if (!file) return;
+                
+                viewerTitle.textContent = file.name;
+                
+                // Clear previous content
+                viewerContent.innerHTML = '';
+                
+                // Determine how to display the file based on its type
+                if (['pdf'].includes(file.type)) {
+                    // Display PDF in iframe
+                    const iframe = document.createElement('iframe');
+                    iframe.src = file.dataUrl;
+                    viewerContent.appendChild(iframe);
+                } else if (['ppt', 'pptx'].includes(file.type)) {
+                    // For PPT files, show a message and download option
+                    const message = document.createElement('div');
+                    message.innerHTML = `
+                        <p>PowerPoint files cannot be previewed in the browser.</p>
+                        <button class="upload-btn" style="margin-top: 15px;" onclick="downloadFile('${file.name}'); closeFileViewer();">
+                            <i class="fas fa-download"></i> Download File
+                        </button>
+                    `;
+                    viewerContent.appendChild(message);
+                } else {
+                    // For other file types, show a message and download option
+                    const message = document.createElement('div');
+                    message.innerHTML = `
+                        <p>This file type cannot be previewed in the browser.</p>
+                        <button class="upload-btn" style="margin-top: 15px;" onclick="downloadFile('${file.name}'); closeFileViewer();">
+                            <i class="fas fa-download"></i> Download File
+                        </button>
+                    `;
+                    viewerContent.appendChild(message);
+                }
+                
+                // Show the viewer
+                fileViewer.style.display = 'block';
+            };
+            
+            // Close file viewer
+            window.closeFileViewer = function() {
+                fileViewer.style.display = 'none';
+            };
+            
+            // Download file
+            window.downloadFile = function(fileName) {
+                const file = uploadedDocuments.find(f => f.name === fileName);
+                if (!file) return;
+                
+                // Create a temporary link to trigger download
+                const a = document.createElement('a');
+                a.href = file.dataUrl;
+                a.download = file.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                showNotification(`Downloading ${file.name}...`);
+            };
+            
+            // Delete file
+            window.deleteFile = function(fileName) {
+                const fileIndex = uploadedDocuments.findIndex(f => f.name === fileName);
+                if (fileIndex === -1) return;
+                
+                // Remove from array
+                uploadedDocuments.splice(fileIndex, 1);
+                
+                // Update localStorage
+                localStorage.setItem('uploadedDocuments', JSON.stringify(uploadedDocuments.map(doc => {
+                    return {
+                        name: doc.name,
+                        type: doc.type,
+                        size: doc.size,
+                        date: doc.date
+                    };
+                })));
+                
+                // Find and remove the file item from the DOM
+                const fileItems = fileContainer.querySelectorAll('.file-item');
+                fileItems.forEach(item => {
+                    if (item.querySelector('h4').textContent === fileName) {
+                        item.remove();
+                    }
+                });
+                
+                showNotification(`${fileName} has been deleted.`, true);
+                
+                // Show empty state if no files left
+                if (uploadedDocuments.length === 0) {
+                    fileContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-folder-open"></i>
+                            <p>No documents uploaded yet. Use the upload section above to add files.</p>
+                        </div>
+                    `;
+                }
+            };
+            
+            // Get file icon class based on file type
+            function getFileIconClass(type) {
+                if (['pdf'].includes(type)) return 'pdf';
+                if (['ppt', 'pptx'].includes(type)) return 'ppt';
+                return 'default';
+            }
+            
+            // Get file icon based on file type
+            function getFileIcon(type) {
+                if (['pdf'].includes(type)) return 'fa-file-pdf';
+                if (['ppt', 'pptx'].includes(type)) return 'fa-file-powerpoint';
+                return 'fa-file';
+            }
+            
+            // Format file size
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+            
+            // Show notification
+            function showNotification(message, isError = false) {
+                notificationText.textContent = message;
+                
+                if (isError) {
+                    notification.classList.add('error');
+                } else {
+                    notification.classList.remove('error');
+                }
+                
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            // Close viewer when clicking outside the content
+            fileViewer.addEventListener('click', function(e) {
+                if (e.target === fileViewer) {
+                    closeFileViewer();
+                }
+            });
+        }
+        
+        // Utility Functions
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

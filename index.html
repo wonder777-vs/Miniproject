@@ -1,130 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>ERP Login</title>
-  </head>
-<body>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-image: url('./bg.jpg');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-      color: rgb(255, 0, 212);
-    }
-    .overlay {
-      background-color: rgba(0, 0, 0, 0.6);
-      min-height: 100vh;
-    }
-    .header, .footer {
-      text-align: center;
-      padding: 15px;
-      background-color: #0a003d;
-      color: white;
-      font-weight: bold;
-      border-top: 2px solid #ff0080c5;
-      border-bottom: 2px solid #ff007f;
-    }
-    .center-content {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      gap: 40px;
-      padding: 50px 20px;
-    }
-    .login-box {
-      width: 100%;
-      max-width: 400px;
-      padding: 30px;
-      border-radius: 12px;
-      background-color: #1a004d;
-      border: 2px solid #ff007f;
-      box-shadow: 0 0 100px rgba(0, 0, 0, 0.6);
-    }
-    .login-box h2 {
-      text-align: center;
-      color: #ff007f;
-      margin-bottom: 20px;
-    }
-    .login-box input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 6px;
-      border: 1px solid #00bfff;
-      background-color: #0f0133;
-      color: white;
-    }
-    .login-box button {
-      width: 100%;
-      padding: 10px;
-      background-color: #ff007f;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s;
-    }
-    .login-box button:hover {
-      background-color: #ff3399;
-      transform: scale(1.05);
-    }
-    .video-box {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    .video-box video {
-      width: 100%;
-      max-width: 320px;
-      height: auto;
-      border-radius: 12px;
-      border: 2px solid #00bfff;
-      box-shadow: 0 0 20px rgba(0, 191, 255, 0.7);
-    }
-    label {
-      color: #00bfff;
-      font-weight: bold;
-    }
-  </style>
-  <div class="overlay">
-    <!-- Header -->
-    <div class="header">
-      <h1>MEPCO SCHLENK ENGINEERING COLLEGE</h1>
-      <p>MEPCO - College ERP System</p>
-    </div>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - MEPCO ERP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #f2d7ee, #c6e7f0, #b5e3c3);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-    <!-- Center Content -->
-    <div class="center-content">
-      <!-- Login Box -->
-      <div class="login-box">
-        <!-- Video on Top -->
-        <div class="video-box">
-          <video autoplay muted loop>
-            <source src="erp-video.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
+        .login-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 400px;
+            max-width: 90%;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #343a40;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #6c757d;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4a6bdf;
+            box-shadow: 0 0 0 2px rgba(74, 107, 223, 0.25);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #ff9a9e, #fad0c4);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo i {
+            font-size: 48px;
+            color: #4a6bdf;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <i class="fas fa-graduation-cap"></i>
+        </div>
+        <div class="login-header">
+            <h1>MEPCO ERP</h1>
+            <p>Student Information System</p>
         </div>
 
-        <h2>🔐 Login</h2>
+        <!-- Error message display -->
+        <div id="errorContainer"></div>
 
-        <form id="loginForm" method="post" action="/post">
-          <label for="username">Username</label>
-          <input type="text" id="username" name="username" required placeholder="Enter your username">
-
-          <label for="password">Password</label>
-          <input type="password" id="password" name="password" required placeholder="Enter your password">
-
-         <button type="submit">Login</button>
+        <form action="/post" method="POST">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
         </form>
-      </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for error parameter in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            
+            if (error === 'notfound') {
+                showError('Student not found. Please check your admission number.');
+            }
+            
+            function showError(message) {
+                const errorContainer = document.getElementById('errorContainer');
+                errorContainer.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i> ${message}
+                    </div>
+                `;
+            }
+        });
+    </script>
 </body>
 </html>

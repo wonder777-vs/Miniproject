@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>College ERP Admin Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(to right, #f2d7ee, #c6e7f0, #b5e3c3);
-      color: #333;
+      min-height: 100vh;
     }
     header {
       display: flex;
@@ -17,29 +18,43 @@
       align-items: center;
       padding: 15px 30px;
       background: linear-gradient(to right, #d66d9b, #7d77ff);
-      color: white;
+      color: #fff;
       font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    header h2 {
-      margin: 0;
-    }
-    .user-profile {
+    header h2 { margin: 0; }
+    .profile {
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    .user-profile img {
-      width: 32px;
-      height: 32px;
+    .user-avatar {
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
     }
     .container {
+      margin: 20px;
+      background: rgba(255,255,255,0.85);
       padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
     }
-    h3 {
-      margin-bottom: 15px;
-      font-size: 24px;
-      font-weight: bold;
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    h3 { 
+      color: #7b1fa2; 
+      margin: 0;
     }
     .stats {
       display: grid;
@@ -87,6 +102,10 @@
       border-radius: 20px;
       cursor: pointer;
       font-weight: bold;
+      transition: all 0.2s;
+    }
+    .action-card button:hover {
+      background: #e91e63;
     }
     .recent {
       background: white;
@@ -111,66 +130,85 @@
       border: none;
       cursor: pointer;
       font-weight: bold;
+      transition: all 0.2s;
     }
+    .generate-report:hover {
+      background: #e91e63;
+    }
+    
     /* Modal Styles */
     .modal-bg {
       display: none;
       position: fixed;
-      z-index: 2000; /* ensures modal stays on top */
-      left: 0; top: 0;
-      width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.3);
+      z-index: 2000;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
       justify-content: center;
       align-items: center;
     }
     .modal {
-      background: #fff;
+      background: white;
       border-radius: 15px;
-      padding: 30px 20px 20px 20px;
-      width: 95vw;
-      max-width: 500px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      position: relative;
+      padding: 25px;
+      width: 500px;
       max-height: 90vh;
       overflow-y: auto;
-      z-index: 3000;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
     }
-    .modal h4 {
-      margin-top: 0;
-      color: #ad1457;
+    .modal h3 { 
+      margin-top: 0; 
+      color: #7b1fa2;
       margin-bottom: 20px;
-      text-align: center;
     }
-    .modal label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: 500;
+    .modal label { 
+      display: block; 
+      margin-top: 15px; 
+      font-weight: bold;
+      color: #333;
     }
     .modal input, .modal select, .modal textarea {
       width: 100%;
-      padding: 8px;
-      margin-bottom: 15px;
-      border-radius: 6px;
-      border: 1px solid #ad1457;
-      font-size: 1rem;
-      box-sizing: border-box;
-    }
-    .modal textarea {
-      resize: vertical;
-    }
-    .modal-footer {
-      text-align: right;
-      margin-top: 10px;
-    }
-    .modal-footer button {
-      padding: 8px 16px;
+      padding: 12px;
+      margin-top: 5px;
       border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    .modal input:focus, .modal select:focus, .modal textarea:focus {
+      outline: none;
+      border-color: #7b1fa2;
+      box-shadow: 0 0 0 2px rgba(123, 31, 162, 0.2);
+    }
+    .modal-actions { 
+      text-align: right; 
+      margin-top: 25px;
+    }
+    .modal-actions .btn { 
+      margin-left: 8px;
       border: none;
-      background: #ff4fa0;
-      color: #fff;
+      border-radius: 20px;
+      padding: 10px 18px;
       font-weight: bold;
       cursor: pointer;
-      margin-left: 10px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-cancel {
+      background: #6c757d;
+      color: white;
+    }
+    .btn-cancel:hover {
+      background: #5a6268;
+    }
+    .btn-save {
+      background: #e91e63;
+      color: white;
+    }
+    .btn-save:hover {
+      background: #d81b60;
     }
     .modal .close-btn {
       position: absolute;
@@ -181,77 +219,87 @@
       color: #ad1457;
       cursor: pointer;
     }
-    @media (max-width: 600px) {
-      .modal { max-width: 95vw; padding: 10px; }
+    
+    /* Notification Styles */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 4px;
+      color: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 3000;
+      transform: translateX(150%);
+      transition: transform 0.3s ease;
+    }
+    .notification.show {
+      transform: translateX(0);
+    }
+    .notification.success {
+      background-color: #4caf50;
+    }
+    .notification.error {
+      background-color: #f44336;
+    }
+    .notification.warning {
+      background-color: #ffc107;
+      color: #333;
     }
   </style>
 </head>
 <body>
   <header>
-    <h2>🎓 College ERP Admin Dashboard</h2>
-    <div class="user-profile">
-      <span>Alex Johnson</span>
-      <img src="https://via.placeholder.com/32" alt="profile">
+    <h2><i class="fas fa-graduation-cap"></i> College ERP Admin Dashboard</h2>
+    <div class="profile">
+      <span>Admin User</span>
+      <div class="user-avatar">AU</div>
     </div>
   </header>
 
-  <button class="generate-report">⬇ Generate Report</button>
-
   <div class="container">
-    <h3>Dashboard</h3>
+    <div class="page-header">
+      <h3>Dashboard</h3>
+    </div>
+    
     <div class="stats">
-      <div class="card" style="border-left: 6px solid #ff4fa0;">
-        <h4>STUDENTS</h4>
+      <div class="card">
+        <h4><i class="fas fa-user-graduate"></i> STUDENTS</h4>
         <p>2,453</p>
-        <span class="green">↑ 12% from last month</span>
       </div>
-      <div class="card" style="border-left: 6px solid #63d471;">
-        <h4>FACULTY</h4>
+      <div class="card">
+        <h4><i class="fas fa-chalkboard-teacher"></i> FACULTY</h4>
         <p>156</p>
-        <span class="green">↑ 3% from last month</span>
       </div>
-      <div class="card" style="border-left: 6px solid #63c6f9;">
-        <h4>COURSES</h4>
+      <div class="card">
+        <h4><i class="fas fa-book"></i> COURSES</h4>
         <p>42</p>
-        <span class="green">↑ 5% from last month</span>
       </div>
-      <div class="card" style="border-left: 6px solid #ffb84f;">
-        <h4>PENDING FEES</h4>
+      <div class="card">
+        <h4><i class="fas fa-money-check-alt"></i> PENDING FEES</h4>
         <p>$18,230</p>
-        <span class="red">↓ 8% from last month</span>
       </div>
     </div>
-    <h3>Quick Actions</h3>
+    
+    <div class="page-header">
+      <h3>Quick Actions</h3>
+    </div>
+    
     <div class="actions">
       <div class="action-card">
-        <h4>Add Student</h4>
+        <h4><i class="fas fa-user-plus"></i> Add Student</h4>
         <p>Register a new student in the system</p>
-        <button id="addStudentBtn">Add Now</button>
-      </div>
-     <div class="action-card">
-        <h4>Add Faculty</h4>
-        <p>Add a new faculty member</p>
-        <button id="addFacultyBtn">Add Now</button>
+        <button id="addStudentBtn"><i class="fas fa-plus"></i> Add Now</button>
       </div>
       <div class="action-card">
-        <h4>Create Course</h4>
+        <h4><i class="fas fa-user-tie"></i> Add Faculty</h4>
+        <p>Add a new faculty member</p>
+        <button id="addFacultyBtn"><i class="fas fa-plus"></i> Add Now</button>
+      </div>
+      <div class="action-card">
+        <h4><i class="fas fa-book-open"></i> Create Course</h4>
         <p>Create a new course</p>
-        <button id="createCourseBtn">Create Now</button>
-      </div>
-    </div>
-    <h3>Recent Activities</h3>
-    <div class="recent">
-      <div class="activity">
-        <strong>New student registration <span style="float:right; color:#777;">3 mins ago</span></strong>
-        Emma Wilson registered for Computer Science
-      </div>
-      <div class="activity">
-        <strong>Fee payment received <span style="float:right; color:#777;">1 hour ago</span></strong>
-        Michael Brown paid $2,500 for tuition
-      </div>
-      <div class="activity">
-        <strong>New faculty added <span style="float:right; color:#777;">2 hours ago</span></strong>
-        Dr. Sarah Davis joined Mathematics department
+        <button id="createCourseBtn"><i class="fas fa-plus"></i> Create Now</button>
       </div>
     </div>
   </div>
@@ -260,7 +308,7 @@
   <div class="modal-bg" id="addStudentModal">
     <div class="modal">
       <button class="close-btn" onclick="closeModal('addStudentModal')">&times;</button>
-      <h4>Add Student</h4>
+      <h3>Add Student</h3>
       <form id="studentForm">
         <label>Name</label>
         <input type="text" name="name" required>
@@ -284,9 +332,9 @@
         <label>Caste</label>
         <input type="text" name="caste">
         <label>Admission Number</label>
-        <input type="text" name="admissionno">
+        <input type="text" name="admissionno" required>
         <label>Roll Number</label>
-        <input type="text" name="rollno">
+        <input type="text" name="rollno" required>
         <label>Register No</label>
         <input type="text" name="registerno">
         <label>Aadhar No</label>
@@ -298,11 +346,9 @@
         <label>UMIS No</label>
         <input type="text" name="umisno">
         <label>Department</label>
-        <input type="text" name="department">
-        <label>Semester</label>
-        <input type="text" name="semester">
+        <input type="text" name="department" required>
         <label>12th Percentage</label>
-        <input type="text" name="twelfth">
+        <input type="text" name="tweleve">
         <label>SSLC Percentage</label>
         <input type="text" name="sslc">
         <label>Father's Name</label>
@@ -317,13 +363,17 @@
           <option>Hostel</option>
           <option>Day Scholar</option>
         </select>
+        <label>Course</label>
+        <input type="text" name="course" required>
+        <label>Year</label>
+        <input type="text" name="year" required>
         <label>Scholarship</label>
         <input type="text" name="scholarship">
         <label>Address</label>
         <textarea name="address" rows="2"></textarea>
-        <div class="modal-footer">
-          <button type="button" onclick="closeModal('addStudentModal')">Cancel</button>
-          <button type="submit">Add</button>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-cancel" onclick="closeModal('addStudentModal')">Cancel</button>
+          <button type="submit" class="btn btn-save"><i class="fas fa-save"></i> Add Student</button>
         </div>
       </form>
     </div>
@@ -332,17 +382,17 @@
   <!-- Add Faculty Modal -->
   <div class="modal-bg" id="addFacultyModal">
     <div class="modal">
-        <button class="close-btn" onclick="closeModal('addFacultyModal')">&times;</button>
-        <h4>Add Faculty</h4>
-        <form id="facultyForm">
+      <button class="close-btn" onclick="closeModal('addFacultyModal')">&times;</button>
+      <h3>Add Faculty</h3>
+      <form id="facultyForm">
         <label>Full Name</label>
         <input type="text" name="name" required>
         <label>Gender</label>
         <select name="gender" required>
-            <option value="">Select</option>
-            <option>Male</option>
-            <option>Female</option>
-            <option>Other</option>
+          <option value="">Select</option>
+          <option>Male</option>
+          <option>Female</option>
+          <option>Other</option>
         </select>
         <label>Date of Birth</label>
         <input type="date" name="dob" required>
@@ -356,6 +406,8 @@
         <input type="text" name="department" required>
         <label>Designation</label>
         <input type="text" name="designation">
+        <label>ID</label>
+        <input type="text" name="id" required>
         <label>Educational Qualifications</label>
         <textarea name="education" rows="2" placeholder="Degrees, universities, years"></textarea>
         <label>Professional Experience</label>
@@ -368,9 +420,9 @@
         <textarea name="courses" rows="2" placeholder="Course names, codes, semesters"></textarea>
         <label>Student Performance (Summary)</label>
         <textarea name="performance" rows="2" placeholder="Student results, feedback, achievements"></textarea>
-        <div class="modal-footer">
-            <button type="button" onclick="closeModal('addFacultyModal')">Cancel</button>
-            <button type="submit">Add</button>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-cancel" onclick="closeModal('addFacultyModal')">Cancel</button>
+          <button type="submit" class="btn btn-save"><i class="fas fa-save"></i> Add Faculty</button>
         </div>
       </form>
     </div>
@@ -380,31 +432,41 @@
   <div class="modal-bg" id="addCourseModal">
     <div class="modal">
       <button class="close-btn" onclick="closeModal('addCourseModal')">&times;</button>
-      <h4>Create Course</h4>
+      <h3>Create Course</h3>
       <form id="courseForm">
-        <label>Course Title</label>
-        <input type="text" name="title" required>
-        <label>Audience (Who is this course for?)</label>
-        <textarea name="audience" rows="2" required></textarea>
-        <label>Course Objectives</label>
-        <textarea name="objectives" rows="2" required></textarea>
-        <label>Topics/Modules</label>
-        <textarea name="topics" rows="2" required placeholder="List topics or modules"></textarea>
-        <label>Learning Activities</label>
-        <textarea name="activities" rows="2" required placeholder="Lectures, labs, group work, etc."></textarea>
+        <label>Course ID</label>
+        <input type="text" name="id" required>
+        <label>Course Name</label>
+        <input type="text" name="name" required>
+        <label>Department</label>
+        <input type="text" name="dept" required>
+        <label>Credits</label>
+        <input type="number" name="credits" required min="1" max="10">
+        <label>Duration</label>
+        <input type="text" name="duration" required placeholder="e.g., 1 Semester">
+        <label>Status</label>
+        <select name="status" required>
+          <option value="">Select Status</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+          <option value="Pending Approval">Pending Approval</option>
+        </select>
         <label>Assessments & Assignments</label>
-        <textarea name="assessments" rows="2" required placeholder="Quizzes, exams, projects, etc."></textarea>
-        <div class="modal-footer">
-          <button type="button" onclick="closeModal('addCourseModal')">Cancel</button>
-          <button type="submit">Add</button>
+        <textarea name="assessments" rows="2" placeholder="Quizzes, exams, projects, etc."></textarea>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-cancel" onclick="closeModal('addCourseModal')">Cancel</button>
+          <button type="submit" class="btn btn-save"><i class="fas fa-save"></i> Add Course</button>
         </div>
       </form>
     </div>
   </div>
 
+  <!-- Notification -->
+  <div class="notification" id="notification"></div>
+
   <script>
   document.querySelector('.generate-report').addEventListener('click', function() {
-    alert('Report generated successfully!');
+    showNotification('Report generated successfully!', 'success');
   });
 
   function showModal(id) {
@@ -418,59 +480,128 @@
     if (form) form.reset();
   }
 
-  // 🔹 Button click events to open modals
+  // Button click events to open modals
   document.getElementById('addStudentBtn').addEventListener('click', () => showModal('addStudentModal'));
   document.getElementById('addFacultyBtn').addEventListener('click', () => showModal('addFacultyModal'));
   document.getElementById('createCourseBtn').addEventListener('click', () => showModal('addCourseModal'));
 
-  // 🔹 Student modal form submission
+  // Show notification
+  function showNotification(message, type = 'success') {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.className = `notification ${type}`;
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+      notification.classList.remove('show');
+    }, 3000);
+  }
+
+  // Student modal form submission
   document.getElementById('studentForm').onsubmit = async function(e) {
     e.preventDefault();
-    const data = Object.fromEntries(new FormData(e.target).entries());
+    const formData = new FormData(e.target);
+    const data = {};
+    
+    // Convert FormData to a plain object
+    for (let [key, value] of formData.entries()) {
+      data[key] = value;
+    }
 
-    let res = await fetch("http://localhost:3000/students", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
+    try {
+      const response = await fetch("/students", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
 
-    let result = await res.json();
-    alert(result.message);
-    closeModal('addStudentModal');
+      const result = await response.json();
+      
+      if (response.ok) {
+        showNotification(result.message || 'Student added successfully!');
+        closeModal('addStudentModal');
+      } else {
+        showNotification(result.message || 'Failed to add student', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showNotification('Network error. Please try again.', 'error');
+    }
   };
 
-  // 🔹 Faculty modal form submission
+  // Faculty modal form submission
   document.getElementById('facultyForm').onsubmit = async function(e) {
     e.preventDefault();
-    const data = Object.fromEntries(new FormData(e.target).entries());
+    const formData = new FormData(e.target);
+    const data = {};
+    
+    // Convert FormData to a plain object
+    for (let [key, value] of formData.entries()) {
+      data[key] = value;
+    }
 
-    let res = await fetch("http://localhost:3000/faculty", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
+    try {
+      const response = await fetch("/faculty", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
 
-    let result = await res.json();
-    alert(result.message);
-    closeModal('addFacultyModal');
+      const result = await response.json();
+      
+      if (response.ok) {
+        showNotification(result.message || 'Faculty added successfully!');
+        closeModal('addFacultyModal');
+      } else {
+        showNotification(result.message || 'Failed to add faculty', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showNotification('Network error. Please try again.', 'error');
+    }
   };
 
-  // 🔹 Course modal form submission
+  // Course modal form submission
   document.getElementById('courseForm').onsubmit = async function(e) {
     e.preventDefault();
-    const data = Object.fromEntries(new FormData(e.target).entries());
+    const formData = new FormData(e.target);
+    const data = {};
+    
+    // Convert FormData to a plain object
+    for (let [key, value] of formData.entries()) {
+      data[key] = value;
+    }
+    
+    // Convert credits to number
+    if (data.credits) {
+      data.credits = parseInt(data.credits);
+    }
 
-    let res = await fetch("http://localhost:3000/courses", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
+    try {
+      const response = await fetch("/courses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
 
-    let result = await res.json();
-    alert(result.message);
-    closeModal('addCourseModal');
+      const result = await response.json();
+      
+      if (response.ok) {
+        showNotification(result.message || 'Course added successfully!');
+        closeModal('addCourseModal');
+      } else {
+        showNotification(result.message || 'Failed to add course', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showNotification('Network error. Please try again.', 'error');
+    }
   };
+  window.onload = function() {
+  document.getElementById('addStudentBtn').addEventListener('click', () => showModal('addStudentModal'));
+  document.getElementById('addFacultyBtn').addEventListener('click', () => showModal('addFacultyModal'));
+  document.getElementById('createCourseBtn').addEventListener('click', () => showModal('addCourseModal'));
+};
 </script>
-
 </body>
 </html>

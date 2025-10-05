@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <title>College ERP - Faculty Management</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(to right, #f2d7ee, #c6e7f0, #b5e3c3);
+      min-height: 100vh;
     }
     header {
       display: flex;
@@ -17,12 +19,24 @@
       background: linear-gradient(to right, #d66d9b, #7d77ff);
       color: #fff;
       font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     header h2 { margin: 0; }
     .profile {
       display: flex;
       align-items: center;
       gap: 10px;
+    }
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
     }
     .container {
       margin: 20px;
@@ -31,21 +45,35 @@
       border-radius: 15px;
       box-shadow: 0 6px 15px rgba(0,0,0,0.1);
     }
-    h3 { color: #7b1fa2; }
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    h3 { 
+      color: #7b1fa2; 
+      margin: 0;
+    }
     .btn {
       border: none;
       border-radius: 20px;
       padding: 10px 18px;
       font-weight: bold;
       cursor: pointer;
-      transition: 0.2s;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
     .btn-add {
       background: #e91e63;
       color: #fff;
-      float: right;
     }
-    .btn-add:hover { background: #d81b60; }
+    .btn-add:hover { 
+      background: #d81b60;
+      transform: scale(1.05);
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -56,16 +84,31 @@
       text-align: left;
       border-bottom: 1px solid #ddd;
     }
-    table th { color: #a00052; }
+    table th { 
+      color: #a00052;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+    }
     .status {
       padding: 5px 10px;
       border-radius: 12px;
       font-size: 0.8em;
       font-weight: bold;
     }
-    .active { background: #4caf50; color: white; }
-    .onleave { background: #ffc107; color: black; }
-    .inactive { background: #f44336; color: white; }
+    .active { 
+      background: #4caf50; 
+      color: white; 
+    }
+    .onleave {  
+      background: #ffc107; 
+      color: black; 
+    }
+    .inactive {  
+      background: #f44336; 
+      color: white; 
+    }
     .actions button {
       border: none;
       border-radius: 50%;
@@ -73,10 +116,39 @@
       margin: 0 2px;
       cursor: pointer;
       color: white;
+      transition: all 0.2s;
     }
-    .view { background: #00bcd4; }
-    .edit { background: #ff9800; }
-    .delete { background: #f44336; }
+    .view { 
+      background: #00bcd4; 
+    }
+    .view:hover {
+      background: #0097a7;
+      transform: scale(1.1);
+    }
+    .edit { 
+      background: #ff9800; 
+    }
+    .edit:hover {
+      background: #fb8c00;
+      transform: scale(1.1);
+    }
+    .delete { 
+      background: #f44336; 
+    }
+    .delete:hover {
+      background: #e53935;
+      transform: scale(1.1);
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+    }
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      color: #ccc;
+    }
 
     /* Modal Styles */
     .modal-bg {
@@ -93,66 +165,156 @@
       background: white;
       border-radius: 15px;
       padding: 25px;
-      width: 400px;
+      width: 500px;
       max-height: 90vh;
       overflow-y: auto;
       box-shadow: 0 6px 20px rgba(0,0,0,0.2);
     }
-    .modal h3 { margin-top: 0; color: #7b1fa2; }
-    .modal label { display: block; margin-top: 10px; font-weight: bold; }
+    .modal h3 { 
+      margin-top: 0; 
+      color: #7b1fa2;
+      margin-bottom: 20px;
+    }
+    .modal label { 
+      display: block; 
+      margin-top: 15px; 
+      font-weight: bold;
+      color: #333;
+    }
     .modal input, .modal select {
       width: 100%;
-      padding: 8px;
+      padding: 12px;
       margin-top: 5px;
       border-radius: 8px;
       border: 1px solid #ccc;
+      font-size: 1rem;
     }
-    .modal-actions { text-align: right; margin-top: 15px; }
-    .modal-actions .btn { margin-left: 8px; }
+    .modal input:focus, .modal select:focus {
+      outline: none;
+      border-color: #7b1fa2;
+      box-shadow: 0 0 0 2px rgba(123, 31, 162, 0.2);
+    }
+    .modal-actions { 
+      text-align: right; 
+      margin-top: 25px;
+    }
+    .modal-actions .btn { 
+      margin-left: 8px;
+    }
+    .btn-cancel {
+      background: #6c757d;
+      color: white;
+    }
+    .btn-cancel:hover {
+      background: #5a6268;
+    }
+    .btn-save {
+      background: #e91e63;
+      color: white;
+    }
+    .btn-save:hover {
+      background: #d81b60;
+    }
+
+    /* Notification Styles */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 4px;
+      color: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 3000;
+      transform: translateX(150%);
+      transition: transform 0.3s ease;
+    }
+    .notification.show {
+      transform: translateX(0);
+    }
+    .notification.success {
+      background-color: #4caf50;
+    }
+    .notification.error {
+      background-color: #f44336;
+    }
+    .notification.warning {
+      background-color: #ffc107;
+      color: #333;
+    }
   </style>
 </head>
 <body>
 
 <header>
-  <h2>📘 College ERP Admin Dashboard</h2>
+  <h2><i class="fas fa-graduation-cap"></i> College ERP Admin Dashboard</h2>
   <div class="profile">
-    <span>Alex Johnson</span>
-    <img src="https://i.pravatar.cc/40" class="avatar" />
+    <span>Admin User</span>
+    <div class="user-avatar">AU</div>
   </div>
 </header>
 
 <div class="container">
-  <h3>Faculty Management</h3>
-  <button class="btn btn-add" onclick="openAddFaculty()">➕ Add New Faculty</button>
-
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th><th>Name</th><th>Email</th><th>Department</th><th>Designation</th><th>Status</th><th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="facultyTable"></tbody>
-  </table>
+  <div class="page-header">
+    <h3>Faculty Management</h3>
+    <button class="btn btn-add" onclick="openAddFaculty()">
+      <i class="fas fa-plus"></i> Add Faculty
+    </button>
+  </div>
+  
+  <div id="facultyTableContainer">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Department</th>
+          <th>Designation</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="facultyTable"></tbody>
+    </table>
+    <div class="empty-state" id="emptyState">
+      <i class="fas fa-chalkboard-teacher"></i>
+      <p>No faculty available. Faculty added from the dashboard will appear here.</p>
+    </div>
+  </div>
 </div>
 
 <!-- Add/Edit Faculty Modal -->
 <div class="modal-bg" id="facultyModal">
   <div class="modal">
     <h3 id="modalTitle">Add Faculty</h3>
-    <label>ID</label><input type="text" id="facId" />
-    <label>Name</label><input type="text" id="facName" />
-    <label>Email</label><input type="email" id="facEmail" />
-    <label>Department</label><input type="text" id="facDept" />
-    <label>Designation</label><input type="text" id="facDesig" />
+    <label>ID</label>
+    <input type="text" id="facId" />
+    
+    <label>Name</label>
+    <input type="text" id="facName" />
+    
+    <label>Email</label>
+    <input type="email" id="facEmail" />
+    
+    <label>Department</label>
+    <input type="text" id="facDept" />
+    
+    <label>Designation</label>
+    <input type="text" id="facDesig" />
+    
     <label>Status</label>
     <select id="facStatus">
       <option>Active</option>
       <option>On Leave</option>
       <option>Inactive</option>
     </select>
+    
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-add" onclick="saveFaculty()">Save</button>
+      <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-save" onclick="saveFaculty()">
+        <i class="fas fa-save"></i> Save
+      </button>
     </div>
   </div>
 </div>
@@ -163,45 +325,69 @@
     <h3>Faculty Details</h3>
     <div id="viewContent"></div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal()">Close</button>
+      <button class="btn btn-cancel" onclick="closeModal()">Close</button>
     </div>
   </div>
 </div>
 
-<script>
-  // Load faculties from localStorage
-  let faculties = JSON.parse(localStorage.getItem('faculties')) || [
-    {id:"FAC001", name:"Dr. Sarah Davis", email:"sarah.davis@example.com", dept:"Computer Science", desig:"Professor", status:"Active"},
-    {id:"FAC002", name:"Dr. James Miller", email:"james.miller@example.com", dept:"Mathematics", desig:"Associate Professor", status:"Active"},
-    {id:"FAC003", name:"Dr. Olivia Taylor", email:"olivia.taylor@example.com", dept:"Physics", desig:"Assistant Professor", status:"On Leave"}
-  ];
+<!-- Notification -->
+<div class="notification" id="notification"></div>
 
+<script>
+  let faculties = [];
   let editingIndex = null;
+
+  async function fetchFaculties() {
+    try {
+      showNotification("Loading faculty...", "warning");
+      const res = await fetch("http://localhost:3000/faculty");
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+      
+      faculties = await res.json();
+      renderTable();
+      showNotification("Faculty loaded successfully!", "success");
+    } catch (error) {
+      console.error("Error fetching faculty", error);
+      showNotification("Failed to load faculty. Please try again.", "error");
+    }
+  }
 
   function renderTable() {
     const tbody = document.getElementById('facultyTable');
+    const emptyState = document.getElementById('emptyState');
+    
     tbody.innerHTML = '';
+    
+    if (faculties.length === 0) {
+      emptyState.style.display = 'block';
+      return;
+    }
+    
+    emptyState.style.display = 'none';
+    
     faculties.forEach((fac, index) => {
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${fac.id}</td>
         <td>${fac.name}</td>
         <td>${fac.email}</td>
-        <td>${fac.dept}</td>
-        <td>${fac.desig}</td>
-        <td><span class="status ${fac.status.replace(" ","").toLowerCase()}">${fac.status}</span></td>
+        <td>${fac.department}</td>
+        <td>${fac.designation}</td>
+        <td><span class="status ${fac.status.toLowerCase().replace(' ', '')}">${fac.status}</span></td>
         <td class="actions">
-          <button class="view" onclick="viewFaculty(${index})">👁</button>
-          <button class="edit" onclick="editFaculty(${index})">✏</button>
-          <button class="delete" onclick="deleteFaculty(${index})">🗑</button>
+          <button class="edit" onclick="editFaculty(${index})" title="Edit">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="delete" onclick="deleteFaculty(${index})" title="Delete">
+            <i class="fas fa-trash"></i>
+          </button>
         </td>
       `;
       tbody.appendChild(row);
     });
-  }
-
-  function saveToLocalStorage() {
-    localStorage.setItem('faculties', JSON.stringify(faculties));
   }
 
   function openAddFaculty() {
@@ -223,65 +409,120 @@
     document.getElementById('facId').value = fac.id;
     document.getElementById('facName').value = fac.name;
     document.getElementById('facEmail').value = fac.email;
-    document.getElementById('facDept').value = fac.dept;
-    document.getElementById('facDesig').value = fac.desig;
+    document.getElementById('facDept').value = fac.department;
+    document.getElementById('facDesig').value = fac.designation;
     document.getElementById('facStatus').value = fac.status;
     document.getElementById('facultyModal').style.display = 'flex';
   }
 
   function viewFaculty(index) {
     const fac = faculties[index];
-    const content = `
-      <p><b>ID:</b> ${fac.id}</p>
-      <p><b>Name:</b> ${fac.name}</p>
-      <p><b>Email:</b> ${fac.email}</p>
-      <p><b>Department:</b> ${fac.dept}</p>
-      <p><b>Designation:</b> ${fac.desig}</p>
-      <p><b>Status:</b> ${fac.status}</p>
+    document.getElementById('viewContent').innerHTML = `
+      <p><strong>ID:</strong> ${fac.id}</p>
+      <p><strong>Name:</strong> ${fac.name}</p>
+      <p><strong>Email:</strong> ${fac.email}</p>
+      <p><strong>Department:</strong> ${fac.department}</p>
+      <p><strong>Designation:</strong> ${fac.designation}</p>
+      <p><strong>Status:</strong> ${fac.status}</p>
     `;
-    document.getElementById('viewContent').innerHTML = content;
     document.getElementById('viewModal').style.display = 'flex';
   }
 
-  function deleteFaculty(index) {
-    if (confirm('Are you sure you want to delete this faculty?')) {
-      faculties.splice(index, 1);
-      saveToLocalStorage();
-      renderTable();
+  async function deleteFaculty(index) {
+    const fac = faculties[index];
+    if (confirm(`Are you sure you want to delete ${fac.name}?`)) {
+      try {
+        showNotification("Deleting faculty...", "warning");
+        let res = await fetch(`http://localhost:3000/faculty/${fac.id}`, {
+          method: "DELETE"
+        });
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+        
+        let result = await res.json();
+        showNotification(result.message, "success");
+        fetchFaculties();
+      } catch (err) {
+        console.error("Error deleting faculty", err);
+        showNotification("Failed to delete faculty. Please try again.", "error");
+      }
     }
   }
 
-  function saveFaculty() {
+  async function saveFaculty() {
     const id = document.getElementById('facId').value.trim();
     const name = document.getElementById('facName').value.trim();
     const email = document.getElementById('facEmail').value.trim();
-    const dept = document.getElementById('facDept').value.trim();
-    const desig = document.getElementById('facDesig').value.trim();
+    const department = document.getElementById('facDept').value.trim();
+    const designation = document.getElementById('facDesig').value.trim();
     const status = document.getElementById('facStatus').value;
 
-    if (!id || !name || !email || !dept || !desig) {
-      alert('Please fill all fields.');
+    if (!id || !name || !email || !department || !designation) {
+      showNotification("Please fill all required fields.", "warning");
       return;
     }
 
-    const newFac = { id, name, email, dept, desig, status };
+    const newFaculty = { id, name, email, department, designation, status };
 
-    if (editingIndex !== null) {
-      faculties[editingIndex] = newFac;
-    } else {
-      faculties.push(newFac);
+    try {
+      if (editingIndex !== null) {
+        showNotification("Updating faculty...", "warning");
+        let res = await fetch(`http://localhost:3000/faculty/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newFaculty)
+        });
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+        
+        let result = await res.json();
+        showNotification(result.message, "success");
+      } else {
+        showNotification("Adding faculty...", "warning");
+        let res = await fetch("http://localhost:3000/faculty", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newFaculty)
+        });
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+        
+        let result = await res.json();
+        showNotification(result.message, "success");
+      }
+
+      closeModal();
+      fetchFaculties();
+    } catch (err) {
+      console.error("Error saving faculty", err);
+      showNotification("Failed to save faculty. Please try again.", "error");
     }
-    saveToLocalStorage();
-    renderTable();
-    closeModal();
   }
 
   function closeModal() {
-    document.querySelectorAll('.modal-bg').forEach(m => m.style.display = 'none');
+    document.getElementById('facultyModal').style.display = 'none';
+    document.getElementById('viewModal').style.display = 'none';
   }
 
-  renderTable();
-</script>
+  // Show notification
+  function showNotification(message, type = 'success') {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.className = `notification ${type}`;
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+      notification.classList.remove('show');
+    }, 3000);
+  }
 
+  window.onload = fetchFaculties;
+</script>
 </body>
 </html>

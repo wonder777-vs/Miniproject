@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Attendance</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: url('bg.jpg') no-repeat center center fixed;
+      background-size: cover;
+      margin: 0;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      color: #002147;
+    }
+    .attendance-container {
+      max-width: 1200px;
+      margin: 20px auto;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      overflow-x: auto;
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+    }
+    th {
+      background-color: #0074cc;
+      color: white;
+      padding: 10px;
+    }
+    td {
+      padding: 8px;
+      border: 1px solid #ccc;
+    }
+    .present {
+      background-color: #28a745;
+      color: white;
+      font-weight: bold;
+    }
+    .absent {
+      background-color: #dc3545;
+      color: white;
+      font-weight: bold;
+    }
+    .none {
+      background-color: #f8f9fa;
+      color: #333;
+    }
+    .side-box {
+      width: 250px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #f9f9f9;
+      font-size: 15px;
+      margin-bottom: 20px;
+    }
+    .side-box .label {
+      color: #002147;
+      font-weight: bold;
+    }
+    .highlight-red {
+      color: red;
+    }
+    .highlight-green {
+      color: green;
+    }
+    .summary-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <h2>📅 Attendance Report</h2>
+
+  <div class="summary-section">
+    <div class="side-box">
+      <div><span class="label">Total Absent</span> : <span class="highlight-red">0</span></div>
+      <div><span class="label">Total Leave</span> : 0</div>
+      <div><span class="label">Total OD</span> : 0</div>
+      <div><span class="label">Total ML</span> : 0</div>
+      <div><span class="label">Total Project ODs</span> : 0</div>
+      <div><span class="label">Total Suspends</span> : 0</div>
+      <div><span class="label">Attendance Fine (Rs.)</span> : <span class="highlight-red">0</span></div>
+      <div><span class="label">Other Fine (Rs.)</span> : 0</div>
+    </div>
+
+    <div class="side-box">
+      <div><span class="label">Total Hours Conducted</span> : <span class="highlight-green">0</span></div>
+      <div><span class="label">Total Hours Attended</span> : <span class="highlight-green">0</span></div>
+      <div><span class="label">Attendance Percentage</span> : <span class="highlight-green">0.0%</span></div>
+    </div>
+  </div>
+
+  <div class="attendance-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>H1</th>
+          <th>H2</th>
+          <th>H3</th>
+          <th>H4</th>
+          <th>H5</th>
+          <th>H6</th>
+          <th>H7</th>
+          <th>H8</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>30/06/2025 - Monday</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+        </tr>
+        <tr>
+          <td>01/07/2025 - Tuesday</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+        </tr>
+        <tr>
+          <td>02/07/2025 - Wednesday</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+        </tr>
+        <tr>
+          <td>03/07/2025 - Thursday</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+        </tr>
+        <tr>
+          <td>04/07/2025 - Friday</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+        </tr>
+        <tr>
+          <td>05/07/2025 - Saturday</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+        </tr>
+        <tr>
+          <td>07/07/2025 - Monday</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+        </tr>
+        <tr>
+          <td>08/07/2025 - Tuesday</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+        </tr>
+        <tr>
+          <td>09/07/2025 - Wednesday</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+          <td class="none">-</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
