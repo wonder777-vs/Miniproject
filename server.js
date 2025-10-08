@@ -5,23 +5,19 @@ const fs = require('fs');
 const archiver = require('archiver');
 const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
+const cors = require('cors');
 const port = 3000;
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Enable CORS for all routes
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  next();
-});
+// Use cors middleware for better CORS handling
+app.use(cors());
 
 app.use(express.static(__dirname));
 
-mongoose.connect('mongodb://127.0.0.1:27017/mepco_erp');
+mongoose.connect('mongodb+srv://admin:admin@cluster0.kdgkues.mongodb.net/mepco_erp?retryWrites=true&w=majority&appName=Cluster0');
 
 const db = mongoose.connection;
 db.once('open', () => {
@@ -29,6 +25,7 @@ db.once('open', () => {
     console.log("http://localhost:3000/");
 });
 
+// Define all models BEFORE using them in routes
 const userSchema = new mongoose.Schema({
     username: String,
     password: String
@@ -62,6 +59,112 @@ const settingsSchema = new mongoose.Schema({
 
 const Settings = mongoose.model("Settings", settingsSchema);
 
+// Student model definition
+const Student = mongoose.model("Student", new mongoose.Schema({
+    name: String,
+    gender: String,
+    dob: String,
+    phone: String,
+    email: String,
+    bloodgroup: String,
+    religion: String,
+    caste: String,
+    admissionno: String,
+    rollno: String,
+    registerno: String,
+    aadharno: String,
+    applicationno: String,
+    emisno: String,
+    umisno: String,
+    department: String,
+    tweleve: String,
+    sslc: String,
+    father: String,
+    mother: String,
+    parentcontact: String,
+    hostel: String,
+    course: String,
+    year: String,
+    scholarship: String,
+    address: String,
+    status: String
+}));
+
+// Faculty model definition
+const Faculty = mongoose.model("Faculty", new mongoose.Schema({
+    name: String,
+    gender: String,
+    dob: String,
+    email: String,
+    phone: String,
+    address: String,
+    department: String,
+    designation: String,
+    id: String,
+    education: String,
+    experience: String,
+    publications: String,
+    grants: String,
+    courses: String,
+    performance: String,
+    status: String
+}));
+
+// Course model definition
+const CourseSchema = new mongoose.Schema({
+    id: String,
+    name: String,
+    dept: String,
+    credits: Number,
+    duration: String,
+    status: String,
+    assessments: String
+});
+
+const Course = mongoose.model("Course", CourseSchema);
+
+// Fee model definition
+const FeeSchema = new mongoose.Schema({
+    receipt: String,
+    name: String,
+    roll: String,
+    course: String,
+    amount: Number,
+    date: String,
+    status: String
+});
+
+const Fee = mongoose.model("Fee", FeeSchema);
+
+// Exam model definition
+const ExamSchema = new mongoose.Schema({
+    examId: { type: String, required: true, unique: true },
+    course: { type: String, required: true },
+    examDate: { type: String, required: true },
+    startTime: { type: String, required: true },
+    endTime: { type: String, required: true },
+    venue: { type: String, required: true },
+    status: { type: String, required: true, enum: ['Scheduled', 'Completed', 'Cancelled'] }
+});
+
+const Exam = mongoose.model("Exam", ExamSchema);
+
+// New Attendance model definition
+const attendanceSchema = new mongoose.Schema({
+    date: { type: String, required: true },
+    period: { type: String, required: true },
+    records: [{
+        admissionNo: { type: String, required: true },
+        status: { type: String, required: true, enum: ['present', 'absent'] },
+        timestamp: { type: Date, default: Date.now }
+    }],
+    staffId: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+});
+
+const Attendance = mongoose.model("Attendance", attendanceSchema);
+
+// Now define routes after models are defined
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -153,99 +256,17 @@ app.put("/api/settings", async (req, res) => {
 });
 
 app.get("/students/:id", async (req, res) => {
-    const student = await Student.findOne({ admissionno: req.params.id });
-    if (!student) return res.status(404).json({ message: "Student not found" });
-    res.json(student);
+    try {
+        const student = await Student.findOne({ admissionno: req.params.id });
+        if (!student) return res.status(404).json({ message: "Student not found" });
+        res.json(student);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "❌ Error fetching student", error: err.message });
+    }
 });
 
-const Student = mongoose.model("Student", new mongoose.Schema({
-    name: String,
-    gender: String,
-    dob: String,
-    phone: String,
-    email: String,
-    bloodgroup: String,
-    religion: String,
-    caste: String,
-    admissionno: String,
-    rollno: String,
-    registerno: String,
-    aadharno: String,
-    applicationno: String,
-    emisno: String,
-    umisno: String,
-    department: String,
-    tweleve: String,
-    sslc: String,
-    father: String,
-    mother: String,
-    parentcontact: String,
-    hostel: String,
-    course: String,
-    year: String,
-    scholarship: String,
-    address: String,
-    status: String
-}));
-
-const Faculty = mongoose.model("Faculty", new mongoose.Schema({
-    name: String,
-    gender: String,
-    dob: String,
-    email: String,
-    phone: String,
-    address: String,
-    department: String,
-    designation: String,
-    id: String,
-    education: String,
-    experience: String,
-    publications: String,
-    grants: String,
-    courses: String,
-    performance: String,
-    status: String
-}));
-
-const CourseSchema = new mongoose.Schema({
-    id: String,
-    name: String,
-    dept: String,
-    credits: Number,
-    duration: String,
-    status: String,
-    assessments: String
-});
-
-const Course = mongoose.model("Course", CourseSchema);
-
-// Add Fee model
-const FeeSchema = new mongoose.Schema({
-    receipt: String,
-    name: String,
-    roll: String,
-    course: String,
-    amount: Number,
-    date: String,
-    status: String
-});
-
-const Fee = mongoose.model("Fee", FeeSchema);
-
-// Add Exam model
-const ExamSchema = new mongoose.Schema({
-    examId: { type: String, required: true, unique: true },
-    course: { type: String, required: true },
-    examDate: { type: String, required: true },
-    startTime: { type: String, required: true },
-    endTime: { type: String, required: true },
-    venue: { type: String, required: true },
-    status: { type: String, required: true, enum: ['Scheduled', 'Completed', 'Cancelled'] }
-});
-
-const Exam = mongoose.model("Exam", ExamSchema);
-
-// APIs
+// Student APIs
 app.post("/students", async (req, res) => {
     try {
         const student = new Student(req.body);
@@ -259,10 +280,12 @@ app.post("/students", async (req, res) => {
 
 app.get("/students", async (req, res) => {
     try {
+        console.log("Fetching students from database...");
         const students = await Student.find();
+        console.log(`Found ${students.length} students`);
         res.json(students);
     } catch (err) {
-        console.error(err);
+        console.error("Error fetching students:", err);
         res.status(500).json({ message: "❌ Error fetching students", error: err.message });
     }
 });
@@ -294,6 +317,7 @@ app.delete("/students/:id", async (req, res) => {
         res.status(500).json({ message: "❌ Error deleting student", error: err.message });
     }
 });
+
 // Add this endpoint after your existing routes
 app.get("/api/student/:admissionno", async (req, res) => {
     try {
@@ -306,6 +330,7 @@ app.get("/api/student/:admissionno", async (req, res) => {
     }
 });
 
+// Faculty APIs
 app.post("/faculty", async (req, res) => {
     try {
         const faculty = new Faculty(req.body);
@@ -490,6 +515,64 @@ app.delete("/exams/:id", async (req, res) => {
         res.json({ message: "🗑️ Exam deleted!" });
     } catch (err) {
         res.status(500).json({ message: "❌ Error deleting exam", error: err.message });
+    }
+});
+
+// New Attendance API
+app.post("/attendance", async (req, res) => {
+    try {
+        const { date, period, records, staffId } = req.body;
+        
+        // Check if attendance already exists for this date and period
+        let attendance = await Attendance.findOne({ date, period });
+        
+        if (attendance) {
+            // Update existing attendance record
+            attendance.records = Object.entries(records).map(([admissionNo, status]) => ({
+                admissionNo,
+                status: status ? 'present' : 'absent',
+                timestamp: new Date()
+            }));
+            attendance.staffId = staffId;
+            await attendance.save();
+        } else {
+            // Create new attendance record
+            attendance = new Attendance({
+                date,
+                period,
+                records: Object.entries(records).map(([admissionNo, status]) => ({
+                    admissionNo,
+                    status: status ? 'present' : 'absent',
+                    timestamp: new Date()
+                })),
+                staffId
+            });
+            await attendance.save();
+        }
+        
+        console.log(`Attendance saved for ${date}, period: ${period}`);
+        res.json({ message: "✅ Attendance saved successfully" });
+    } catch (err) {
+        console.error("Error saving attendance:", err);
+        res.status(500).json({ message: "❌ Error saving attendance", error: err.message });
+    }
+});
+
+// Get attendance records
+app.get("/attendance", async (req, res) => {
+    try {
+        const { date, period, admissionNo } = req.query;
+        let query = {};
+        
+        if (date) query.date = date;
+        if (period) query.period = period;
+        if (admissionNo) query['records.admissionNo'] = admissionNo;
+        
+        const attendance = await Attendance.find(query);
+        res.json(attendance);
+    } catch (err) {
+        console.error("Error fetching attendance:", err);
+        res.status(500).json({ message: "❌ Error fetching attendance", error: err.message });
     }
 });
 
@@ -969,28 +1052,126 @@ async function generateFeesReport(format, dateRange, filepath) {
 // Helper function to generate attendance report
 async function generateAttendanceReport(format, dateRange, filepath) {
     try {
-        // Placeholder for attendance report generation
-        // In a real implementation, you would fetch attendance data
+        // Fetch attendance data
+        const attendance = await Attendance.find();
         
         if (format === 'csv') {
-            const content = "Attendance Report\n\nThis is a placeholder for the attendance report.";
-            fs.writeFileSync(filepath, content);
+            // Generate CSV report
+            const csvHeader = 'Date,Period,Admission No,Status,Timestamp\n';
+            let csvContent = '';
+            
+            attendance.forEach(att => {
+                att.records.forEach(record => {
+                    csvContent += `"${att.date}","${att.period}","${record.admissionNo}","${record.status}","${record.timestamp}"\n`;
+                });
+            });
+            
+            fs.writeFileSync(filepath, csvHeader + csvContent);
         } else if (format === 'excel') {
+            // Generate Excel report using exceljs
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Attendance Report');
             
-            worksheet.addRow(['Attendance Report']);
-            worksheet.addRow(['This is a placeholder for the attendance report']);
+            // Add header row
+            worksheet.columns = [
+                { header: 'Date', key: 'date', width: 15 },
+                { header: 'Period', key: 'period', width: 15 },
+                { header: 'Admission No', key: 'admissionNo', width: 15 },
+                { header: 'Status', key: 'status', width: 10 },
+                { header: 'Timestamp', key: 'timestamp', width: 20 }
+            ];
             
+            // Add data rows
+            attendance.forEach(att => {
+                att.records.forEach(record => {
+                    worksheet.addRow({
+                        date: att.date,
+                        period: att.period,
+                        admissionNo: record.admissionNo,
+                        status: record.status,
+                        timestamp: record.timestamp
+                    });
+                });
+            });
+            
+            // Style the header row
+            worksheet.getRow(1).font = { bold: true };
+            worksheet.getRow(1).fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFD3D3D3' }
+            };
+            
+            // Save the workbook
             await workbook.xlsx.writeFile(filepath);
         } else if (format === 'pdf') {
-            const doc = new PDFDocument();
+            // Generate PDF report using pdfkit
+            const doc = new PDFDocument({ margin: 30 });
             doc.pipe(fs.createWriteStream(filepath));
             
+            // Add title
             doc.fontSize(20).text('Attendance Report', { align: 'center' });
             doc.moveDown();
-            doc.text('This is a placeholder for the attendance report');
             
+            // Add table header
+            doc.fontSize(12).font('Helvetica-Bold');
+            const tableTop = doc.y;
+            const cellPadding = 5;
+            const rowHeight = 20;
+            const colWidths = [80, 80, 80, 60, 80];
+            const headers = ['Date', 'Period', 'Admission No', 'Status', 'Timestamp'];
+            
+            // Draw header row
+            let x = 50;
+            headers.forEach((header, i) => {
+                doc.text(header, x, tableTop, { width: colWidths[i], align: 'left' });
+                doc.rect(x, tableTop, colWidths[i], rowHeight).stroke();
+                x += colWidths[i];
+            });
+            
+            // Draw data rows
+            doc.font('Helvetica').fontSize(10);
+            let y = tableTop + rowHeight;
+            
+            attendance.forEach(att => {
+                att.records.forEach(record => {
+                    x = 50;
+                    
+                    // Date
+                    doc.text(att.date || '', x, y + cellPadding, { width: colWidths[0], align: 'left' });
+                    doc.rect(x, y, colWidths[0], rowHeight).stroke();
+                    x += colWidths[0];
+                    
+                    // Period
+                    doc.text(att.period || '', x, y + cellPadding, { width: colWidths[1], align: 'left' });
+                    doc.rect(x, y, colWidths[1], rowHeight).stroke();
+                    x += colWidths[1];
+                    
+                    // Admission No
+                    doc.text(record.admissionNo || '', x, y + cellPadding, { width: colWidths[2], align: 'left' });
+                    doc.rect(x, y, colWidths[2], rowHeight).stroke();
+                    x += colWidths[2];
+                    
+                    // Status
+                    doc.text(record.status || '', x, y + cellPadding, { width: colWidths[3], align: 'left' });
+                    doc.rect(x, y, colWidths[3], rowHeight).stroke();
+                    x += colWidths[3];
+                    
+                    // Timestamp
+                    doc.text(record.timestamp ? new Date(record.timestamp).toLocaleString() : '', x, y + cellPadding, { width: colWidths[4], align: 'left' });
+                    doc.rect(x, y, colWidths[4], rowHeight).stroke();
+                    
+                    y += rowHeight;
+                    
+                    // Add a new page if needed
+                    if (y > 700) {
+                        doc.addPage();
+                        y = 50;
+                    }
+                });
+            });
+            
+            // Finalize the PDF
             doc.end();
         }
     } catch (err) {

@@ -312,7 +312,8 @@
   async function fetchCourses() {
     try {
       showNotification("Loading courses...", "warning");
-      const res = await fetch(API_URL);
+  const API_URL = "https://miniproject-1-fcw7.onrender.com/courses";
+  const res = await fetch(API_URL);
       
       if (!res.ok) {
         throw new Error(`HTTP error! Status: ${res.status}`);
@@ -385,7 +386,7 @@
       try {
         showNotification("Deleting course...", "warning");
         const courseId = course._id || course.id;
-        const response = await fetch(`${API_URL}/${courseId}`, { 
+  const response = await fetch(`${API_URL}/${courseId}`, { 
           method: "DELETE" 
         });
         
@@ -427,7 +428,7 @@
     try {
       showNotification("Updating course...", "warning");
       const courseId = editingCourse._id || editingCourse.id;
-      const response = await fetch(`${API_URL}/${courseId}`, {
+  const response = await fetch(`${API_URL}/${courseId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(courseData)

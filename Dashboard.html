@@ -465,143 +465,142 @@
   <div class="notification" id="notification"></div>
 
   <script>
-  document.querySelector('.generate-report').addEventListener('click', function() {
-    showNotification('Report generated successfully!', 'success');
-  });
-
-  function showModal(id) {
-    document.querySelectorAll('.modal-bg').forEach(m => m.style.display = 'none');
-    document.getElementById(id).style.display = 'flex';
-  }
-
-  function closeModal(id) {
-    document.getElementById(id).style.display = 'none';
-    let form = document.querySelector('#' + id + ' form');
-    if (form) form.reset();
-  }
-
-  // Button click events to open modals
-  document.getElementById('addStudentBtn').addEventListener('click', () => showModal('addStudentModal'));
-  document.getElementById('addFacultyBtn').addEventListener('click', () => showModal('addFacultyModal'));
-  document.getElementById('createCourseBtn').addEventListener('click', () => showModal('addCourseModal'));
-
-  // Show notification
-  function showNotification(message, type = 'success') {
-    const notification = document.getElementById('notification');
-    notification.textContent = message;
-    notification.className = `notification ${type}`;
-    notification.classList.add('show');
-    
-    setTimeout(() => {
-      notification.classList.remove('show');
-    }, 3000);
-  }
-
-  // Student modal form submission
-  document.getElementById('studentForm').onsubmit = async function(e) {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = {};
-    
-    // Convert FormData to a plain object
-    for (let [key, value] of formData.entries()) {
-      data[key] = value;
+    // Define helper functions first
+    function showModal(id) {
+      document.querySelectorAll('.modal-bg').forEach(m => m.style.display = 'none');
+      document.getElementById(id).style.display = 'flex';
     }
 
-    try {
-      const response = await fetch("/students", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+      let form = document.querySelector('#' + id + ' form');
+      if (form) form.reset();
+    }
+
+    function showNotification(message, type = 'success') {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.className = `notification ${type}`;
+      notification.classList.add('show');
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 3000);
+    }
+
+    // Wait for DOM to be fully loaded before attaching event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      // Button click events to open modals
+      document.getElementById('addStudentBtn').addEventListener('click', () => showModal('addStudentModal'));
+      document.getElementById('addFacultyBtn').addEventListener('click', () => showModal('addFacultyModal'));
+      document.getElementById('createCourseBtn').addEventListener('click', () => showModal('addCourseModal'));
+
+      // Generate report button
+      document.querySelector('.generate-report').addEventListener('click', function() {
+        showNotification('Report generated successfully!', 'success');
       });
 
-      const result = await response.json();
-      
-      if (response.ok) {
-        showNotification(result.message || 'Student added successfully!');
-        closeModal('addStudentModal');
-      } else {
-        showNotification(result.message || 'Failed to add student', 'error');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      showNotification('Network error. Please try again.', 'error');
-    }
-  };
+      // Student modal form submission
+      document.getElementById('studentForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = {};
+        
+        // Convert FormData to a plain object
+        for (let [key, value] of formData.entries()) {
+          data[key] = value;
+        }
 
-  // Faculty modal form submission
-  document.getElementById('facultyForm').onsubmit = async function(e) {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = {};
-    
-    // Convert FormData to a plain object
-    for (let [key, value] of formData.entries()) {
-      data[key] = value;
-    }
+        try {
+          const response = await fetch("https://miniproject-1-fcw7.onrender.com/students", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
 
-    try {
-      const response = await fetch("/faculty", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
+          const result = await response.json();
+          
+          if (response.ok) {
+            showNotification(result.message || 'Student added successfully!');
+            closeModal('addStudentModal');
+          } else {
+            showNotification(result.message || 'Failed to add student', 'error');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          showNotification('Network error. Please try again.', 'error');
+        }
+      };
 
-      const result = await response.json();
-      
-      if (response.ok) {
-        showNotification(result.message || 'Faculty added successfully!');
-        closeModal('addFacultyModal');
-      } else {
-        showNotification(result.message || 'Failed to add faculty', 'error');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      showNotification('Network error. Please try again.', 'error');
-    }
-  };
+      // Faculty modal form submission
+      document.getElementById('facultyForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = {};
+        
+        // Convert FormData to a plain object
+        for (let [key, value] of formData.entries()) {
+          data[key] = value;
+        }
 
-  // Course modal form submission
-  document.getElementById('courseForm').onsubmit = async function(e) {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = {};
-    
-    // Convert FormData to a plain object
-    for (let [key, value] of formData.entries()) {
-      data[key] = value;
-    }
-    
-    // Convert credits to number
-    if (data.credits) {
-      data.credits = parseInt(data.credits);
-    }
+        try {
+          const response = await fetch("https://miniproject-1-fcw7.onrender.com/faculty", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
 
-    try {
-      const response = await fetch("/courses", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
+          const result = await response.json();
+          
+          if (response.ok) {
+            showNotification(result.message || 'Faculty added successfully!');
+            closeModal('addFacultyModal');
+          } else {
+            showNotification(result.message || 'Failed to add faculty', 'error');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          showNotification('Network error. Please try again.', 'error');
+        }
+      };
 
-      const result = await response.json();
-      
-      if (response.ok) {
-        showNotification(result.message || 'Course added successfully!');
-        closeModal('addCourseModal');
-      } else {
-        showNotification(result.message || 'Failed to add course', 'error');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      showNotification('Network error. Please try again.', 'error');
-    }
-  };
-  window.onload = function() {
-  document.getElementById('addStudentBtn').addEventListener('click', () => showModal('addStudentModal'));
-  document.getElementById('addFacultyBtn').addEventListener('click', () => showModal('addFacultyModal'));
-  document.getElementById('createCourseBtn').addEventListener('click', () => showModal('addCourseModal'));
-};
-</script>
+      // Course modal form submission
+      document.getElementById('courseForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = {};
+        
+        // Convert FormData to a plain object
+        for (let [key, value] of formData.entries()) {
+          data[key] = value;
+        }
+        
+        // Convert credits to number
+        if (data.credits) {
+          data.credits = parseInt(data.credits);
+        }
+
+        try {
+          const response = await fetch("https://miniproject-1-fcw7.onrender.com/courses", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
+
+          const result = await response.json();
+          
+          if (response.ok) {
+            showNotification(result.message || 'Course added successfully!');
+            closeModal('addCourseModal');
+          } else {
+            showNotification(result.message || 'Failed to add course', 'error');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          showNotification('Network error. Please try again.', 'error');
+        }
+      };
+    });
+  </script>
 </body>
 </html>

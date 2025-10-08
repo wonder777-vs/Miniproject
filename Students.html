@@ -340,13 +340,15 @@
   async function fetchStudents() {
     try {
       showNotification("Loading students...", "warning");
-      const res = await fetch("http://localhost:3000/students");
+      console.log("Fetching students from server...");
+  const res = await fetch("https://miniproject-1-fcw7.onrender.com/students");
       
       if (!res.ok) {
         throw new Error(`HTTP error! Status: ${res.status}`);
       }
       
       students = await res.json();
+      console.log(`Received ${students.length} students from server`);
       renderTable();
       showNotification("Students loaded successfully!", "success");
     } catch (error) {
@@ -371,12 +373,12 @@
     students.forEach((student, index) => {
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${student.admissionno}</td>
-        <td>${student.name}</td>
-        <td>${student.email}</td>
-        <td>${student.course}</td>
-        <td>${student.year}</td>
-        <td><span class="status ${student.status.toLowerCase()}">${student.status}</span></td>
+        <td>${student.admissionno || ''}</td>
+        <td>${student.name || ''}</td>
+        <td>${student.email || ''}</td>
+        <td>${student.course || ''}</td>
+        <td>${student.year || ''}</td>
+        <td><span class="status ${student.status ? student.status.toLowerCase() : ''}">${student.status || ''}</span></td>
         <td class="actions">
           <button class="edit" onclick="editStudent(${index})" title="Edit">
             <i class="fas fa-edit"></i>
@@ -406,34 +408,34 @@
     editingIndex = index;
     const student = students[index];
     document.getElementById('modalTitle').innerText = 'Edit Student';
-    document.getElementById('stuId').value = student.admissionno;
-    document.getElementById('stuName').value = student.name;
-    document.getElementById('stuEmail').value = student.email;
-    document.getElementById('stuCourse').value = student.course;
-    document.getElementById('stuStatus').value = student.status;
-    document.getElementById('stuYear').value = student.year;
+    document.getElementById('stuId').value = student.admissionno || '';
+    document.getElementById('stuName').value = student.name || '';
+    document.getElementById('stuEmail').value = student.email || '';
+    document.getElementById('stuCourse').value = student.course || '';
+    document.getElementById('stuStatus').value = student.status || 'Active';
+    document.getElementById('stuYear').value = student.year || '1st Year';
     document.getElementById('studentModal').style.display = 'flex';
   }
 
   function viewStudent(index) {
     const student = students[index];
     document.getElementById('viewContent').innerHTML = `
-      <p><strong>Admission No:</strong> ${student.admissionno}</p>
-      <p><strong>Name:</strong> ${student.name}</p>
-      <p><strong>Email:</strong> ${student.email}</p>
-      <p><strong>Course:</strong> ${student.course}</p>
-      <p><strong>Year:</strong> ${student.year}</p>
-      <p><strong>Status:</strong> ${student.status}</p>
+      <p><strong>Admission No:</strong> ${student.admissionno || ''}</p>
+      <p><strong>Name:</strong> ${student.name || ''}</p>
+      <p><strong>Email:</strong> ${student.email || ''}</p>
+      <p><strong>Course:</strong> ${student.course || ''}</p>
+      <p><strong>Year:</strong> ${student.year || ''}</p>
+      <p><strong>Status:</strong> ${student.status || ''}</p>
     `;
     document.getElementById('viewModal').style.display = 'flex';
   }
 
   async function deleteStudent(index) {
     const student = students[index];
-    if (confirm(`Are you sure you want to delete ${student.name}?`)) {
+    if (confirm(`Are you sure you want to delete ${student.name || 'this student'}?`)) {
       try {
         showNotification("Deleting student...", "warning");
-        let res = await fetch(`http://localhost:3000/students/${student.admissionno}`, {
+  let res = await fetch(`https://miniproject-1-fcw7.onrender.com/students/${student.admissionno}`, {
           method: "DELETE"
         });
         
@@ -469,7 +471,7 @@
     try {
       if (editingIndex !== null) {
         showNotification("Updating student...", "warning");
-        let res = await fetch(`http://localhost:3000/students/${id}`, {
+  let res = await fetch(`https://miniproject-1-fcw7.onrender.com/students/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newStudent)
@@ -483,7 +485,7 @@
         showNotification(result.message, "success");
       } else {
         showNotification("Adding student...", "warning");
-        let res = await fetch("http://localhost:3000/students", {
+  let res = await fetch("https://miniproject-1-fcw7.onrender.com/students", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newStudent)
@@ -522,7 +524,11 @@
     }, 3000);
   }
 
-  window.onload = fetchStudents;
+  // Initialize the page
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchStudents();
+  });
 </script>
+
 </body>
 </html>

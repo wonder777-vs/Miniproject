@@ -340,13 +340,15 @@
   async function fetchFaculties() {
     try {
       showNotification("Loading faculty...", "warning");
-      const res = await fetch("http://localhost:3000/faculty");
+      console.log("Fetching faculties from server...");
+  const res = await fetch("https://miniproject-1-fcw7.onrender.com/faculty");
       
       if (!res.ok) {
         throw new Error(`HTTP error! Status: ${res.status}`);
       }
       
       faculties = await res.json();
+      console.log(`Received ${faculties.length} faculties from server`);
       renderTable();
       showNotification("Faculty loaded successfully!", "success");
     } catch (error) {
@@ -371,12 +373,12 @@
     faculties.forEach((fac, index) => {
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${fac.id}</td>
-        <td>${fac.name}</td>
-        <td>${fac.email}</td>
-        <td>${fac.department}</td>
-        <td>${fac.designation}</td>
-        <td><span class="status ${fac.status.toLowerCase().replace(' ', '')}">${fac.status}</span></td>
+        <td>${fac.id || ''}</td>
+        <td>${fac.name || ''}</td>
+        <td>${fac.email || ''}</td>
+        <td>${fac.department || ''}</td>
+        <td>${fac.designation || ''}</td>
+        <td><span class="status ${fac.status ? fac.status.toLowerCase().replace(' ', '') : ''}">${fac.status || ''}</span></td>
         <td class="actions">
           <button class="edit" onclick="editFaculty(${index})" title="Edit">
             <i class="fas fa-edit"></i>
@@ -406,34 +408,34 @@
     editingIndex = index;
     const fac = faculties[index];
     document.getElementById('modalTitle').innerText = 'Edit Faculty';
-    document.getElementById('facId').value = fac.id;
-    document.getElementById('facName').value = fac.name;
-    document.getElementById('facEmail').value = fac.email;
-    document.getElementById('facDept').value = fac.department;
-    document.getElementById('facDesig').value = fac.designation;
-    document.getElementById('facStatus').value = fac.status;
+    document.getElementById('facId').value = fac.id || '';
+    document.getElementById('facName').value = fac.name || '';
+    document.getElementById('facEmail').value = fac.email || '';
+    document.getElementById('facDept').value = fac.department || '';
+    document.getElementById('facDesig').value = fac.designation || '';
+    document.getElementById('facStatus').value = fac.status || 'Active';
     document.getElementById('facultyModal').style.display = 'flex';
   }
 
   function viewFaculty(index) {
     const fac = faculties[index];
     document.getElementById('viewContent').innerHTML = `
-      <p><strong>ID:</strong> ${fac.id}</p>
-      <p><strong>Name:</strong> ${fac.name}</p>
-      <p><strong>Email:</strong> ${fac.email}</p>
-      <p><strong>Department:</strong> ${fac.department}</p>
-      <p><strong>Designation:</strong> ${fac.designation}</p>
-      <p><strong>Status:</strong> ${fac.status}</p>
+      <p><strong>ID:</strong> ${fac.id || ''}</p>
+      <p><strong>Name:</strong> ${fac.name || ''}</p>
+      <p><strong>Email:</strong> ${fac.email || ''}</p>
+      <p><strong>Department:</strong> ${fac.department || ''}</p>
+      <p><strong>Designation:</strong> ${fac.designation || ''}</p>
+      <p><strong>Status:</strong> ${fac.status || ''}</p>
     `;
     document.getElementById('viewModal').style.display = 'flex';
   }
 
   async function deleteFaculty(index) {
     const fac = faculties[index];
-    if (confirm(`Are you sure you want to delete ${fac.name}?`)) {
+    if (confirm(`Are you sure you want to delete ${fac.name || 'this faculty member'}?`)) {
       try {
         showNotification("Deleting faculty...", "warning");
-        let res = await fetch(`http://localhost:3000/faculty/${fac.id}`, {
+  let res = await fetch(`https://miniproject-1-fcw7.onrender.com/faculty/${fac.id}`, {
           method: "DELETE"
         });
         
@@ -469,7 +471,7 @@
     try {
       if (editingIndex !== null) {
         showNotification("Updating faculty...", "warning");
-        let res = await fetch(`http://localhost:3000/faculty/${id}`, {
+  let res = await fetch(`https://miniproject-1-fcw7.onrender.com/faculty/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newFaculty)
@@ -483,7 +485,7 @@
         showNotification(result.message, "success");
       } else {
         showNotification("Adding faculty...", "warning");
-        let res = await fetch("http://localhost:3000/faculty", {
+  let res = await fetch("https://miniproject-1-fcw7.onrender.com/faculty", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newFaculty)
@@ -522,7 +524,10 @@
     }, 3000);
   }
 
-  window.onload = fetchFaculties;
+  // Initialize the page
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchFaculties();
+  });
 </script>
 </body>
 </html>

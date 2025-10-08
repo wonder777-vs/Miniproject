@@ -354,12 +354,14 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .attendance-controls .form-group {
             margin-bottom: 0;
             flex: 1;
-            max-width: 300px;
+            min-width: 200px;
         }
 
         .attendance-controls .btn {
@@ -705,6 +707,16 @@
                 width: 90%;
                 margin: 20% auto;
             }
+            
+            .attendance-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .attendance-controls .btn {
+                margin-left: 0;
+                margin-top: 10px;
+            }
         }
     </style>
 </head>
@@ -758,7 +770,7 @@
     
     <script>
         // Initialize data structures
-        let students = JSON.parse(localStorage.getItem('students')) || [];
+        let students = [];
         let subjects = JSON.parse(localStorage.getItem('subjects')) || [];
         let exams = JSON.parse(localStorage.getItem('exams')) || [];
         let attendanceRecords = JSON.parse(localStorage.getItem('attendanceRecords')) || {};
@@ -822,67 +834,17 @@
                 
                 <div class="card">
                     <div class="card-header">
-                        <h3>Add New Student</h3>
-                    </div>
-                    <div class="card-body">
-                        <form id="addStudentForm">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="form-label" for="newRollNo">Roll Number</label>
-                                    <input type="text" id="newRollNo" class="form-control" placeholder="Enter roll number" required />
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label" for="newName">Full Name</label>
-                                    <input type="text" id="newName" class="form-control" placeholder="Enter full name" required />
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="form-label" for="newDept">Department</label>
-                                    <select id="newDept" class="form-control" required>
-                                        <option value="">Select Department</option>
-                                        <option value="CSE">Computer Science</option>
-                                        <option value="ECE">Electronics</option>
-                                        <option value="MECH">Mechanical</option>
-                                        <option value="CIVIL">Civil</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label" for="newYear">Year</label>
-                                    <select id="newYear" class="form-control" required>
-                                        <option value="">Select Year</option>
-                                        <option value="1">1st Year</option>
-                                        <option value="2">2nd Year</option>
-                                        <option value="3">3rd Year</option>
-                                        <option value="4">4th Year</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="newEmail">Email</label>
-                                <input type="email" id="newEmail" class="form-control" placeholder="Enter email address" />
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="newPhone">Phone</label>
-                                <input type="tel" id="newPhone" class="form-control" placeholder="Enter phone number" />
-                            </div>
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-primary">Add Student</button>
-                                <button type="reset" class="btn btn-secondary">Reset</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Student List</h3>
+                        <h3>Search Student</h3>
                     </div>
                     <div class="card-body">
                         <div class="form-group">
-                            <input type="text" id="searchInput" class="form-control" placeholder="Search by Roll No or Name" onkeyup="searchStudents()" />
+                            <label class="form-label" for="searchAdmissionNo">Admission Number</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="searchAdmissionNo" class="form-control" placeholder="Enter admission number" />
+                                <button class="btn btn-primary" onclick="searchStudentByAdmissionNo()">Search</button>
+                            </div>
                         </div>
-                        <div id="studentsList"></div>
+                        <div id="studentDetails"></div>
                     </div>
                 </div>
             `,
@@ -898,6 +860,23 @@
                             <div class="form-group">
                                 <label class="form-label" for="attendanceDate">Select Date</label>
                                 <input type="date" id="attendanceDate" class="form-control" onchange="loadAttendance()" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="attendancePeriod">Select Period</label>
+                                <select id="attendancePeriod" class="form-control" onchange="loadAttendance()">
+                                    <option value="">Select Period</option>
+                                    <option value="9.00 to 9.50">9.00 to 9.50</option>
+                                    <option value="9.50 to 10.40">9.50 to 10.40</option>
+                                    <option value="10.40 to 11.00">10.40 to 11.00 (Break)</option>
+                                    <option value="11.00 to 11.50">11.00 to 11.50</option>
+                                    <option value="11.50 to 12.40">11.50 to 12.40</option>
+                                    <option value="12.40 to 1.30">12.40 to 1.30 (Lunch Break)</option>
+                                    <option value="1.30 to 2.15">1.30 to 2.15</option>
+                                    <option value="2.15 to 3.00">2.15 to 3.00</option>
+                                    <option value="3.00 to 3.15">3.00 to 3.15 (Break)</option>
+                                    <option value="3.15 to 4.00">3.15 to 4.00</option>
+                                    <option value="4.00 to 4.45">4.00 to 4.45</option>
+                                </select>
                             </div>
                             <button class="btn btn-primary" onclick="saveAttendance()">Submit Attendance</button>
                         </div>
@@ -1066,8 +1045,7 @@
             
             // Initialize page content
             if (page === 'students') {
-                displayStudents();
-                setupStudentForm();
+                setupStudentSearch();
             } else if (page === 'attendance') {
                 loadAttendance();
             } else if (page === 'marks') {
@@ -1210,181 +1188,191 @@
         }
         
         // Student Management Functions
-        function setupStudentForm() {
-            const addStudentForm = document.getElementById('addStudentForm');
-            if (addStudentForm) {
-                addStudentForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    const rollNo = document.getElementById('newRollNo').value.trim();
-                    const name = document.getElementById('newName').value.trim();
-                    const dept = document.getElementById('newDept').value;
-                    const year = document.getElementById('newYear').value;
-                    const email = document.getElementById('newEmail').value.trim();
-                    const phone = document.getElementById('newPhone').value.trim();
-                    
-                    if (!rollNo || !name || !dept || !year) {
-                        showNotification('Please fill all required fields', 'error');
-                        return;
+        function setupStudentSearch() {
+            const searchInput = document.getElementById('searchAdmissionNo');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchStudentByAdmissionNo();
                     }
-                    
-                    // Check if roll number already exists
-                    if (students.some(s => s.rollNo === rollNo)) {
-                        showNotification('Roll number already exists', 'error');
-                        return;
-                    }
-                    
-                    const newStudent = {
-                        rollNo,
-                        name,
-                        department: dept,
-                        year,
-                        email,
-                        phone,
-                        admissionno: rollNo, // Using rollNo as admissionNo for simplicity
-                        registerno: 'REG' + rollNo,
-                        gender: '',
-                        dob: '',
-                        bloodgroup: '',
-                        religion: '',
-                        caste: '',
-                        address: '',
-                        aadharno: '',
-                        tweleve: '',
-                        sslc: '',
-                        father: '',
-                        mother: '',
-                        parentcontact: '',
-                        applicationno: '',
-                        emisno: '',
-                        umisno: '',
-                        hostel: '',
-                        scholarship: '',
-                        status: 'Active'
-                    };
-                    
-                    students.push(newStudent);
-                    localStorage.setItem('students', JSON.stringify(students));
-                    displayStudents();
-                    
-                    // Clear form
-                    addStudentForm.reset();
-                    
-                    showNotification('Student added successfully', 'success');
                 });
             }
         }
         
-        function displayStudents() {
-            const studentsList = document.getElementById('studentsList');
-            studentsList.innerHTML = '';
+        async function searchStudentByAdmissionNo() {
+            const admissionNo = document.getElementById('searchAdmissionNo').value.trim();
+            const studentDetails = document.getElementById('studentDetails');
             
-            if (students.length === 0) {
-                studentsList.innerHTML = '<div class="empty-state"><i class="fas fa-user-graduate"></i><p>No students added yet. Use the form above to add students.</p></div>';
+            if (!admissionNo) {
+                showNotification('Please enter an admission number', 'error');
                 return;
             }
             
-            students.forEach(student => {
-                const studentCard = document.createElement('div');
-                studentCard.className = 'student-card';
-                studentCard.innerHTML = `
-                    <h3>${student.name} (${student.rollNo})</h3>
-                    <div class="student-info">
-                        <div><strong>Department:</strong> ${student.department}</div>
-                        <div><strong>Year:</strong> ${student.year}</div>
-                        <div><strong>Email:</strong> ${student.email || 'Not provided'}</div>
-                        <div><strong>Phone:</strong> ${student.phone || 'Not provided'}</div>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-secondary" onclick="editStudent('${student.rollNo}')">Edit</button>
-                        <button class="btn btn-danger" onclick="deleteStudent('${student.rollNo}')">Delete</button>
+            try {
+                showNotification('Searching for student...', 'warning');
+                const response = await fetch(`/api/student/${admissionNo}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                
+                const student = await response.json();
+                
+                studentDetails.innerHTML = `
+                    <div class="student-card">
+                        <h3>${student.name} (${student.admissionno})</h3>
+                        <div class="student-info">
+                            <div><strong>Roll Number:</strong> ${student.rollno || 'Not provided'}</div>
+                            <div><strong>Department:</strong> ${student.department || 'Not provided'}</div>
+                            <div><strong>Year:</strong> ${student.year || 'Not provided'}</div>
+                            <div><strong>Email:</strong> ${student.email || 'Not provided'}</div>
+                            <div><strong>Phone:</strong> ${student.phone || 'Not provided'}</div>
+                            <div><strong>Gender:</strong> ${student.gender || 'Not provided'}</div>
+                            <div><strong>Date of Birth:</strong> ${student.dob || 'Not provided'}</div>
+                            <div><strong>Blood Group:</strong> ${student.bloodgroup || 'Not provided'}</div>
+                            <div><strong>Address:</strong> ${student.address || 'Not provided'}</div>
+                        </div>
                     </div>
                 `;
-                studentsList.appendChild(studentCard);
-            });
-        }
-        
-        function editStudent(rollNo) {
-            const student = students.find(s => s.rollNo === rollNo);
-            if (!student) return;
-            
-            const newName = prompt('Enter new name:', student.name);
-            if (newName && newName.trim()) {
-                student.name = newName.trim();
-                localStorage.setItem('students', JSON.stringify(students));
-                displayStudents();
-                showNotification('Student updated successfully', 'success');
+                
+                showNotification('Student found successfully', 'success');
+            } catch (error) {
+                console.error('Error searching student:', error);
+                studentDetails.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-user-slash"></i>
+                        <p>No student found with admission number: ${admissionNo}</p>
+                    </div>
+                `;
+                showNotification('Student not found', 'error');
             }
-        }
-        
-        function deleteStudent(rollNo) {
-            if (confirm('Are you sure you want to delete this student?')) {
-                students = students.filter(s => s.rollNo !== rollNo);
-                localStorage.setItem('students', JSON.stringify(students));
-                displayStudents();
-                showNotification('Student deleted successfully', 'success');
-            }
-        }
-        
-        function searchStudents() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const studentCards = document.querySelectorAll('.student-card');
-            
-            studentCards.forEach(card => {
-                const text = card.textContent.toLowerCase();
-                card.style.display = text.includes(searchTerm) ? 'block' : 'none';
-            });
         }
         
         // Attendance Functions
-        function loadAttendance() {
+        async function loadAttendance() {
             const date = document.getElementById('attendanceDate').value;
+            const period = document.getElementById('attendancePeriod').value;
             const attendanceList = document.getElementById('attendanceList');
             attendanceList.innerHTML = '';
             
-            if (students.length === 0) {
-                attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">No students available. Add students first.</td></tr>';
+            if (!date || !period) {
+                attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">Please select both date and period</td></tr>';
                 return;
             }
             
-            // Get saved attendance for this date or initialize
-            if (!attendanceRecords[date]) {
-                attendanceRecords[date] = {};
+            // Skip break periods
+            if (period.includes('Break') || period.includes('Lunch')) {
+                attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">No attendance required for break periods</td></tr>';
+                return;
             }
             
-            students.forEach(student => {
-                const row = document.createElement('tr');
-                const isPresent = attendanceRecords[date][student.rollNo] || false;
+            try {
+                showNotification('Loading students...', 'warning');
+                const response = await fetch('/students');
                 
-                row.innerHTML = `
-                    <td>${student.rollNo}</td>
-                    <td>${student.name}</td>
-                    <td>${student.department}</td>
-                    <td>
-                        <input type="checkbox" ${isPresent ? 'checked' : ''} 
-                               onchange="updateAttendance('${date}', '${student.rollNo}', this.checked)" />
-                    </td>
-                `;
-                attendanceList.appendChild(row);
-            });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                
+                students = await response.json();
+                
+                if (students.length === 0) {
+                    attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">No students available</td></tr>';
+                    return;
+                }
+                
+                // Get saved attendance for this date and period or initialize
+                if (!attendanceRecords[date]) {
+                    attendanceRecords[date] = {};
+                }
+                
+                if (!attendanceRecords[date][period]) {
+                    attendanceRecords[date][period] = {};
+                }
+                
+                students.forEach(student => {
+                    const row = document.createElement('tr');
+                    const isPresent = attendanceRecords[date][period][student.admissionno] || false;
+                    
+                    row.innerHTML = `
+                        <td>${student.admissionno}</td>
+                        <td>${student.name}</td>
+                        <td>${student.department || 'Not provided'}</td>
+                        <td>
+                            <input type="checkbox" ${isPresent ? 'checked' : ''} 
+                                   onchange="updateAttendance('${date}', '${period}', '${student.admissionno}', this.checked)" />
+                        </td>
+                    `;
+                    attendanceList.appendChild(row);
+                });
+                
+                showNotification('Students loaded successfully', 'success');
+            } catch (error) {
+                console.error('Error loading students:', error);
+                attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">Error loading students</td></tr>';
+                showNotification('Failed to load students', 'error');
+            }
         }
         
-        function updateAttendance(date, rollNo, isPresent) {
+        function updateAttendance(date, period, admissionNo, isPresent) {
             if (!attendanceRecords[date]) {
                 attendanceRecords[date] = {};
             }
-            attendanceRecords[date][rollNo] = isPresent;
+            
+            if (!attendanceRecords[date][period]) {
+                attendanceRecords[date][period] = {};
+            }
+            
+            attendanceRecords[date][period][admissionNo] = isPresent;
         }
         
-        function saveAttendance() {
+        async function saveAttendance() {
             const date = document.getElementById('attendanceDate').value;
-            if (!date) {
-                showNotification('Please select a date', 'error');
+            const period = document.getElementById('attendancePeriod').value;
+            
+            if (!date || !period) {
+                showNotification('Please select both date and period', 'error');
                 return;
             }
             
-            localStorage.setItem('attendanceRecords', JSON.stringify(attendanceRecords));
-            showNotification(`Attendance saved for ${date}`, 'success');
+            // Skip break periods
+            if (period.includes('Break') || period.includes('Lunch')) {
+                showNotification('No attendance required for break periods', 'warning');
+                return;
+            }
+            
+            try {
+                showNotification('Saving attendance...', 'warning');
+                
+                // Save to localStorage
+                localStorage.setItem('attendanceRecords', JSON.stringify(attendanceRecords));
+                
+                // Prepare data for server
+                const attendanceData = {
+                    date,
+                    period,
+                    records: attendanceRecords[date][period]
+                };
+                
+                // Send to server
+                const response = await fetch('/attendance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(attendanceData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                showNotification(result.message || 'Attendance saved successfully', 'success');
+            } catch (error) {
+                console.error('Error saving attendance:', error);
+                showNotification('Failed to save attendance', 'error');
+            }
         }
         
         // Exam Management Functions
@@ -1513,14 +1501,14 @@
             
             students.forEach(student => {
                 const row = document.createElement('tr');
-                const marks = exam.marks[student.rollNo] || '';
+                const marks = exam.marks[student.admissionno] || '';
                 
                 row.innerHTML = `
-                    <td>${student.rollNo}</td>
+                    <td>${student.admissionno}</td>
                     <td>${student.name}</td>
-                    <td>${student.department}</td>
+                    <td>${student.department || 'Not provided'}</td>
                     <td>
-                        <input type="number" id="marks-${student.rollNo}" value="${marks}" 
+                        <input type="number" id="marks-${student.admissionno}" value="${marks}" 
                                min="0" max="${exam.totalMarks}" style="width: 100px;" />
                     </td>
                 `;
@@ -1534,10 +1522,10 @@
             
             // Update marks for each student
             students.forEach(student => {
-                const marksInput = document.getElementById(`marks-${student.rollNo}`);
+                const marksInput = document.getElementById(`marks-${student.admissionno}`);
                 if (marksInput) {
                     const marks = marksInput.value === '' ? '' : parseInt(marksInput.value);
-                    exam.marks[student.rollNo] = marks;
+                    exam.marks[student.admissionno] = marks;
                 }
             });
             
@@ -1593,14 +1581,14 @@
             
             students.forEach(student => {
                 const row = document.createElement('tr');
-                const marks = exam.marks && exam.marks[student.rollNo] ? exam.marks[student.rollNo] : 'Not entered';
+                const marks = exam.marks && exam.marks[student.admissionno] ? exam.marks[student.admissionno] : 'Not entered';
                 const percentage = marks !== 'Not entered' && marks !== '' ? 
                                   ((marks / exam.totalMarks) * 100).toFixed(2) + '%' : 'N/A';
                 
                 row.innerHTML = `
-                    <td>${student.rollNo}</td>
+                    <td>${student.admissionno}</td>
                     <td>${student.name}</td>
-                    <td>${student.department}</td>
+                    <td>${student.department || 'Not provided'}</td>
                     <td>${marks}</td>
                     <td>${percentage}</td>
                 `;
@@ -1616,11 +1604,11 @@
             let csvContent = "Roll No,Name,Department,Marks Obtained,Percentage\n";
             
             students.forEach(student => {
-                const marks = exam.marks && exam.marks[student.rollNo] ? exam.marks[student.rollNo] : 'Not entered';
+                const marks = exam.marks && exam.marks[student.admissionno] ? exam.marks[student.admissionno] : 'Not entered';
                 const percentage = marks !== 'Not entered' && marks !== '' ? 
                                   ((marks / exam.totalMarks) * 100).toFixed(2) + '%' : 'N/A';
                 
-                csvContent += `${student.rollNo},${student.name},${student.department},${marks},${percentage}\n`;
+                csvContent += `${student.admissionno},${student.name},${student.department || 'Not provided'},${marks},${percentage}\n`;
             });
             
             // Create download link
