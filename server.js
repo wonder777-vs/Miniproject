@@ -6,6 +6,7 @@ const archiver = require('archiver');
 const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const cors = require('cors');
+const multer = require('multer');
 const port = 3000;
 
 const app = express();
@@ -16,6 +17,22 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 app.use(express.static(__dirname));
+
+// Set up multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+
+const upload = multer({ storage: storage });
 
 mongoose.connect('mongodb+srv://admin:admin@cluster0.kdgkues.mongodb.net/mepco_erp?retryWrites=true&w=majority&appName=Cluster0');
 
@@ -164,6 +181,70 @@ const attendanceSchema = new mongoose.Schema({
 
 const Attendance = mongoose.model("Attendance", attendanceSchema);
 
+// Internal Marks Schema
+const internalMarksSchema = new mongoose.Schema({
+    examId: { type: String, required: true },
+    examType: { type: String, required: true, enum: ['CAT1', 'CAT2', 'CAT3', 'Special', 'Model', 'Assignment'] },
+    subject: { type: String, required: true },
+    date: { type: String, required: true },
+    maxMarks: { type: Number, required: true },
+    duration: { type: Number, required: true },
+    marks: [{
+        admissionNo: { type: String, required: true },
+        marksObtained: { type: Number },
+        percentage: { type: Number }
+    }],
+    staffId: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+});
+
+const InternalMarks = mongoose.model("InternalMarks", internalMarksSchema);
+
+// University Marks Schema
+const universityMarksSchema = new mongoose.Schema({
+    admissionNo: { type: String, required: true },
+    semester: { type: String, required: true },
+    subjectCode: { type: String, required: true },
+    subjectName: { type: String, required: true },
+    internalMark: { type: Number, required: true },
+    externalMark: { type: Number, required: true },
+    total: { type: Number, required: true },
+    result: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+});
+
+const UniversityMarks = mongoose.model("UniversityMarks", universityMarksSchema);
+
+// Leave Request Schema
+const leaveRequestSchema = new mongoose.Schema({
+    admissionNo: { type: String, required: true },
+    leaveType: { type: String, required: true },
+    leaveDuration: { type: String, required: true },
+    fromDate: { type: String, required: true },
+    toDate: { type: String },
+    reason: { type: String, required: true },
+    attachment: { type: String },
+    status: { type: String, default: 'pending', enum: ['pending', 'approved', 'rejected'] },
+    staffId: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+});
+
+const LeaveRequest = mongoose.model("LeaveRequest", leaveRequestSchema);
+
+// Document Schema
+const documentSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    type: { type: String, required: true },
+    size: { type: String, required: true },
+    date: { type: String, required: true },
+    filePath: { type: String, required: true },
+    uploadedBy: { type: String, required: true },
+    uploadedByType: { type: String, required: true, enum: ['staff', 'admin'] },
+    createdAt: { type: Date, default: Date.now }
+});
+
+const Document = mongoose.model("Document", documentSchema);
+
 // Now define routes after models are defined
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
@@ -255,6 +336,7 @@ app.put("/api/settings", async (req, res) => {
     }
 });
 
+// Student APIs
 app.get("/students/:id", async (req, res) => {
     try {
         const student = await Student.findOne({ admissionno: req.params.id });
@@ -266,7 +348,6 @@ app.get("/students/:id", async (req, res) => {
     }
 });
 
-// Student APIs
 app.post("/students", async (req, res) => {
     try {
         const student = new Student(req.body);
@@ -575,6 +656,283 @@ app.get("/attendance", async (req, res) => {
         res.status(500).json({ message: "❌ Error fetching attendance", error: err.message });
     }
 });
+
+// Student Dashboard - Internal Marks API
+app.get("/api/internal-marks/:admissionno", async (req, res) => {
+    try {
+        const { admissionno } = req.params;
+        const { catType } = req.query;
+        
+        let query = { 'marks.admissionNo': admissionno };
+        if (catType) {
+            query.examType = catType;
+        }
+        
+        const internalMarks = await InternalMarks.find(query);
+        
+        // Transform data to match frontend expectations
+        const transformedData = {};
+        
+        internalMarks.forEach(mark => {
+            if (!transformedData[mark.examType]) {
+                transformedData[mark.examType] = [];
+            }
+            
+            mark.marks.forEach(studentMark => {
+                if (studentMark.admissionNo === admissionno) {
+                    transformedData[mark.examType].push({
+                        subject: mark.subject,
+                        marks: studentMark.marksObtained,
+                        maxMarks: mark.maxMarks,
+                        percentage: studentMark.percentage
+                    });
+                }
+            });
+        });
+        
+        res.json(transformedData);
+    } catch (err) {
+        console.error("Error fetching internal marks:", err);
+        res.status(500).json({ message: "❌ Error fetching internal marks", error: err.message });
+    }
+});
+
+// Student Dashboard - University Marks API
+app.get("/api/university-marks/:admissionno", async (req, res) => {
+    try {
+        const universityMarks = await UniversityMarks.find({ admissionNo: req.params.admissionno });
+        res.json(universityMarks);
+    } catch (err) {
+        console.error("Error fetching university marks:", err);
+        res.status(500).json({ message: "❌ Error fetching university marks", error: err.message });
+    }
+});
+
+// Student Dashboard - Documents API
+app.get("/api/documents/:admissionno", async (req, res) => {
+    try {
+        // In a real implementation, you might filter documents by department or course
+        const documents = await Document.find({ uploadedByType: 'staff' });
+        res.json(documents);
+    } catch (err) {
+        console.error("Error fetching documents:", err);
+        res.status(500).json({ message: "❌ Error fetching documents", error: err.message });
+    }
+});
+
+// Student Dashboard - Leave Application API
+app.post("/api/leave/apply", async (req, res) => {
+    try {
+        const leaveRequest = new LeaveRequest(req.body);
+        await leaveRequest.save();
+        res.json({ message: "✅ Leave application submitted successfully!" });
+    } catch (err) {
+        console.error("Error submitting leave application:", err);
+        res.status(500).json({ message: "❌ Error submitting leave application", error: err.message });
+    }
+});
+
+// Staff Dashboard - Statistics API
+app.get("/api/dashboard/stats", async (req, res) => {
+    try {
+        const staffId = req.query.staffId || "default"; // In a real app, get from auth token
+        
+        // Get students who have attendance records for this staff
+        const attendanceRecords = await Attendance.find({ staffId });
+        const staffStudents = new Set();
+        
+        attendanceRecords.forEach(record => {
+            record.records.forEach(studentRecord => {
+                staffStudents.add(studentRecord.admissionNo);
+            });
+        });
+        
+        // Get unique subjects from internal marks
+        const internalMarks = await InternalMarks.find({ staffId });
+        const uniqueSubjects = new Set();
+        
+        internalMarks.forEach(mark => {
+            uniqueSubjects.add(mark.subject);
+        });
+        
+        // Get total exams for this staff
+        const totalExams = await InternalMarks.countDocuments({ staffId });
+        
+        // Get pending leave requests for this staff
+        const pendingLeaves = await LeaveRequest.countDocuments({ 
+            staffId, 
+            status: 'pending' 
+        });
+        
+        res.json({
+            totalStudents: staffStudents.size,
+            totalSubjects: uniqueSubjects.size,
+            totalExams,
+            pendingLeaves
+        });
+    } catch (err) {
+        console.error("Error fetching dashboard stats:", err);
+        res.status(500).json({ message: "❌ Error fetching dashboard stats", error: err.message });
+    }
+});
+
+// Staff Dashboard - Internal Exam Management APIs
+app.get("/api/internal-exams", async (req, res) => {
+    try {
+        const staffId = req.query.staffId || "default"; // In a real app, get from auth token
+        const { examType } = req.query;
+        
+        let query = { staffId };
+        if (examType) {
+            query.examType = examType;
+        }
+        
+        const exams = await InternalMarks.find(query).sort({ date: -1 });
+        res.json(exams);
+    } catch (err) {
+        console.error("Error fetching internal exams:", err);
+        res.status(500).json({ message: "❌ Error fetching internal exams", error: err.message });
+    }
+});
+
+app.post("/api/internal-exams", async (req, res) => {
+    try {
+        const exam = new InternalMarks(req.body);
+        await exam.save();
+        res.json({ message: "✅ Exam created successfully!", exam });
+    } catch (err) {
+        console.error("Error creating internal exam:", err);
+        res.status(500).json({ message: "❌ Error creating internal exam", error: err.message });
+    }
+});
+
+app.put("/api/internal-exams/:id", async (req, res) => {
+    try {
+        const exam = await InternalMarks.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true }
+        );
+        
+        if (!exam) return res.status(404).json({ message: "Exam not found" });
+        
+        res.json({ message: "✅ Exam updated successfully!", exam });
+    } catch (err) {
+        console.error("Error updating internal exam:", err);
+        res.status(500).json({ message: "❌ Error updating internal exam", error: err.message });
+    }
+});
+
+// Staff Dashboard - Leave Request Management APIs
+app.get("/api/leave-requests", async (req, res) => {
+    try {
+        const staffId = req.query.staffId || "default"; // In a real app, get from auth token
+        
+        const leaveRequests = await LeaveRequest.find({ staffId }).sort({ date: -1 });
+        res.json(leaveRequests);
+    } catch (err) {
+        console.error("Error fetching leave requests:", err);
+        res.status(500).json({ message: "❌ Error fetching leave requests", error: err.message });
+    }
+});
+
+app.put("/api/leave-requests/:id", async (req, res) => {
+    try {
+        const { status } = req.body;
+        
+        const leaveRequest = await LeaveRequest.findByIdAndUpdate(
+            req.params.id,
+            { status },
+            { new: true }
+        );
+        
+        if (!leaveRequest) return res.status(404).json({ message: "Leave request not found" });
+        
+        res.json({ message: `✅ Leave request ${status} successfully!`, leaveRequest });
+    } catch (err) {
+        console.error("Error updating leave request:", err);
+        res.status(500).json({ message: "❌ Error updating leave request", error: err.message });
+    }
+});
+
+// Staff Dashboard - Document Management APIs
+app.post("/api/documents/upload", upload.array('files'), async (req, res) => {
+    try {
+        const staffId = req.body.staffId || "default"; // In a real app, get from auth token
+        
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ message: "No files uploaded" });
+        }
+        
+        const documents = [];
+        
+        for (const file of req.files) {
+            const document = new Document({
+                name: file.originalname,
+                type: path.extname(file.originalname).substring(1),
+                size: formatFileSize(file.size),
+                date: new Date().toISOString().split('T')[0],
+                filePath: file.path,
+                uploadedBy: staffId,
+                uploadedByType: 'staff'
+            });
+            
+            await document.save();
+            documents.push(document);
+        }
+        
+        res.json({ message: "✅ Documents uploaded successfully!", documents });
+    } catch (err) {
+        console.error("Error uploading documents:", err);
+        res.status(500).json({ message: "❌ Error uploading documents", error: err.message });
+    }
+});
+
+app.get("/api/documents", async (req, res) => {
+    try {
+        const { uploadedBy } = req.query;
+        let query = {};
+        
+        if (uploadedBy) {
+            query.uploadedBy = uploadedBy;
+        }
+        
+        const documents = await Document.find(query).sort({ createdAt: -1 });
+        res.json(documents);
+    } catch (err) {
+        console.error("Error fetching documents:", err);
+        res.status(500).json({ message: "❌ Error fetching documents", error: err.message });
+    }
+});
+
+app.delete("/api/documents/:id", async (req, res) => {
+    try {
+        const document = await Document.findByIdAndDelete(req.params.id);
+        
+        if (!document) return res.status(404).json({ message: "Document not found" });
+        
+        // Delete the file from the filesystem
+        if (fs.existsSync(document.filePath)) {
+            fs.unlinkSync(document.filePath);
+        }
+        
+        res.json({ message: "🗑️ Document deleted successfully!" });
+    } catch (err) {
+        console.error("Error deleting document:", err);
+        res.status(500).json({ message: "❌ Error deleting document", error: err.message });
+    }
+});
+
+// Helper function to format file size
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
 
 // Reports APIs
 // Get student enrollment by department

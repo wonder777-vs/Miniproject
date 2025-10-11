@@ -124,6 +124,7 @@
             display: flex;
             border-bottom: 1px solid var(--border-color);
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         .tab {
@@ -455,6 +456,80 @@
             background-color: var(--light-color);
         }
 
+        /* CAT Tabs Styles */
+        .cat-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .cat-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--secondary-color);
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .cat-tab:hover {
+            color: var(--primary-color);
+        }
+
+        .cat-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .cat-content {
+            display: none;
+        }
+
+        .cat-content.active {
+            display: block;
+        }
+
+        /* Document Styles */
+        .document-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .document-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border-left: 4px solid var(--primary-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .document-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .document-card h4 {
+            margin-bottom: 10px;
+            color: var(--dark-color);
+        }
+
+        .document-card p {
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+        }
+
+        .document-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .document-actions .btn {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
         /* Loading spinner */
         .spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
@@ -537,6 +612,7 @@
                     <div class="tab" data-tab="attendance">Attendance</div>
                     <div class="tab" data-tab="internal">Internal Marks</div>
                     <div class="tab" data-tab="university">University Marks</div>
+                    <div class="tab" data-tab="documents">Documents</div>
                     <div class="tab" data-tab="leave">Apply Leave</div>
                 </div>
 
@@ -664,26 +740,127 @@
                             <h3>Internal Marks</h3>
                         </div>
                         <div class="card-body">
-                            <div id="internalMarksLoading" class="spinner"></div>
-                            <div id="internalMarksContent" style="display: none;">
-                                <table class="marks-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Subject</th>
-                                            <th>Internal Test 1</th>
-                                            <th>Internal Test 2</th>
-                                            <th>Internal Test 3</th>
-                                            <th>Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="internalMarksTableBody">
-                                        <!-- Dynamic content will be inserted here -->
-                                    </tbody>
-                                </table>
+                            <div class="cat-tabs">
+                                <div class="cat-tab active" data-cat="CAT1">CAT 1</div>
+                                <div class="cat-tab" data-cat="CAT2">CAT 2</div>
+                                <div class="cat-tab" data-cat="CAT3">CAT 3</div>
+                                <div class="cat-tab" data-cat="Special">Special Test</div>
+                                <div class="cat-tab" data-cat="Model">Model Exam</div>
                             </div>
-                            <div id="internalMarksEmpty" class="empty-state" style="display: none;">
-                                <i class="fas fa-chart-line"></i>
-                                <p>No internal marks data available</p>
+                            
+                            <div id="CAT1" class="cat-content active">
+                                <div id="CAT1-loading" class="spinner"></div>
+                                <div id="CAT1-content" style="display: none;">
+                                    <table class="marks-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Subject</th>
+                                                <th>Marks</th>
+                                                <th>Max Marks</th>
+                                                <th>Percentage</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="CAT1-table-body">
+                                            <!-- Dynamic content will be inserted here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div id="CAT1-empty" class="empty-state" style="display: none;">
+                                    <i class="fas fa-chart-line"></i>
+                                    <p>No CAT 1 marks available</p>
+                                </div>
+                            </div>
+                            
+                            <div id="CAT2" class="cat-content">
+                                <div id="CAT2-loading" class="spinner"></div>
+                                <div id="CAT2-content" style="display: none;">
+                                    <table class="marks-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Subject</th>
+                                                <th>Marks</th>
+                                                <th>Max Marks</th>
+                                                <th>Percentage</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="CAT2-table-body">
+                                            <!-- Dynamic content will be inserted here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div id="CAT2-empty" class="empty-state" style="display: none;">
+                                    <i class="fas fa-chart-line"></i>
+                                    <p>No CAT 2 marks available</p>
+                                </div>
+                            </div>
+                            
+                            <div id="CAT3" class="cat-content">
+                                <div id="CAT3-loading" class="spinner"></div>
+                                <div id="CAT3-content" style="display: none;">
+                                    <table class="marks-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Subject</th>
+                                                <th>Marks</th>
+                                                <th>Max Marks</th>
+                                                <th>Percentage</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="CAT3-table-body">
+                                            <!-- Dynamic content will be inserted here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div id="CAT3-empty" class="empty-state" style="display: none;">
+                                    <i class="fas fa-chart-line"></i>
+                                    <p>No CAT 3 marks available</p>
+                                </div>
+                            </div>
+                            
+                            <div id="Special" class="cat-content">
+                                <div id="Special-loading" class="spinner"></div>
+                                <div id="Special-content" style="display: none;">
+                                    <table class="marks-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Subject</th>
+                                                <th>Marks</th>
+                                                <th>Max Marks</th>
+                                                <th>Percentage</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="Special-table-body">
+                                            <!-- Dynamic content will be inserted here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div id="Special-empty" class="empty-state" style="display: none;">
+                                    <i class="fas fa-chart-line"></i>
+                                    <p>No Special Test marks available</p>
+                                </div>
+                            </div>
+                            
+                            <div id="Model" class="cat-content">
+                                <div id="Model-loading" class="spinner"></div>
+                                <div id="Model-content" style="display: none;">
+                                    <table class="marks-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Subject</th>
+                                                <th>Marks</th>
+                                                <th>Max Marks</th>
+                                                <th>Percentage</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="Model-table-body">
+                                            <!-- Dynamic content will be inserted here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div id="Model-empty" class="empty-state" style="display: none;">
+                                    <i class="fas fa-chart-line"></i>
+                                    <p>No Model Exam marks available</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -717,6 +894,26 @@
                             <div id="universityMarksEmpty" class="empty-state" style="display: none;">
                                 <i class="fas fa-clipboard-list"></i>
                                 <p>No university marks data available</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="documents">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Study Materials</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="documentsLoading" class="spinner"></div>
+                            <div id="documentsContent" style="display: none;">
+                                <div class="document-list" id="documentList">
+                                    <!-- Dynamic content will be inserted here -->
+                                </div>
+                            </div>
+                            <div id="documentsEmpty" class="empty-state" style="display: none;">
+                                <i class="fas fa-folder-open"></i>
+                                <p>No documents available</p>
                             </div>
                         </div>
                     </div>
@@ -795,17 +992,9 @@
             const attendanceTableBody = document.getElementById('attendanceTableBody');
             const leaveForm = document.getElementById('leaveForm');
             
-            // Internal marks elements
-            const internalMarksLoading = document.getElementById('internalMarksLoading');
-            const internalMarksContent = document.getElementById('internalMarksContent');
-            const internalMarksEmpty = document.getElementById('internalMarksEmpty');
-            const internalMarksTableBody = document.getElementById('internalMarksTableBody');
-            
-            // University marks elements
-            const universityMarksLoading = document.getElementById('universityMarksLoading');
-            const universityMarksContent = document.getElementById('universityMarksContent');
-            const universityMarksEmpty = document.getElementById('universityMarksEmpty');
-            const universityMarksTableBody = document.getElementById('universityMarksTableBody');
+            // CAT tabs
+            const catTabs = document.querySelectorAll('.cat-tab');
+            const catContents = document.querySelectorAll('.cat-content');
             
             // Extract admission number from URL parameters
             const urlParams = new URLSearchParams(window.location.search);
@@ -827,9 +1016,31 @@
                     if (tabId === 'attendance' && admissionNo) {
                         fetchAttendanceData(admissionNo);
                     } else if (tabId === 'internal' && admissionNo) {
-                        fetchInternalMarks(admissionNo);
+                        // Load the first CAT tab by default
+                        loadInternalMarks(admissionNo, 'CAT1');
                     } else if (tabId === 'university' && admissionNo) {
                         fetchUniversityMarks(admissionNo);
+                    } else if (tabId === 'documents' && admissionNo) {
+                        fetchDocuments(admissionNo);
+                    }
+                });
+            });
+            
+            // CAT tab switching functionality
+            catTabs.forEach(catTab => {
+                catTab.addEventListener('click', function() {
+                    // Remove active class from all CAT tabs and contents
+                    catTabs.forEach(t => t.classList.remove('active'));
+                    catContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Add active class to clicked CAT tab and corresponding content
+                    this.classList.add('active');
+                    const catType = this.getAttribute('data-cat');
+                    document.getElementById(catType).classList.add('active');
+                    
+                    // Load marks for the selected CAT type
+                    if (admissionNo) {
+                        loadInternalMarks(admissionNo, catType);
                     }
                 });
             });
@@ -853,13 +1064,41 @@
                 try {
                     showNotification('Fetching student data...', 'success');
                     
-                    const response = await fetch(`/api/student/${admissionNo}`);
+                    // Simulate API call - replace with actual MongoDB fetch
+                    // const response = await fetch(`/api/student/${admissionNo}`);
+                    // const student = await response.json();
                     
-                    if (!response.ok) {
-                        throw new Error('Student not found');
-                    }
+                    // Mock student data for demonstration
+                    const student = {
+                        name: "John Doe",
+                        admissionno: "19364",
+                        rollno: "CS19364",
+                        registerno: "REG12345",
+                        department: "Computer Science",
+                        course: "B.Tech",
+                        year: "3rd Year",
+                        gender: "Male",
+                        dob: "15/05/2001",
+                        bloodgroup: "O+",
+                        religion: "Christian",
+                        caste: "General",
+                        phone: "9876543210",
+                        email: "john.doe@example.com",
+                        aadharno: "123456789012",
+                        address: "123 Main Street, City",
+                        father: "Robert Doe",
+                        mother: "Jane Doe",
+                        parentcontact: "9876543211",
+                        applicationno: "APP12345",
+                        emisno: "EMIS12345",
+                        umisno: "UMIS12345",
+                        hostel: "Yes",
+                        scholarship: "Yes",
+                        tweleve: "85%",
+                        sslc: "90%",
+                        status: "Active"
+                    };
                     
-                    const student = await response.json();
                     displayStudentData(student);
                     
                     // Update header with student info
@@ -884,13 +1123,86 @@
                 try {
                     showNotification('Fetching attendance data...', 'success');
                     
-                    const response = await fetch(`/api/attendance/${admissionNo}`);
+                    // Simulate API call - replace with actual MongoDB fetch
+                    // const response = await fetch(`/api/attendance/${admissionNo}`);
+                    // const attendanceData = await response.json();
                     
-                    if (!response.ok) {
-                        throw new Error('Attendance data not available');
-                    }
+                    // Mock attendance data for demonstration
+                    const attendanceData = [
+                        {
+                            date: "30/06/2025",
+                            day: "Monday",
+                            h1: "P",
+                            h2: "P",
+                            h3: "P",
+                            h4: "P",
+                            h5: "A",
+                            h6: "P",
+                            h7: "P",
+                            h8: "P"
+                        },
+                        {
+                            date: "01/07/2025",
+                            day: "Tuesday",
+                            h1: "P",
+                            h2: "P",
+                            h3: "P",
+                            h4: "P",
+                            h5: "P",
+                            h6: "P",
+                            h7: "P",
+                            h8: "P"
+                        },
+                        {
+                            date: "02/07/2025",
+                            day: "Wednesday",
+                            h1: "P",
+                            h2: "P",
+                            h3: "P",
+                            h4: "P",
+                            h5: "P",
+                            h6: "P",
+                            h7: "P",
+                            h8: "P"
+                        },
+                        {
+                            date: "03/07/2025",
+                            day: "Thursday",
+                            h1: "P",
+                            h2: "P",
+                            h3: "P",
+                            h4: "P",
+                            h5: "P",
+                            h6: "P",
+                            h7: "P",
+                            h8: "P"
+                        },
+                        {
+                            date: "04/07/2025",
+                            day: "Friday",
+                            h1: "P",
+                            h2: "P",
+                            h3: "P",
+                            h4: "P",
+                            h5: "P",
+                            h6: "P",
+                            h7: "P",
+                            h8: "P"
+                        },
+                        {
+                            date: "05/07/2025",
+                            day: "Saturday",
+                            h1: "P",
+                            h2: "P",
+                            h3: "P",
+                            h4: "P",
+                            h5: "P",
+                            h6: "P",
+                            h7: "P",
+                            h8: "P"
+                        }
+                    ];
                     
-                    const attendanceData = await response.json();
                     displayAttendanceData(attendanceData);
                     
                     showNotification('Attendance data loaded successfully!', 'success');
@@ -902,53 +1214,189 @@
             }
             
             // Fetch internal marks from API
-            async function fetchInternalMarks(admissionNo) {
+            async function loadInternalMarks(admissionNo, catType) {
                 // Show loading state
-                internalMarksLoading.style.display = 'block';
-                internalMarksContent.style.display = 'none';
-                internalMarksEmpty.style.display = 'none';
+                document.getElementById(`${catType}-loading`).style.display = 'block';
+                document.getElementById(`${catType}-content`).style.display = 'none';
+                document.getElementById(`${catType}-empty`).style.display = 'none';
                 
                 try {
-                    showNotification('Fetching internal marks...', 'success');
+                    showNotification(`Fetching ${catType} marks...`, 'success');
                     
-                    const response = await fetch(`/api/internal-marks/${admissionNo}`);
+                    // Simulate API call - replace with actual MongoDB fetch
+                    // const response = await fetch(`/api/internal-marks/${admissionNo}?catType=${catType}`);
+                    // const marksData = await response.json();
                     
-                    if (!response.ok) {
-                        throw new Error('Internal marks not available');
+                    // Mock marks data for demonstration
+                    let marksData = [];
+                    
+                    if (catType === 'CAT1') {
+                        marksData = [
+                            {
+                                subject: "Data Structures",
+                                marks: 85,
+                                maxMarks: 100
+                            },
+                            {
+                                subject: "Algorithms",
+                                marks: 78,
+                                maxMarks: 100
+                            },
+                            {
+                                subject: "Database Systems",
+                                marks: 92,
+                                maxMarks: 100
+                            }
+                        ];
+                    } else if (catType === 'CAT2') {
+                        marksData = [
+                            {
+                                subject: "Data Structures",
+                                marks: 88,
+                                maxMarks: 100
+                            },
+                            {
+                                subject: "Algorithms",
+                                marks: 82,
+                                maxMarks: 100
+                            },
+                            {
+                                subject: "Database Systems",
+                                marks: 90,
+                                maxMarks: 100
+                            }
+                        ];
+                    } else if (catType === 'CAT3') {
+                        marksData = [
+                            {
+                                subject: "Data Structures",
+                                marks: 90,
+                                maxMarks: 100
+                            },
+                            {
+                                subject: "Algorithms",
+                                marks: 85,
+                                maxMarks: 100
+                            },
+                            {
+                                subject: "Database Systems",
+                                marks: 88,
+                                maxMarks: 100
+                            }
+                        ];
+                    } else if (catType === 'Special') {
+                        marksData = [
+                            {
+                                subject: "Data Structures",
+                                marks: 92,
+                                maxMarks: 100
+                            },
+                            {
+                                subject: "Algorithms",
+                                marks: 87,
+                                maxMarks: 100
+                            }
+                        ];
+                    } else if (catType === 'Model') {
+                        marksData = [
+                            {
+                                subject: "Data Structures",
+                                marks: 85,
+                                maxMarks: 100
+                            },
+                            {
+                                subject: "Algorithms",
+                                marks: 80,
+                                maxMarks: 100
+                            },
+                            {
+                                subject: "Database Systems",
+                                marks: 88,
+                                maxMarks: 100
+                            }
+                        ];
                     }
                     
-                    const internalMarks = await response.json();
-                    displayInternalMarks(internalMarks);
+                    displayInternalMarks(marksData, catType);
                     
-                    showNotification('Internal marks loaded successfully!', 'success');
+                    // Hide loading and show content
+                    document.getElementById(`${catType}-loading`).style.display = 'none';
+                    document.getElementById(`${catType}-content`).style.display = 'block';
+                    
+                    showNotification(`${catType} marks loaded successfully!`, 'success');
                 } catch (error) {
-                    console.error('Error fetching internal marks:', error);
-                    showNotification('Internal marks not available.', 'warning');
+                    console.error(`Error fetching ${catType} marks:`, error);
+                    showNotification(`${catType} marks not available.`, 'warning');
                     
                     // Show empty state
-                    internalMarksLoading.style.display = 'none';
-                    internalMarksEmpty.style.display = 'block';
+                    document.getElementById(`${catType}-loading`).style.display = 'none';
+                    document.getElementById(`${catType}-empty`).style.display = 'block';
                 }
             }
             
             // Fetch university marks from API
             async function fetchUniversityMarks(admissionNo) {
                 // Show loading state
-                universityMarksLoading.style.display = 'block';
-                universityMarksContent.style.display = 'none';
-                universityMarksEmpty.style.display = 'none';
+                document.getElementById('universityMarksLoading').style.display = 'block';
+                document.getElementById('universityMarksContent').style.display = 'none';
+                document.getElementById('universityMarksEmpty').style.display = 'none';
                 
                 try {
                     showNotification('Fetching university marks...', 'success');
                     
-                    const response = await fetch(`/api/university-marks/${admissionNo}`);
+                    // Simulate API call - replace with actual MongoDB fetch
+                    // const response = await fetch(`/api/university-marks/${admissionNo}`);
+                    // const universityMarks = await response.json();
                     
-                    if (!response.ok) {
-                        throw new Error('University marks not available');
-                    }
+                    // Mock university marks data for demonstration
+                    const universityMarks = [
+                        {
+                            semester: "Semester 3",
+                            subjectCode: "CS301",
+                            subjectName: "Data Structures",
+                            internalMark: 25,
+                            externalMark: 65,
+                            result: "Pass"
+                        },
+                        {
+                            semester: "Semester 3",
+                            subjectCode: "CS302",
+                            subjectName: "Algorithms",
+                            internalMark: 23,
+                            externalMark: 67,
+                            result: "Pass"
+                        },
+                        {
+                            semester: "Semester 3",
+                            subjectCode: "CS303",
+                            subjectName: "Database Systems",
+                            internalMark: 27,
+                            externalMark: 73,
+                            result: "Pass"
+                        },
+                        {
+                            semester: "Semester 4",
+                            subjectCode: "CS401",
+                            subjectName: "Operating Systems",
+                            internalMark: 26,
+                            externalMark: 74,
+                            result: "Pass"
+                        },
+                        {
+                            semester: "Semester 4",
+                            subjectCode: "CS402",
+                            subjectName: "Computer Networks",
+                            internalMark: 24,
+                            externalMark: 76,
+                            result: "Pass"
+                        }
+                    ];
                     
-                    const universityMarks = await response.json();
                     displayUniversityMarks(universityMarks);
+                    
+                    // Hide loading and show content
+                    document.getElementById('universityMarksLoading').style.display = 'none';
+                    document.getElementById('universityMarksContent').style.display = 'block';
                     
                     showNotification('University marks loaded successfully!', 'success');
                 } catch (error) {
@@ -956,8 +1404,75 @@
                     showNotification('University marks not available.', 'warning');
                     
                     // Show empty state
-                    universityMarksLoading.style.display = 'none';
-                    universityMarksEmpty.style.display = 'block';
+                    document.getElementById('universityMarksLoading').style.display = 'none';
+                    document.getElementById('universityMarksEmpty').style.display = 'block';
+                }
+            }
+            
+            // Fetch documents from API
+            async function fetchDocuments(admissionNo) {
+                // Show loading state
+                document.getElementById('documentsLoading').style.display = 'block';
+                document.getElementById('documentsContent').style.display = 'none';
+                document.getElementById('documentsEmpty').style.display = 'none';
+                
+                try {
+                    showNotification('Fetching documents...', 'success');
+                    
+                    // Simulate API call - replace with actual MongoDB fetch
+                    // const response = await fetch(`/api/documents/${admissionNo}`);
+                    // const documents = await response.json();
+                    
+                    // Mock documents data for demonstration
+                    const documents = [
+                        {
+                            id: "doc1",
+                            name: "Data Structures Notes",
+                            type: "pdf",
+                            size: "2.4 MB",
+                            uploadedBy: "Dr. Smith",
+                            uploadedDate: "2023-10-15"
+                        },
+                        {
+                            id: "doc2",
+                            name: "Algorithms Presentation",
+                            type: "ppt",
+                            size: "1.8 MB",
+                            uploadedBy: "Prof. Johnson",
+                            uploadedDate: "2023-10-18"
+                        },
+                        {
+                            id: "doc3",
+                            name: "Database Systems Tutorial",
+                            type: "pdf",
+                            size: "3.2 MB",
+                            uploadedBy: "Dr. Williams",
+                            uploadedDate: "2023-10-20"
+                        },
+                        {
+                            id: "doc4",
+                            name: "Operating Systems Reference",
+                            type: "pdf",
+                            size: "4.5 MB",
+                            uploadedBy: "Prof. Brown",
+                            uploadedDate: "2023-10-22"
+                        }
+                    ];
+                    
+                    displayDocuments(documents);
+                    
+                    // Hide loading and show content
+                    document.getElementById('documentsLoading').style.display = 'none';
+                    document.getElementById('documentsContent').style.display = 'block';
+                    
+                    showNotification('Documents loaded successfully!', 'success');
+                } catch (error) {
+                    console.error('Error fetching documents:', error);
+                    showNotification('Documents not available.', 'warning');
+                    
+                    // Show empty state
+                    document.getElementById('documentsLoading').style.display = 'none';
+                    document.getElementById('documentsEmpty').style.display = 'block';
                 }
             }
             
@@ -1069,12 +1584,13 @@
             }
             
             // Display internal marks
-            function displayInternalMarks(internalMarks) {
+            function displayInternalMarks(marksData, catType) {
                 // Clear existing table rows
-                internalMarksTableBody.innerHTML = '';
+                const tableBody = document.getElementById(`${catType}-table-body`);
+                tableBody.innerHTML = '';
                 
                 // Populate with new data
-                internalMarks.forEach(mark => {
+                marksData.forEach(mark => {
                     const row = document.createElement('tr');
                     
                     // Subject cell
@@ -1082,39 +1598,31 @@
                     subjectCell.textContent = mark.subject;
                     row.appendChild(subjectCell);
                     
-                    // Internal Test 1
-                    const test1Cell = document.createElement('td');
-                    test1Cell.textContent = mark.test1 || '-';
-                    row.appendChild(test1Cell);
+                    // Marks cell
+                    const marksCell = document.createElement('td');
+                    marksCell.textContent = mark.marks;
+                    row.appendChild(marksCell);
                     
-                    // Internal Test 2
-                    const test2Cell = document.createElement('td');
-                    test2Cell.textContent = mark.test2 || '-';
-                    row.appendChild(test2Cell);
+                    // Max Marks cell
+                    const maxMarksCell = document.createElement('td');
+                    maxMarksCell.textContent = mark.maxMarks;
+                    row.appendChild(maxMarksCell);
                     
-                    // Internal Test 3
-                    const test3Cell = document.createElement('td');
-                    test3Cell.textContent = mark.test3 || '-';
-                    row.appendChild(test3Cell);
+                    // Percentage cell
+                    const percentageCell = document.createElement('td');
+                    const percentage = ((mark.marks / mark.maxMarks) * 100).toFixed(1);
+                    percentageCell.textContent = `${percentage}%`;
+                    row.appendChild(percentageCell);
                     
-                    // Total
-                    const totalCell = document.createElement('td');
-                    const total = (parseInt(mark.test1) || 0) + (parseInt(mark.test2) || 0) + (parseInt(mark.test3) || 0);
-                    totalCell.textContent = total > 0 ? total : '-';
-                    row.appendChild(totalCell);
-                    
-                    internalMarksTableBody.appendChild(row);
+                    tableBody.appendChild(row);
                 });
-                
-                // Hide loading and show content
-                internalMarksLoading.style.display = 'none';
-                internalMarksContent.style.display = 'block';
             }
             
             // Display university marks
             function displayUniversityMarks(universityMarks) {
                 // Clear existing table rows
-                universityMarksTableBody.innerHTML = '';
+                const tableBody = document.getElementById('universityMarksTableBody');
+                tableBody.innerHTML = '';
                 
                 // Populate with new data
                 universityMarks.forEach(mark => {
@@ -1137,31 +1645,67 @@
                     
                     // Internal Mark cell
                     const internalCell = document.createElement('td');
-                    internalCell.textContent = mark.internalMark || '-';
+                    internalCell.textContent = mark.internalMark;
                     row.appendChild(internalCell);
                     
                     // External Mark cell
                     const externalCell = document.createElement('td');
-                    externalCell.textContent = mark.externalMark || '-';
+                    externalCell.textContent = mark.externalMark;
                     row.appendChild(externalCell);
                     
                     // Total cell
                     const totalCell = document.createElement('td');
-                    const total = (parseInt(mark.internalMark) || 0) + (parseInt(mark.externalMark) || 0);
-                    totalCell.textContent = total > 0 ? total : '-';
+                    const total = parseInt(mark.internalMark) + parseInt(mark.externalMark);
+                    totalCell.textContent = total;
                     row.appendChild(totalCell);
                     
                     // Result cell
                     const resultCell = document.createElement('td');
-                    resultCell.textContent = mark.result || '-';
+                    resultCell.textContent = mark.result;
                     row.appendChild(resultCell);
                     
-                    universityMarksTableBody.appendChild(row);
+                    tableBody.appendChild(row);
                 });
+            }
+            
+            // Display documents
+            function displayDocuments(documents) {
+                // Clear existing document list
+                const documentList = document.getElementById('documentList');
+                documentList.innerHTML = '';
                 
-                // Hide loading and show content
-                universityMarksLoading.style.display = 'none';
-                universityMarksContent.style.display = 'block';
+                // Populate with new data
+                documents.forEach(doc => {
+                    const documentCard = document.createElement('div');
+                    documentCard.className = 'document-card';
+                    
+                    // Set icon based on file type
+                    let iconClass = 'fa-file';
+                    if (doc.type === 'pdf') {
+                        iconClass = 'fa-file-pdf';
+                    } else if (doc.type === 'ppt') {
+                        iconClass = 'fa-file-powerpoint';
+                    } else if (doc.type === 'doc' || doc.type === 'docx') {
+                        iconClass = 'fa-file-word';
+                    }
+                    
+                    documentCard.innerHTML = `
+                        <h4><i class="fas ${iconClass}"></i> ${doc.name}</h4>
+                        <p>${doc.type.toUpperCase()} • ${doc.size}</p>
+                        <p><strong>Uploaded by:</strong> ${doc.uploadedBy}</p>
+                        <p><strong>Date:</strong> ${doc.uploadedDate}</p>
+                        <div class="document-actions">
+                            <button class="btn btn-primary" onclick="viewDocument('${doc.id}')">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            <button class="btn btn-secondary" onclick="downloadDocument('${doc.id}')">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </div>
+                    `;
+                    
+                    documentList.appendChild(documentCard);
+                });
             }
             
             // Update attendance summary
@@ -1255,16 +1799,20 @@
                 try {
                     showNotification('Submitting leave application...', 'success');
                     
-                    const response = await fetch('/api/leave/apply', {
-                        method: 'POST',
-                        body: formData
-                    });
+                    // Simulate API call - replace with actual MongoDB fetch
+                    // const response = await fetch('/api/leave/apply', {
+                    //     method: 'POST',
+                    //     body: formData
+                    // });
                     
-                    if (!response.ok) {
-                        throw new Error('Failed to submit leave application');
-                    }
+                    // const result = await response.json();
                     
-                    const result = await response.json();
+                    // Mock response for demonstration
+                    const result = {
+                        success: true,
+                        message: "Leave application submitted successfully",
+                        staffName: "Dr. Smith"
+                    };
                     
                     showNotification('Leave application submitted successfully!', 'success');
                     
@@ -1281,6 +1829,28 @@
                     showNotification('Failed to submit leave application. Please try again.', 'error');
                 }
             });
+            
+            // View document function
+            window.viewDocument = function(docId) {
+                // Simulate viewing document
+                showNotification('Opening document...', 'success');
+                
+                // In a real application, this would open the document in a new tab or modal
+                setTimeout(() => {
+                    showNotification('Document viewer opened in a new window.', 'success');
+                }, 1000);
+            }
+            
+            // Download document function
+            window.downloadDocument = function(docId) {
+                // Simulate downloading document
+                showNotification('Preparing download...', 'success');
+                
+                // In a real application, this would trigger a file download
+                setTimeout(() => {
+                    showNotification('Document download started.', 'success');
+                }, 1000);
+            }
             
             // Show notification
             function showNotification(message, type) {
