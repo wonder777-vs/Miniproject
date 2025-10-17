@@ -464,44 +464,241 @@
   <!-- Notification -->
   <div class="notification" id="notification"></div>
 
+  <!-- Initialize the forms -->
   <script>
+    // Wait for DOM to be fully loaded before attaching event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get references to all elements
+      const elements = {
+        addStudentBtn: document.getElementById('addStudentBtn'),
+        addFacultyBtn: document.getElementById('addFacultyBtn'),
+        createCourseBtn: document.getElementById('createCourseBtn'),
+        studentForm: document.getElementById('studentForm'),
+        facultyForm: document.getElementById('facultyForm'),
+        courseForm: document.getElementById('courseForm')
+      };
+
+      // Helper functions
+      function showModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+          document.querySelectorAll('.modal-bg').forEach(m => m.style.display = 'none');
+          modal.style.display = 'flex';
+        } else {
+          console.error(`Modal with id ${id} not found`);
+        }
+      }
+
+      function closeModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+          modal.style.display = 'none';
+          const form = modal.querySelector('form');
+          if (form) form.reset();
+        }
+      }
+
+      function showNotification(message, type = 'success') {
+        const notification = document.getElementById('notification');
+        if (notification) {
+          notification.textContent = message;
+          notification.className = `notification ${type}`;
+          notification.classList.add('show');
+          setTimeout(() => notification.classList.remove('show'), 3000);
+        }
+      }
+
+      // Add button click handlers
+      if (elements.addStudentBtn) {
+        elements.addStudentBtn.addEventListener('click', () => showModal('addStudentModal'));
+      }
+      
+      if (elements.addFacultyBtn) {
+        elements.addFacultyBtn.addEventListener('click', () => showModal('addFacultyModal'));
+      }
+      
+      if (elements.createCourseBtn) {
+        elements.createCourseBtn.addEventListener('click', () => showModal('addCourseModal'));
+      }
+
+      // Handle form submissions
+      if (elements.studentForm) {
+        elements.studentForm.onsubmit = async function(e) {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const data = Object.fromEntries([...formData.entries()].map(([k, v]) => [k, v.trim()]));
+
+          if (!data.name || !data.admissionno) {
+            showNotification('Name and Admission Number are required!', 'error');
+            return;
+          }
+
+          try {
+            console.log('Submitting student data:', data);
+            const response = await fetch('http://localhost:3000/students', {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            console.log('Server response:', result);
+            
+            if (response.ok) {
+              showNotification(result.message || 'Student added successfully!');
+              closeModal('addStudentModal');
+            } else {
+              showNotification(result.message || `Failed to add student: ${result.error || ''}`, 'error');
+            }
+          } catch (error) {
+            console.error('Error:', error);
+            showNotification('Network error. Check console for details.', 'error');
+          }
+        };
+      }
+
+      if (elements.facultyForm) {
+        elements.facultyForm.onsubmit = async function(e) {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const data = Object.fromEntries([...formData.entries()].map(([k, v]) => [k, v.trim()]));
+
+          if (!data.name || !data.id) {
+            showNotification('Name and Faculty ID are required!', 'error');
+            return;
+          }
+
+          try {
+            console.log('Submitting faculty data:', data);
+            const response = await fetch('http://localhost:3000/faculty', {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            console.log('Server response:', result);
+            
+            if (response.ok) {
+              showNotification(result.message || 'Faculty added successfully!');
+              closeModal('addFacultyModal');
+            } else {
+              showNotification(result.message || `Failed to add faculty: ${result.error || ''}`, 'error');
+            }
+          } catch (error) {
+            console.error('Error:', error);
+            showNotification('Network error. Check console for details.', 'error');
+          }
+        };
+      }
+
+      if (elements.courseForm) {
+        elements.courseForm.onsubmit = async function(e) {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const data = Object.fromEntries([...formData.entries()].map(([k, v]) => [k, v.trim()]));
+
+          if (data.credits) {
+            data.credits = parseInt(data.credits);
+            if (isNaN(data.credits)) {
+              showNotification('Credits must be a valid number!', 'error');
+              return;
+            }
+          }
+
+          if (!data.name || !data.id || !data.dept) {
+            showNotification('Course Name, ID, and Department are required!', 'error');
+            return;
+          }
+
+          try {
+            console.log('Submitting course data:', data);
+            const response = await fetch('http://localhost:3000/courses', {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            console.log('Server response:', result);
+            
+            if (response.ok) {
+              showNotification(result.message || 'Course added successfully!');
+              closeModal('addCourseModal');
+            } else {
+              showNotification(result.message || `Failed to add course: ${result.error || ''}`, 'error');
+            }
+          } catch (error) {
+            console.error('Error:', error);
+            showNotification('Network error. Check console for details.', 'error');
+          }
+        };
+      }
+    });
+  </script>
     // Define helper functions first
     function showModal(id) {
-      document.querySelectorAll('.modal-bg').forEach(m => m.style.display = 'none');
-      document.getElementById(id).style.display = 'flex';
+      const modal = document.getElementById(id);
+      if (modal) {
+        document.querySelectorAll('.modal-bg').forEach(m => m.style.display = 'none');
+        modal.style.display = 'flex';
+      }
     }
 
     function closeModal(id) {
-      document.getElementById(id).style.display = 'none';
-      let form = document.querySelector('#' + id + ' form');
-      if (form) form.reset();
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.style.display = 'none';
+        let form = modal.querySelector('form');
+        if (form) form.reset();
+      }
     }
 
     function showNotification(message, type = 'success') {
       const notification = document.getElementById('notification');
-      notification.textContent = message;
-      notification.className = `notification ${type}`;
-      notification.classList.add('show');
-      
-      setTimeout(() => {
-        notification.classList.remove('show');
-      }, 3000);
+      if (notification) {
+        notification.textContent = message;
+        notification.className = `notification ${type}`;
+        notification.classList.add('show');
+        
+        setTimeout(() => {
+          notification.classList.remove('show');
+        }, 3000);
+      }
     }
 
     // Wait for DOM to be fully loaded before attaching event listeners
     document.addEventListener('DOMContentLoaded', function() {
       // Button click events to open modals
-      document.getElementById('addStudentBtn').addEventListener('click', () => showModal('addStudentModal'));
-      document.getElementById('addFacultyBtn').addEventListener('click', () => showModal('addFacultyModal'));
-      document.getElementById('createCourseBtn').addEventListener('click', () => showModal('addCourseModal'));
+      const addStudentBtn = document.getElementById('addStudentBtn');
+      const addFacultyBtn = document.getElementById('addFacultyBtn');
+      const createCourseBtn = document.getElementById('createCourseBtn');
 
-      // Generate report button
-      document.querySelector('.generate-report').addEventListener('click', function() {
-        showNotification('Report generated successfully!', 'success');
-      });
+      if (addStudentBtn) {
+        addStudentBtn.addEventListener('click', () => showModal('addStudentModal'));
+      }
+      
+      if (addFacultyBtn) {
+        addFacultyBtn.addEventListener('click', () => showModal('addFacultyModal'));
+      }
+      
+      if (createCourseBtn) {
+        createCourseBtn.addEventListener('click', () => showModal('addCourseModal'));
+      }
 
       // Student modal form submission
-      document.getElementById('studentForm').onsubmit = async function(e) {
+      const studentForm = document.getElementById('studentForm');
+      if (studentForm) {
+        studentForm.onsubmit = async function(e) {
         e.preventDefault();
         const formData = new FormData(e.target);
         const data = {};
