@@ -306,13 +306,12 @@
   let editingCourse = null;
 
   // API base URL
-  const API_URL = "http://localhost:3000/courses";
+  const API_URL = "https://miniproject-1-fcw7.onrender.com/courses";
 
   // Fetch all courses from backend
   async function fetchCourses() {
     try {
       showNotification("Loading courses...", "warning");
-  const API_URL = "https://miniproject-1-fcw7.onrender.com/courses";
   const res = await fetch(API_URL);
       
       if (!res.ok) {

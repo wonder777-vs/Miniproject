@@ -34,12 +34,18 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-mongoose.connect('mongodb+srv://admin:admin@cluster0.kdgkues.mongodb.net/mepco_erp?retryWrites=true&w=majority&appName=Cluster0');
-
-const db = mongoose.connection;
-db.once('open', () => {
-    console.log("mongodb connect successfully.");
-    console.log("http://localhost:3000/");
+// MongoDB Atlas Connection
+mongoose.connect('mongodb+srv://admin:admin@cluster0.kdgkues.mongodb.net/mepco_erp?retryWrites=true&w=majority&appName=Cluster0', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
+.then(() => {
+    console.log('✅ Connected to MongoDB Atlas successfully');
+    console.log(`🚀 Server running at http://localhost:${port}/`);
+})
+.catch(err => {
+    console.error('❌ MongoDB Atlas Connection Error:', err);
+    process.exit(1);
 });
 
 // Define all models BEFORE using them in routes
