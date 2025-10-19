@@ -941,6 +941,120 @@ function formatFileSize(bytes) {
 }
 
 // Reports APIs
+
+// Generate Excel/PDF reports
+app.post("/api/reports/generate", async (req, res) => {
+    try {
+        const { type, format } = req.body;
+        let data = [];
+        let fileName = '';
+
+        // Get data based on report type
+        switch (type) {
+            case 'student':
+                data = await Student.find().lean();
+                fileName = 'student_report';
+                break;
+            case 'faculty':
+                data = await Faculty.find().lean();
+                fileName = 'faculty_report';
+                break;
+            case 'course':
+                data = await Course.find().lean();
+                fileName = 'course_report';
+                break;
+            case 'fee':
+                data = await Fee.find().lean();
+                fileName = 'fee_report';
+                break;
+            default:
+                throw new Error('Invalid report type');
+        }
+
+        if (format === 'excel') {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet(type.charAt(0).toUpperCase() + type.slice(1) + ' Report');
+
+            if (data.length > 0) {
+                // Add headers
+                const headers = Object.keys(data[0]).filter(key => key !== '__v' && key !== '_id');
+                worksheet.addRow(headers.map(h => h.charAt(0).toUpperCase() + h.slice(1)));
+
+                // Add data
+                data.forEach(item => {
+                    const row = headers.map(header => item[header] || '');
+                    worksheet.addRow(row);
+                });
+
+                // Style the headers
+                const headerRow = worksheet.getRow(1);
+                headerRow.font = { bold: true };
+                headerRow.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'FFE0E0E0' }
+                };
+
+                // Adjust column widths
+                worksheet.columns.forEach(column => {
+                    column.width = Math.max(15, column.header?.length + 5 || 15);
+                });
+            }
+
+            // Set response headers for Excel
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', `attachment; filename=${fileName}_${Date.now()}.xlsx`);
+
+            // Write to response
+            await workbook.xlsx.write(res);
+            res.end();
+
+        } else if (format === 'pdf') {
+            const doc = new PDFDocument();
+            
+            // Set response headers for PDF
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename=${fileName}_${Date.now()}.pdf`);
+
+            // Pipe the PDF to the response
+            doc.pipe(res);
+
+            // Add title
+            doc.fontSize(16).text(type.charAt(0).toUpperCase() + type.slice(1) + ' Report', {
+                align: 'center'
+            });
+            doc.moveDown();
+
+            if (data.length > 0) {
+                // Add headers
+                const headers = Object.keys(data[0]).filter(key => key !== '__v' && key !== '_id');
+                
+                // Add data
+                data.forEach((item, index) => {
+                    doc.fontSize(12).text(`Record #${index + 1}`, { underline: true });
+                    headers.forEach(header => {
+                        doc.fontSize(10).text(`${header}: ${item[header] || 'N/A'}`);
+                    });
+                    doc.moveDown();
+                });
+            } else {
+                doc.fontSize(12).text('No data available', { align: 'center' });
+            }
+
+            // Finalize PDF
+            doc.end();
+        } else {
+            throw new Error('Invalid format specified');
+        }
+    } catch (err) {
+        console.error('Report Generation Error:', err);
+        res.status(500).json({ 
+            message: "Error generating report", 
+            error: err.message 
+        });
+    }
+});
+
 // Get student enrollment by department
 app.get("/api/reports/enrollment-by-department", async (req, res) => {
     try {
@@ -1698,6 +1812,113 @@ async function generateFacultyReport(format, dateRange, filepath) {
         console.error("Error generating faculty report:", err);
         throw err;
     }
+}
+
+// Report generation endpoint
+app.post('/api/reports/generate', async (req, res) => {
+    try {
+        const { reportType, format, dateRange } = req.body;
+
+        // Validate required fields
+        if (!reportType || !format || !dateRange) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        let data;
+        // Fetch data based on report type and date range
+        switch (reportType) {
+            case 'enrollment':
+                // Query student enrollment data
+                data = await Student.find({ 
+                    createdAt: getDateRangeQuery(dateRange)
+                });
+                break;
+            case 'attendance':
+                // Query attendance data
+                data = await Attendance.find({
+                    date: getDateRangeQuery(dateRange)
+                });
+                break;
+            case 'grades':
+                // Query grades data
+                data = await Grade.find({
+                    createdAt: getDateRangeQuery(dateRange)
+                });
+                break;
+            case 'fees':
+                // Query fee collection data
+                data = await Fee.find({
+                    paymentDate: getDateRangeQuery(dateRange)
+                });
+                break;
+            case 'faculty':
+                // Query faculty performance data
+                data = await Faculty.find({
+                    evaluationDate: getDateRangeQuery(dateRange)
+                });
+                break;
+            default:
+                return res.status(400).json({ error: 'Invalid report type' });
+        }
+
+        // Generate report in requested format
+        let report;
+        switch (format.toLowerCase()) {
+            case 'pdf':
+                report = await generatePDFReport(data, reportType);
+                res.setHeader('Content-Type', 'application/pdf');
+                res.setHeader('Content-Disposition', `attachment; filename=${reportType}-report.pdf`);
+                break;
+            case 'excel':
+                report = await generateExcelReport(data, reportType);
+                res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+                res.setHeader('Content-Disposition', `attachment; filename=${reportType}-report.xlsx`);
+                break;
+            case 'csv':
+                report = await generateCSVReport(data, reportType);
+                res.setHeader('Content-Type', 'text/csv');
+                res.setHeader('Content-Disposition', `attachment; filename=${reportType}-report.csv`);
+                break;
+            default:
+                return res.status(400).json({ error: 'Invalid format' });
+        }
+
+        res.send(report);
+    } catch (error) {
+        console.error('Error generating report:', error);
+        res.status(500).json({ error: 'Failed to generate report' });
+    }
+});
+
+// Helper function to get date range query
+function getDateRangeQuery(range) {
+    const now = new Date();
+    let startDate;
+
+    switch (range) {
+        case 'today':
+            startDate = new Date(now.setHours(0, 0, 0, 0));
+            break;
+        case 'week':
+            startDate = new Date(now.setDate(now.getDate() - 7));
+            break;
+        case 'month':
+            startDate = new Date(now.setMonth(now.getMonth() - 1));
+            break;
+        case 'quarter':
+            startDate = new Date(now.setMonth(now.getMonth() - 3));
+            break;
+        case 'year':
+            startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+            break;
+        case 'custom':
+            // Handle custom date range from request
+            return {}; // Return empty query for now
+        default:
+            return {};
+    }
+
+    return { $gte: startDate };
 }
 
 app.listen(port, () => {

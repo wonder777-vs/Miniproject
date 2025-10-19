@@ -599,6 +599,82 @@
     <div class="notification" id="notification"></div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const reportForm = document.getElementById('reportForm');
+            const generateReportBtn = document.getElementById('generateReportBtn');
+            const notification = document.getElementById('notification');
+
+            generateReportBtn.addEventListener('click', async () => {
+                const reportType = document.getElementById('reportType').value;
+                const format = document.getElementById('format').value;
+                const dateRange = document.getElementById('dateRange').value;
+
+                if (!reportType || !format || !dateRange) {
+                    showNotification('Please fill all required fields', 'error');
+                    return;
+                }
+
+                try {
+                    generateReportBtn.disabled = true;
+                    generateReportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+
+                    const response = await fetch('/api/reports/generate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            reportType,
+                            format,
+                            dateRange
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Failed to generate report');
+                    }
+
+                    // Get the blob from the response
+                    const blob = await response.blob();
+                    
+                    // Create a URL for the blob
+                    const url = window.URL.createObjectURL(blob);
+                    
+                    // Create a temporary link and trigger the download
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${reportType}-report.${format}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    
+                    // Clean up
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    showNotification('Report generated successfully!', 'success');
+                } catch (error) {
+                    console.error('Error:', error);
+                    showNotification(error.message || 'Failed to generate report', 'error');
+                } finally {
+                    generateReportBtn.disabled = false;
+                    generateReportBtn.innerHTML = '<i class="fas fa-file-alt"></i> Generate Report';
+                }
+            });
+
+            function showNotification(message, type = 'info') {
+                notification.textContent = message;
+                notification.className = `notification ${type}`;
+                notification.style.display = 'block';
+
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 5000);
+            }
+        });
+    </script>
+
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Get DOM elements
             const exportAllBtn = document.getElementById('exportAllBtn');
