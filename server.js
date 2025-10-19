@@ -98,6 +98,8 @@ const Student = mongoose.model("Student", new mongoose.Schema({
     aadharno: String,
     applicationno: String,
     emisno: String,
+    department: String,
+    address: String,
     umisno: String,
     department: String,
     tweleve: String,
@@ -146,6 +148,95 @@ const CourseSchema = new mongoose.Schema({
 
 const Course = mongoose.model("Course", CourseSchema);
 
+// Exam model
+const examSchema = new mongoose.Schema({
+    examId: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
+    subject: { type: String, required: true },
+    course: { type: String, required: true },
+    date: { type: String, required: true },
+    totalMarks: { type: Number, required: true },
+    duration: { type: Number, required: true },
+    startTime: { type: String, required: true },
+    endTime: { type: String, required: true },
+    venue: { type: String, required: true },
+    status: { type: String, required: true, enum: ['Scheduled', 'Completed', 'Cancelled'] },
+    createdAt: { type: Date, default: Date.now }
+});
+
+const Exam = mongoose.model("Exam", examSchema);
+
+// Marks model
+const marksSchema = new mongoose.Schema({
+    examId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Exam',
+        required: true
+    },
+    marks: {
+        type: Map,
+        of: Number,
+        default: {}
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+const Marks = mongoose.model("Marks", marksSchema);
+
+// Leave Request model
+const leaveRequestSchema = new mongoose.Schema({
+    rollNo: {
+        type: String,
+        required: true
+    },
+    reason: {
+        type: String,
+        required: true
+    },
+    days: {
+        type: Number,
+        required: true
+    },
+    date: {
+        type: String,
+        required: true
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+const LeaveRequest = mongoose.model("LeaveRequest", leaveRequestSchema);
+
+// Subject model
+const subjectSchema = new mongoose.Schema({
+    code: {
+        type: String,
+        required: true
+    },
+    name: {
+        type: String,
+        required: true
+    },
+    department: String,
+    credits: Number,
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+const Subject = mongoose.model("Subject", subjectSchema);
+
 // Fee model definition
 const FeeSchema = new mongoose.Schema({
     receipt: String,
@@ -158,34 +249,6 @@ const FeeSchema = new mongoose.Schema({
 });
 
 const Fee = mongoose.model("Fee", FeeSchema);
-
-// Exam model definition
-const ExamSchema = new mongoose.Schema({
-    examId: { type: String, required: true, unique: true },
-    course: { type: String, required: true },
-    examDate: { type: String, required: true },
-    startTime: { type: String, required: true },
-    endTime: { type: String, required: true },
-    venue: { type: String, required: true },
-    status: { type: String, required: true, enum: ['Scheduled', 'Completed', 'Cancelled'] }
-});
-
-const Exam = mongoose.model("Exam", ExamSchema);
-
-// New Attendance model definition
-const attendanceSchema = new mongoose.Schema({
-    date: { type: String, required: true },
-    period: { type: String, required: true },
-    records: [{
-        admissionNo: { type: String, required: true },
-        status: { type: String, required: true, enum: ['present', 'absent'] },
-        timestamp: { type: Date, default: Date.now }
-    }],
-    staffId: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now }
-});
-
-const Attendance = mongoose.model("Attendance", attendanceSchema);
 
 // Internal Marks Schema
 const internalMarksSchema = new mongoose.Schema({
@@ -221,21 +284,7 @@ const universityMarksSchema = new mongoose.Schema({
 
 const UniversityMarks = mongoose.model("UniversityMarks", universityMarksSchema);
 
-// Leave Request Schema
-const leaveRequestSchema = new mongoose.Schema({
-    admissionNo: { type: String, required: true },
-    leaveType: { type: String, required: true },
-    leaveDuration: { type: String, required: true },
-    fromDate: { type: String, required: true },
-    toDate: { type: String },
-    reason: { type: String, required: true },
-    attachment: { type: String },
-    status: { type: String, default: 'pending', enum: ['pending', 'approved', 'rejected'] },
-    staffId: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now }
-});
 
-const LeaveRequest = mongoose.model("LeaveRequest", leaveRequestSchema);
 
 // Document Schema
 const documentSchema = new mongoose.Schema({
@@ -372,8 +421,205 @@ app.get("/students", async (req, res) => {
         console.log(`Found ${students.length} students`);
         res.json(students);
     } catch (err) {
-        console.error("Error fetching students:", err);
-        res.status(500).json({ message: "❌ Error fetching students", error: err.message });
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch students' });
+    }
+});
+
+// Staff API endpoints
+app.get('/api/staff/students', async (req, res) => {
+    try {
+        console.log("Fetching staff students...");
+        const students = await Student.find({}).select('admissionno name department rollno email phone gender dob bloodgroup address');
+        console.log(`Found ${students.length} students for staff`);
+        res.json(students);
+    } catch (error) {
+        console.error('Error fetching staff students:', error);
+        res.status(500).json({ error: 'Failed to fetch students' });
+    }
+});
+
+// Get student count for staff
+app.get('/api/staff/students/count', async (req, res) => {
+    try {
+        console.log("Counting staff students...");
+        const count = await Student.countDocuments({});
+        console.log(`Total students: ${count}`);
+        res.json({ count });
+    } catch (error) {
+        console.error('Error fetching student count:', error);
+        res.status(500).json({ error: 'Failed to fetch student count' });
+    }
+});
+
+// Get student by admission number
+app.get('/api/students/:admissionNo', async (req, res) => {
+    try {
+        console.log(`Fetching student with admission number: ${req.params.admissionNo}`);
+        const student = await Student.findOne({ admissionno: req.params.admissionNo });
+        if (!student) {
+            console.log('Student not found');
+            return res.status(404).json({ error: 'Student not found' });
+        }
+        res.json(student);
+    } catch (error) {
+        console.error('Error fetching student:', error);
+        res.status(500).json({ error: 'Failed to fetch student details' });
+    }
+});
+
+// Attendance routes
+app.get('/api/attendance', async (req, res) => {
+    try {
+        const { date, period } = req.query;
+        console.log(`Fetching attendance for date: ${date}, period: ${period}`);
+        const query = {};
+        if (date) query.date = date;
+        if (period) query.period = period;
+        const attendance = await Attendance.find(query);
+        console.log(`Found ${attendance.length} attendance records`);
+        res.json(attendance);
+    } catch (error) {
+        console.error('Error fetching attendance:', error);
+        res.status(500).json({ error: 'Failed to fetch attendance' });
+    }
+});
+
+app.post('/api/attendance', async (req, res) => {
+    try {
+        const { date, period, records } = req.body;
+        console.log(`Saving attendance for date: ${date}, period: ${period}`);
+        console.log('Records:', records);
+        
+        const attendance = new Attendance({
+            date,
+            period,
+            records
+        });
+        await attendance.save();
+        console.log('Attendance saved successfully');
+        res.json({ message: 'Attendance saved successfully' });
+    } catch (error) {
+        console.error('Error saving attendance:', error);
+        res.status(500).json({ error: 'Failed to save attendance' });
+    }
+});
+
+// Exam routes
+app.get('/api/exams', async (req, res) => {
+    try {
+        console.log('Fetching all exams');
+        const exams = await Exam.find({});
+        console.log(`Found ${exams.length} exams`);
+        res.json(exams);
+    } catch (error) {
+        console.error('Error fetching exams:', error);
+        res.status(500).json({ error: 'Failed to fetch exams' });
+    }
+});
+
+app.get('/api/exams/:id', async (req, res) => {
+    try {
+        console.log(`Fetching exam with ID: ${req.params.id}`);
+        const exam = await Exam.findById(req.params.id);
+        if (!exam) {
+            console.log('Exam not found');
+            return res.status(404).json({ error: 'Exam not found' });
+        }
+        res.json(exam);
+    } catch (error) {
+        console.error('Error fetching exam:', error);
+        res.status(500).json({ error: 'Failed to fetch exam details' });
+    }
+});
+
+app.post('/api/exams', async (req, res) => {
+    try {
+        console.log('Creating new exam:', req.body);
+        const exam = new Exam(req.body);
+        await exam.save();
+        console.log('Exam created successfully');
+        res.json(exam);
+    } catch (error) {
+        console.error('Error creating exam:', error);
+        res.status(500).json({ error: 'Failed to create exam' });
+    }
+});
+
+app.get('/api/exams/:id/marks', async (req, res) => {
+    try {
+        console.log(`Fetching marks for exam ID: ${req.params.id}`);
+        const marks = await Marks.find({ examId: req.params.id });
+        console.log(`Found marks records: ${marks.length}`);
+        res.json(marks);
+    } catch (error) {
+        console.error('Error fetching exam marks:', error);
+        res.status(500).json({ error: 'Failed to fetch marks' });
+    }
+});
+
+app.post('/api/exams/:id/marks', async (req, res) => {
+    try {
+        console.log(`Saving marks for exam ID: ${req.params.id}`);
+        const marks = new Marks({
+            examId: req.params.id,
+            ...req.body
+        });
+        await marks.save();
+        console.log('Marks saved successfully');
+        res.json(marks);
+    } catch (error) {
+        console.error('Error saving marks:', error);
+        res.status(500).json({ error: 'Failed to save marks' });
+    }
+});
+
+// Leave request routes
+app.get('/api/leave-requests', async (req, res) => {
+    try {
+        const { students } = req.query;
+        console.log(`Fetching leave requests for students: ${students}`);
+        const query = students ? { rollNo: { $in: students.split(',') } } : {};
+        const leaveRequests = await LeaveRequest.find(query).sort({ date: -1 });
+        console.log(`Found ${leaveRequests.length} leave requests`);
+        res.json(leaveRequests);
+    } catch (error) {
+        console.error('Error fetching leave requests:', error);
+        res.status(500).json({ error: 'Failed to fetch leave requests' });
+    }
+});
+
+app.patch('/api/leave-requests/:id', async (req, res) => {
+    try {
+        const { status } = req.body;
+        console.log(`Updating leave request ${req.params.id} status to: ${status}`);
+        const leaveRequest = await LeaveRequest.findByIdAndUpdate(
+            req.params.id,
+            { $set: { status } },
+            { new: true }
+        );
+        if (!leaveRequest) {
+            console.log('Leave request not found');
+            return res.status(404).json({ error: 'Leave request not found' });
+        }
+        console.log('Leave request updated successfully');
+        res.json(leaveRequest);
+    } catch (error) {
+        console.error('Error updating leave request:', error);
+        res.status(500).json({ error: 'Failed to update leave request' });
+    }
+});
+
+// Subject routes
+app.get('/api/subjects/count', async (req, res) => {
+    try {
+        console.log('Counting subjects');
+        const count = await Subject.countDocuments({});
+        console.log(`Total subjects: ${count}`);
+        res.json({ count });
+    } catch (error) {
+        console.error('Error fetching subject count:', error);
+        res.status(500).json({ error: 'Failed to fetch subject count' });
     }
 });
 
