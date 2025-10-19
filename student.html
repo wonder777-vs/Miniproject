@@ -1064,40 +1064,11 @@
                 try {
                     showNotification('Fetching student data...', 'success');
                     
-                    // Simulate API call - replace with actual MongoDB fetch
-                    // const response = await fetch(`/api/student/${admissionNo}`);
-                    // const student = await response.json();
-                    
-                    // Mock student data for demonstration
-                    const student = {
-                        name: "John Doe",
-                        admissionno: "19364",
-                        rollno: "CS19364",
-                        registerno: "REG12345",
-                        department: "Computer Science",
-                        course: "B.Tech",
-                        year: "3rd Year",
-                        gender: "Male",
-                        dob: "15/05/2001",
-                        bloodgroup: "O+",
-                        religion: "Christian",
-                        caste: "General",
-                        phone: "9876543210",
-                        email: "john.doe@example.com",
-                        aadharno: "123456789012",
-                        address: "123 Main Street, City",
-                        father: "Robert Doe",
-                        mother: "Jane Doe",
-                        parentcontact: "9876543211",
-                        applicationno: "APP12345",
-                        emisno: "EMIS12345",
-                        umisno: "UMIS12345",
-                        hostel: "Yes",
-                        scholarship: "Yes",
-                        tweleve: "85%",
-                        sslc: "90%",
-                        status: "Active"
-                    };
+                    const response = await fetch(`/api/student/${admissionNo}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch student data');
+                    }
+                    const student = await response.json();
                     
                     displayStudentData(student);
                     
@@ -1123,85 +1094,11 @@
                 try {
                     showNotification('Fetching attendance data...', 'success');
                     
-                    // Simulate API call - replace with actual MongoDB fetch
-                    // const response = await fetch(`/api/attendance/${admissionNo}`);
-                    // const attendanceData = await response.json();
-                    
-                    // Mock attendance data for demonstration
-                    const attendanceData = [
-                        {
-                            date: "30/06/2025",
-                            day: "Monday",
-                            h1: "P",
-                            h2: "P",
-                            h3: "P",
-                            h4: "P",
-                            h5: "A",
-                            h6: "P",
-                            h7: "P",
-                            h8: "P"
-                        },
-                        {
-                            date: "01/07/2025",
-                            day: "Tuesday",
-                            h1: "P",
-                            h2: "P",
-                            h3: "P",
-                            h4: "P",
-                            h5: "P",
-                            h6: "P",
-                            h7: "P",
-                            h8: "P"
-                        },
-                        {
-                            date: "02/07/2025",
-                            day: "Wednesday",
-                            h1: "P",
-                            h2: "P",
-                            h3: "P",
-                            h4: "P",
-                            h5: "P",
-                            h6: "P",
-                            h7: "P",
-                            h8: "P"
-                        },
-                        {
-                            date: "03/07/2025",
-                            day: "Thursday",
-                            h1: "P",
-                            h2: "P",
-                            h3: "P",
-                            h4: "P",
-                            h5: "P",
-                            h6: "P",
-                            h7: "P",
-                            h8: "P"
-                        },
-                        {
-                            date: "04/07/2025",
-                            day: "Friday",
-                            h1: "P",
-                            h2: "P",
-                            h3: "P",
-                            h4: "P",
-                            h5: "P",
-                            h6: "P",
-                            h7: "P",
-                            h8: "P"
-                        },
-                        {
-                            date: "05/07/2025",
-                            day: "Saturday",
-                            h1: "P",
-                            h2: "P",
-                            h3: "P",
-                            h4: "P",
-                            h5: "P",
-                            h6: "P",
-                            h7: "P",
-                            h8: "P"
-                        }
-                    ];
+                    const response = await fetch(`/attendance?admissionNo=${admissionNo}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch attendance data');
+                    }
+                    const attendanceData = await response.json();
                     
                     displayAttendanceData(attendanceData);
                     
@@ -1223,99 +1120,12 @@
                 try {
                     showNotification(`Fetching ${catType} marks...`, 'success');
                     
-                    // Simulate API call - replace with actual MongoDB fetch
-                    // const response = await fetch(`/api/internal-marks/${admissionNo}?catType=${catType}`);
-                    // const marksData = await response.json();
-                    
-                    // Mock marks data for demonstration
-                    let marksData = [];
-                    
-                    if (catType === 'CAT1') {
-                        marksData = [
-                            {
-                                subject: "Data Structures",
-                                marks: 85,
-                                maxMarks: 100
-                            },
-                            {
-                                subject: "Algorithms",
-                                marks: 78,
-                                maxMarks: 100
-                            },
-                            {
-                                subject: "Database Systems",
-                                marks: 92,
-                                maxMarks: 100
-                            }
-                        ];
-                    } else if (catType === 'CAT2') {
-                        marksData = [
-                            {
-                                subject: "Data Structures",
-                                marks: 88,
-                                maxMarks: 100
-                            },
-                            {
-                                subject: "Algorithms",
-                                marks: 82,
-                                maxMarks: 100
-                            },
-                            {
-                                subject: "Database Systems",
-                                marks: 90,
-                                maxMarks: 100
-                            }
-                        ];
-                    } else if (catType === 'CAT3') {
-                        marksData = [
-                            {
-                                subject: "Data Structures",
-                                marks: 90,
-                                maxMarks: 100
-                            },
-                            {
-                                subject: "Algorithms",
-                                marks: 85,
-                                maxMarks: 100
-                            },
-                            {
-                                subject: "Database Systems",
-                                marks: 88,
-                                maxMarks: 100
-                            }
-                        ];
-                    } else if (catType === 'Special') {
-                        marksData = [
-                            {
-                                subject: "Data Structures",
-                                marks: 92,
-                                maxMarks: 100
-                            },
-                            {
-                                subject: "Algorithms",
-                                marks: 87,
-                                maxMarks: 100
-                            }
-                        ];
-                    } else if (catType === 'Model') {
-                        marksData = [
-                            {
-                                subject: "Data Structures",
-                                marks: 85,
-                                maxMarks: 100
-                            },
-                            {
-                                subject: "Algorithms",
-                                marks: 80,
-                                maxMarks: 100
-                            },
-                            {
-                                subject: "Database Systems",
-                                marks: 88,
-                                maxMarks: 100
-                            }
-                        ];
+                    const response = await fetch(`/api/internal-marks/${admissionNo}?catType=${catType}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch internal marks');
                     }
+                    const data = await response.json();
+                    const marksData = data[catType] || [];
                     
                     displayInternalMarks(marksData, catType);
                     
@@ -1344,53 +1154,11 @@
                 try {
                     showNotification('Fetching university marks...', 'success');
                     
-                    // Simulate API call - replace with actual MongoDB fetch
-                    // const response = await fetch(`/api/university-marks/${admissionNo}`);
-                    // const universityMarks = await response.json();
-                    
-                    // Mock university marks data for demonstration
-                    const universityMarks = [
-                        {
-                            semester: "Semester 3",
-                            subjectCode: "CS301",
-                            subjectName: "Data Structures",
-                            internalMark: 25,
-                            externalMark: 65,
-                            result: "Pass"
-                        },
-                        {
-                            semester: "Semester 3",
-                            subjectCode: "CS302",
-                            subjectName: "Algorithms",
-                            internalMark: 23,
-                            externalMark: 67,
-                            result: "Pass"
-                        },
-                        {
-                            semester: "Semester 3",
-                            subjectCode: "CS303",
-                            subjectName: "Database Systems",
-                            internalMark: 27,
-                            externalMark: 73,
-                            result: "Pass"
-                        },
-                        {
-                            semester: "Semester 4",
-                            subjectCode: "CS401",
-                            subjectName: "Operating Systems",
-                            internalMark: 26,
-                            externalMark: 74,
-                            result: "Pass"
-                        },
-                        {
-                            semester: "Semester 4",
-                            subjectCode: "CS402",
-                            subjectName: "Computer Networks",
-                            internalMark: 24,
-                            externalMark: 76,
-                            result: "Pass"
-                        }
-                    ];
+                    const response = await fetch(`/api/university-marks/${admissionNo}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch university marks');
+                    }
+                    const universityMarks = await response.json();
                     
                     displayUniversityMarks(universityMarks);
                     
@@ -1419,45 +1187,11 @@
                 try {
                     showNotification('Fetching documents...', 'success');
                     
-                    // Simulate API call - replace with actual MongoDB fetch
-                    // const response = await fetch(`/api/documents/${admissionNo}`);
-                    // const documents = await response.json();
-                    
-                    // Mock documents data for demonstration
-                    const documents = [
-                        {
-                            id: "doc1",
-                            name: "Data Structures Notes",
-                            type: "pdf",
-                            size: "2.4 MB",
-                            uploadedBy: "Dr. Smith",
-                            uploadedDate: "2023-10-15"
-                        },
-                        {
-                            id: "doc2",
-                            name: "Algorithms Presentation",
-                            type: "ppt",
-                            size: "1.8 MB",
-                            uploadedBy: "Prof. Johnson",
-                            uploadedDate: "2023-10-18"
-                        },
-                        {
-                            id: "doc3",
-                            name: "Database Systems Tutorial",
-                            type: "pdf",
-                            size: "3.2 MB",
-                            uploadedBy: "Dr. Williams",
-                            uploadedDate: "2023-10-20"
-                        },
-                        {
-                            id: "doc4",
-                            name: "Operating Systems Reference",
-                            type: "pdf",
-                            size: "4.5 MB",
-                            uploadedBy: "Prof. Brown",
-                            uploadedDate: "2023-10-22"
-                        }
-                    ];
+                    const response = await fetch(`/api/documents/${admissionNo}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch documents');
+                    }
+                    const documents = await response.json();
                     
                     displayDocuments(documents);
                     
@@ -1799,20 +1533,15 @@
                 try {
                     showNotification('Submitting leave application...', 'success');
                     
-                    // Simulate API call - replace with actual MongoDB fetch
-                    // const response = await fetch('/api/leave/apply', {
-                    //     method: 'POST',
-                    //     body: formData
-                    // });
+                    const response = await fetch('/api/leave/apply', {
+                        method: 'POST',
+                        body: formData
+                    });
                     
-                    // const result = await response.json();
-                    
-                    // Mock response for demonstration
-                    const result = {
-                        success: true,
-                        message: "Leave application submitted successfully",
-                        staffName: "Dr. Smith"
-                    };
+                    if (!response.ok) {
+                        throw new Error('Failed to submit leave application');
+                    }
+                    const result = await response.json();
                     
                     showNotification('Leave application submitted successfully!', 'success');
                     
@@ -1831,25 +1560,25 @@
             });
             
             // View document function
-            window.viewDocument = function(docId) {
-                // Simulate viewing document
-                showNotification('Opening document...', 'success');
-                
-                // In a real application, this would open the document in a new tab or modal
-                setTimeout(() => {
-                    showNotification('Document viewer opened in a new window.', 'success');
-                }, 1000);
+            window.viewDocument = async function(docId) {
+                try {
+                    showNotification('Opening document...', 'success');
+                    window.open(`/api/documents/view/${docId}`, '_blank');
+                } catch (error) {
+                    console.error('Error viewing document:', error);
+                    showNotification('Failed to open document', 'error');
+                }
             }
             
             // Download document function
-            window.downloadDocument = function(docId) {
-                // Simulate downloading document
-                showNotification('Preparing download...', 'success');
-                
-                // In a real application, this would trigger a file download
-                setTimeout(() => {
-                    showNotification('Document download started.', 'success');
-                }, 1000);
+            window.downloadDocument = async function(docId) {
+                try {
+                    showNotification('Preparing download...', 'success');
+                    window.location.href = `/api/documents/download/${docId}`;
+                } catch (error) {
+                    console.error('Error downloading document:', error);
+                    showNotification('Failed to download document', 'error');
+                }
             }
             
             // Show notification
