@@ -756,13 +756,13 @@
 <body>
     <div class="sidebar">
         <h2><i class="fas fa-graduation-cap"></i> Staff ERP</h2>
-        <a href="#" data-page="dashboard" class="active"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
-        <a href="#" data-page="students"><i class="fas fa-users"></i> <span>View Students</span></a>
-        <a href="#" data-page="attendance"><i class="fas fa-calendar-check"></i> <span>Attendance</span></a>
-        <a href="#" data-page="marks"><i class="fas fa-chart-line"></i> <span>Internal Marks</span></a>
-        <a href="#" data-page="leave"><i class="fas fa-calendar-alt"></i> <span>Leave Requests</span></a>
-        <a href="#" data-page="documents"><i class="fas fa-file-upload"></i> <span>Document Upload</span></a>
-        <a href="#" data-page="logout"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
+        <a href="#" onclick="loadPage('dashboard', event)" class="active"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
+        <a href="#" onclick="loadPage('students', event)"><i class="fas fa-users"></i> <span>View Students</span></a>
+        <a href="#" onclick="loadPage('attendance', event)"><i class="fas fa-calendar-check"></i> <span>Attendance</span></a>
+        <a href="#" onclick="loadPage('marks', event)"><i class="fas fa-chart-line"></i> <span>Internal Marks</span></a>
+        <a href="#" onclick="loadPage('leave', event)"><i class="fas fa-calendar-alt"></i> <span>Leave Requests</span></a>
+        <a href="#" onclick="loadPage('documents', event)"><i class="fas fa-file-upload"></i> <span>Document Upload</span></a>
+        <a href="#" onclick="loadPage('logout', event)"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
     </div>
     
     <div class="main" id="mainContent">
@@ -794,22 +794,6 @@
         let attendanceRecords = {};
         let leaveRequests = [];
         let uploadedDocuments = [];
-        let currentPage = null;
-        
-        // Initialize event handlers
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load initial data and setup UI
-            window.onload();
-            
-            // Set up navigation events
-            document.querySelectorAll('.sidebar a').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const page = this.getAttribute('data-page');
-                    loadPage(page, e);
-                });
-            });
-        });
         
         // Page templates
         const pages = {
@@ -1099,57 +1083,28 @@
         
         // Load page content
         function loadPage(page, evt) {
-            if (!pages || !document.getElementById('mainContent')) {
-                console.error('Required elements not initialized');
-                return;
-            }
-
             if (page === 'logout') {
                 if (confirm('Are you sure you want to logout?')) {
                     window.location.href = 'index.html';
                 }
                 return;
             }
-
-            try {
-                if (!pages[page]) {
-                    console.error('Page template not found:', page);
-                    return;
-                }
-
-                document.getElementById('mainContent').innerHTML = pages[page];
-                document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
-                if (evt && evt.currentTarget) {
-                    evt.currentTarget.classList.add('active');
-                }
-                
-                // Store current page
-                currentPage = page;
-
-                // Initialize page content
-                switch (page) {
-                    case 'students':
-                        setupStudentSearch();
-                        break;
-                    case 'attendance':
-                        loadAttendance();
-                        break;
-                    case 'marks':
-                        displayExamsByCAT();
-                        break;
-                    case 'leave':
-                        displayLeaveRequests();
-                        break;
-                    case 'documents':
-                        initDocumentUploadPage();
-                        break;
-                    case 'dashboard':
-                        // Initialize dashboard if needed
-                        break;
-                }
-            } catch (error) {
-                console.error('Error loading page:', error);
-                showNotification('Error loading page: ' + error.message, 'error');
+            
+            document.getElementById('mainContent').innerHTML = pages[page];
+            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+            if (evt) evt.currentTarget.classList.add('active');
+            
+            // Initialize page content
+            if (page === 'students') {
+                setupStudentSearch();
+            } else if (page === 'attendance') {
+                loadAttendance();
+            } else if (page === 'marks') {
+                displayExamsByCAT();
+            } else if (page === 'leave') {
+                displayLeaveRequests();
+            } else if (page === 'documents') {
+                initDocumentUploadPage();
             }
         }
         
@@ -1189,95 +1144,56 @@
                 showNotification('Please enter an admission number', 'error');
                 return;
             }
-
-            try {
-                // First check if student exists in database
-                const response = await fetch(`/api/students/${admissionNo}`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch student data');
-                }
-                const student = await response.json();
-                
-                if (!student) {
-                    studentDetails.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-user-slash"></i>
-                            <p>No student found with admission number: ${admissionNo}</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Now check if student has attendance records (belongs to this staff)
-                const hasAttendance = Object.values(attendanceRecords).some(dateRecords => 
-                    Object.values(dateRecords).some(periodRecords => 
-                        Object.keys(periodRecords).includes(admissionNo)
-                    )
-                );
-                
-                if (!hasAttendance) {
-                    studentDetails.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-user-slash"></i>
-                            <p>Student ${admissionNo} exists but is not assigned to your class</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                // Display student details since they exist and are assigned to this staff
-                studentDetails.innerHTML = `
-                    <div class="student-info">
-                        <h3>${student.name}</h3>
-                        <p><strong>Admission No:</strong> ${student.admissionNo}</p>
-                        <p><strong>Department:</strong> ${student.department}</p>
-                        <p><strong>Year:</strong> ${student.year}</p>
-                        <p><strong>Section:</strong> ${student.section}</p>
-                    </div>
-                `;
-            } catch (error) {
-                console.error('Error searching for student:', error);
-                showNotification('Failed to search for student: ' + error.message, 'error');
-                studentDetails.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>Error searching for student. Please try again.</p>
-                    </div>
-                `;
-            }
-        }
-            // If student exists but isn't assigned to this staff
+            
+            // Check if student has attendance records (belongs to this staff)
+            const hasAttendance = Object.values(attendanceRecords).some(dateRecords => 
+                Object.values(dateRecords).some(periodRecords => 
+                    Object.keys(periodRecords).includes(admissionNo)
+                )
+            );
+            
             if (!hasAttendance) {
-                showNotification('Student not found or not assigned to you', 'error');
                 studentDetails.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-user-slash"></i>
-                        <p>Student exists but is not assigned to your class</p>
+                        <p>No student found with admission number: ${admissionNo} or student not assigned to you</p>
                     </div>
                 `;
+                showNotification('Student not found or not assigned to you', 'error');
                 return;
             }
-
+            
             try {
-                // Display student details
+                showNotification('Searching for student...', 'warning');
+                
+                const response = await fetch(`/api/students/${admissionNo}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch student details');
+                }
+                
+                const student = await response.json();
+                if (!student) {
+                    throw new Error('Student not found');
+                }
+                
                 studentDetails.innerHTML = `
                     <div class="student-card">
                         <h3>${student.name} (${student.admissionno})</h3>
-                        <div class="student-info">
-                            <div><strong>Roll Number:</strong> ${student.rollno}</div>
-                            <div><strong>Department:</strong> ${student.department}</div>
-                            <div><strong>Year:</strong> ${student.year}</div>
-                            <div><strong>Email:</strong> ${student.email}</div>
-                            <div><strong>Phone:</strong> ${student.phone}</div>
-                            <div><strong>Gender:</strong> ${student.gender}</div>
-                            <div><strong>Date of Birth:</strong> ${student.dob}</div>
-                            <div><strong>Blood Group:</strong> ${student.bloodgroup}</div>
-                            <div><strong>Address:</strong> ${student.address}</div>
+                            <div class="student-info">
+                                <div><strong>Roll Number:</strong> ${student.rollno}</div>
+                                <div><strong>Department:</strong> ${student.department}</div>
+                                <div><strong>Year:</strong> ${student.year}</div>
+                                <div><strong>Email:</strong> ${student.email}</div>
+                                <div><strong>Phone:</strong> ${student.phone}</div>
+                                <div><strong>Gender:</strong> ${student.gender}</div>
+                                <div><strong>Date of Birth:</strong> ${student.dob}</div>
+                                <div><strong>Blood Group:</strong> ${student.bloodgroup}</div>
+                                <div><strong>Address:</strong> ${student.address}</div>
+                            </div>
                         </div>
-                    </div>
-                `;
-                
-                showNotification('Student found successfully', 'success');
+                    `;
+                    
+                    showNotification('Student found successfully', 'success');
             } catch (error) {
                 console.error('Error searching student:', error);
                 studentDetails.innerHTML = `
@@ -1288,28 +1204,36 @@
                 `;
                 showNotification('Student not found', 'error');
             }
+        }
         
         // Attendance Functions
         async function loadAttendance() {
-            const date = document.getElementById('attendanceDate').value;
-            const period = document.getElementById('attendancePeriod').value;
-            const attendanceList = document.getElementById('attendanceList');
-            attendanceList.innerHTML = '';
-            
-            if (!date || !period) {
-                attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">Please select both date and period</td></tr>';
-                return;
-            }
-            
-            // Skip break periods
-            if (period.includes('Break') || period.includes('Lunch')) {
-                attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">No attendance required for break periods</td></tr>';
-                return;
-            }
-            
             try {
-                showNotification('Loading students...', 'warning');
+                const date = document.getElementById('attendanceDate').value;
+                const period = document.getElementById('attendancePeriod').value;
+                const attendanceList = document.getElementById('attendanceList');
                 
+                if (!attendanceList) {
+                    console.error('Attendance list element not found');
+                    return;
+                }
+                
+                attendanceList.innerHTML = '';
+                
+                if (!date || !period) {
+                    attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">Please select both date and period</td></tr>';
+                    return;
+                }
+                
+                // Skip break periods
+                if (period.includes('Break') || period.includes('Lunch')) {
+                    attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">No attendance required for break periods</td></tr>';
+                    return;
+                }
+                
+                showNotification('Loading students...', 'info');
+                
+                // Load attendance records
                 const response = await fetch(`/api/attendance?date=${date}&period=${period}`);
                 if (!response.ok) {
                     throw new Error('Failed to load attendance data');
@@ -1322,6 +1246,7 @@
                     }
                 };
 
+                // Load students if not already loaded
                 if (!students || students.length === 0) {
                     const studentsResponse = await fetch('/api/students');
                     if (!studentsResponse.ok) {
@@ -1330,11 +1255,13 @@
                     students = await studentsResponse.json();
                 }
                 
+                // Handle empty student list
                 if (students.length === 0) {
                     attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">No students available</td></tr>';
                     return;
                 }
                 
+                // Populate attendance list
                 students.forEach(student => {
                     const row = document.createElement('tr');
                     const isPresent = attendanceRecords[date]?.[period]?.[student.admissionno] || false;
@@ -1345,11 +1272,24 @@
                         <td>${student.department}</td>
                         <td>
                             <input type="checkbox" ${isPresent ? 'checked' : ''} 
-                                   onchange="updateAttendance('${date}', '${period}', '${student.admissionno}', this.checked)" />
+                                data-date="${date}" 
+                                data-period="${period}" 
+                                data-admission="${student.admissionno}"
+                                onchange="updateAttendance('${date}', '${period}', '${student.admissionno}', this.checked)" />
                         </td>
                     `;
                     attendanceList.appendChild(row);
                 });
+                
+                showNotification('Attendance loaded successfully', 'success');
+            } catch (error) {
+                console.error('Error loading attendance:', error);
+                const attendanceList = document.getElementById('attendanceList');
+                if (attendanceList) {
+                    attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">Error loading attendance data</td></tr>';
+                }
+                showNotification('Error loading attendance: ' + error.message, 'error');
+            }
                 
                 showNotification('Students loaded successfully', 'success');
             } catch (error) {
@@ -2157,6 +2097,32 @@
             } catch (error) {
                 console.error('Error fetching subject count:', error);
                 return 0;
+            }
+        }
+        // Update attendance status for a student
+        function updateAttendance(date, period, admissionNo, isPresent) {
+            try {
+                if (!date || !period || !admissionNo) {
+                    console.error('Missing required parameters for updateAttendance');
+                    return;
+                }
+
+                if (!attendanceRecords[date]) {
+                    attendanceRecords[date] = {};
+                }
+                if (!attendanceRecords[date][period]) {
+                    attendanceRecords[date][period] = {};
+                }
+                attendanceRecords[date][period][admissionNo] = isPresent;
+                
+                // Update UI to reflect the change
+                const checkbox = document.querySelector(`input[data-date="${date}"][data-period="${period}"][data-admission="${admissionNo}"]`);
+                if (checkbox) {
+                    checkbox.checked = isPresent;
+                }
+            } catch (error) {
+                console.error('Error updating attendance:', error);
+                showNotification('Error updating attendance status', 'error');
             }
         }
     </script>
