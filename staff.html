@@ -6,7 +6,751 @@
     <title>Staff Dashboard - MEPCO ERP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* CSS remains unchanged */
+        :root {
+            --primary-color: #4a6bdf;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --hover-color: #e9ecef;
+            --gradient-start: #6a11cb;
+            --gradient-end: #2575fc;
+            --pink-gradient-start: #ff9a9e;
+            --pink-gradient-end: #fad0c4;
+            --sidebar-bg: #002147;
+            --sidebar-active: #ff007f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            background: linear-gradient(to right, #f2d7ee, #c6e7f0, #b5e3c3);
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .sidebar h2 {
+            padding: 0 20px 20px;
+            font-size: 1.5rem;
+            color: var(--sidebar-active);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: var(--sidebar-active);
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .main {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            color: var(--dark-color);
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: var(--dark-color);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .card-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            font-size: 1.1rem;
+            background-color: #f8f9fa;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 107, 223, 0.25);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--pink-gradient-start), var(--pink-gradient-end));
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid var(--border-color);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: var(--light-color);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 4px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1100;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background-color: var(--success-color);
+        }
+
+        .notification.error {
+            background-color: var(--danger-color);
+        }
+
+        .notification.warning {
+            background-color: var(--warning-color);
+            color: var(--dark-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--secondary-color);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--border-color);
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            color: var(--secondary-color);
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: var(--primary-color);
+        }
+
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .student-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .student-card h3 {
+            color: var(--dark-color);
+            margin-bottom: 10px;
+        }
+
+        .student-card p {
+            margin-bottom: 5px;
+        }
+
+        .student-card .student-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .student-card .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .attendance-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .attendance-controls .form-group {
+            margin-bottom: 0;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .attendance-controls .btn {
+            margin-left: 15px;
+        }
+
+        .exam-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .exam-card h4 {
+            color: var(--dark-color);
+            margin-bottom: 10px;
+        }
+
+        .exam-card .exam-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .exam-card .exam-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .leave-table {
+            width: 100%;
+        }
+
+        .leave-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .leave-table tr:nth-child(even) {
+            background-color: rgba(0, 33, 71, 0.1);
+        }
+
+        .status-approved {
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .status-rejected {
+            color: var(--danger-color);
+            font-weight: bold;
+        }
+
+        .status-pending {
+            color: var(--warning-color);
+            font-weight: bold;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 50%;
+            max-width: 500px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        /* Document Upload Styles */
+        .document-upload-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .upload-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px dashed var(--border-color);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .upload-section:hover {
+            border-color: var(--primary-color);
+            background-color: #f1f8ff;
+        }
+
+        .upload-section i {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .upload-section h3 {
+            margin-bottom: 15px;
+            color: var(--dark-color);
+            font-size: 22px;
+        }
+
+        .upload-section p {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .upload-btn:hover {
+            background-color: #3a5bd9;
+        }
+
+        .upload-btn i {
+            margin-right: 8px;
+        }
+
+        .file-list {
+            margin-top: 30px;
+        }
+
+        .file-list h2 {
+            margin-bottom: 20px;
+            color: var(--dark-color);
+            font-size: 22px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .file-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .file-icon {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            margin-right: 15px;
+            color: white;
+            font-size: 20px;
+        }
+
+        .file-icon.pdf { background-color: #e74c3c; }
+        .file-icon.ppt, .file-icon.pptx { background-color: #f39c12; }
+        .file-icon.default { background-color: #7f8c8d; }
+
+        .file-details h4 {
+            margin-bottom: 5px;
+            color: var(--dark-color);
+            font-size: 16px;
+        }
+
+        .file-details p {
+            font-size: 14px;
+            color: var(--secondary-color);
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 10px;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: #f1f5f9;
+            color: var(--dark-color);
+        }
+
+        .action-btn.download:hover {
+            color: var(--success-color);
+        }
+
+        .action-btn.delete:hover {
+            color: var(--danger-color);
+        }
+
+        .file-viewer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            overflow: auto;
+        }
+
+        .file-viewer-content {
+            position: relative;
+            margin: 30px auto;
+            max-width: 90%;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .file-viewer-header {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-viewer-header h3 {
+            margin: 0;
+        }
+
+        .close-viewer {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .file-viewer-body {
+            padding: 20px;
+            max-height: 80vh;
+            overflow: auto;
+            text-align: center;
+        }
+
+        .file-viewer-body iframe {
+            width: 100%;
+            height: 70vh;
+            border: none;
+        }
+
+        /* CAT Tabs Styles */
+        .cat-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .cat-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--secondary-color);
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .cat-tab:hover {
+            color: var(--primary-color);
+        }
+
+        .cat-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .cat-content {
+            display: none;
+        }
+
+        .cat-content.active {
+            display: block;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
+
+        .alert-warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .sidebar h2, .sidebar a span {
+                display: none;
+            }
+            
+            .sidebar a {
+                text-align: center;
+                padding: 12px 0;
+            }
+            
+            .sidebar a i {
+                margin: 0;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 90%;
+                margin: 20% auto;
+            }
+            
+            .attendance-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .attendance-controls .btn {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -298,13 +1042,16 @@
         window.onload = async () => {
             // Load initial data from server
             try {
-                const [studentsRes, examsRes, attendanceRes, leaveRes, documentsRes] = await Promise.all([
-                    fetch('/api/students').then(res => res.json()),
-                    fetch('/api/exams').then(res => res.json()),
-                    fetch('/api/attendance').then(res => res.json()),
-                    fetch('/api/leave-requests').then(res => res.json()),
-                    fetch('/api/documents').then(res => res.json())
+                const responses = await Promise.all([
+                    fetch('/api/students'),
+                    fetch('/api/exams'),
+                    fetch('/api/attendance'),
+                    fetch('/api/leave-requests'),
+                    fetch('/api/documents')
                 ]);
+                const [studentsRes, examsRes, attendanceRes, leaveRes, documentsRes] = await Promise.all(
+                    responses.map(res => res.json())
+                );
 
                 students = studentsRes;
                 exams = examsRes;
@@ -316,12 +1063,23 @@
                 // Set today's date as default for attendance
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('attendanceDate').value = today;
-
             } catch (error) {
-                console.error('Error loading initial data:', error);
+                console.error('Error initializing app:', error);
                 showNotification('Error loading data. Please refresh the page.', 'error');
             }
         };
+        
+        // Show notification function
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification ' + type;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
         
         // Load page content
         function loadPage(page, evt) {
@@ -421,21 +1179,21 @@
                 studentDetails.innerHTML = `
                     <div class="student-card">
                         <h3>${student.name} (${student.admissionno})</h3>
-                        <div class="student-info">
-                            <div><strong>Roll Number:</strong> ${student.rollno}</div>
-                            <div><strong>Department:</strong> ${student.department}</div>
-                            <div><strong>Year:</strong> ${student.year}</div>
-                            <div><strong>Email:</strong> ${student.email}</div>
-                            <div><strong>Phone:</strong> ${student.phone}</div>
-                            <div><strong>Gender:</strong> ${student.gender}</div>
-                            <div><strong>Date of Birth:</strong> ${student.dob}</div>
-                            <div><strong>Blood Group:</strong> ${student.bloodgroup}</div>
-                            <div><strong>Address:</strong> ${student.address}</div>
+                            <div class="student-info">
+                                <div><strong>Roll Number:</strong> ${student.rollno}</div>
+                                <div><strong>Department:</strong> ${student.department}</div>
+                                <div><strong>Year:</strong> ${student.year}</div>
+                                <div><strong>Email:</strong> ${student.email}</div>
+                                <div><strong>Phone:</strong> ${student.phone}</div>
+                                <div><strong>Gender:</strong> ${student.gender}</div>
+                                <div><strong>Date of Birth:</strong> ${student.dob}</div>
+                                <div><strong>Blood Group:</strong> ${student.bloodgroup}</div>
+                                <div><strong>Address:</strong> ${student.address}</div>
+                            </div>
                         </div>
-                    </div>
-                `;
-                
-                showNotification('Student found successfully', 'success');
+                    `;
+                    
+                    showNotification('Student found successfully', 'success');
             } catch (error) {
                 console.error('Error searching student:', error);
                 studentDetails.innerHTML = `
@@ -743,7 +1501,7 @@
                 // Populate the marks table
                 const marksList = document.getElementById('examMarksList');
                 marksList.innerHTML = '';
-                
+            
                 // Get students who have attendance records (belong to this staff)
                 const staffStudents = getStaffStudents();
                 
@@ -783,11 +1541,11 @@
                     showNotification('Failed to load student data', 'error');
                 }
             } catch (error) {
-                console.error('Error entering marks:', error);
-                showNotification('Failed to enter marks: ' + error.message, 'error');
+                console.error('Error:', error);
+                showNotification('Failed to fetch exam details', 'error');
             }
         }
-        
+
         async function saveExamMarks(examId) {
             try {
                 // Get students who have attendance records (belong to this staff)
@@ -817,6 +1575,9 @@
                 }
                 
                 showNotification('Marks saved successfully', 'success');
+                
+                // Refresh the marks display
+                await loadPage('marks');
             } catch (error) {
                 console.error('Error saving marks:', error);
                 showNotification('Failed to save marks: ' + error.message, 'error');
@@ -824,85 +1585,70 @@
         }
         
         async function viewMarks(examId) {
-            try {
-                // Get exam details first
-                const examResponse = await fetch(`/api/exams/${examId}`);
-                if (!examResponse.ok) {
-                    throw new Error('Failed to fetch exam details');
-                }
-                const exam = await examResponse.json();
+            const exam = exams.find(e => e.id === examId);
+            if (!exam) return;
+            
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = `
+                <div class="page-header">
+                    <h1 class="page-title">View Marks - ${exam.name} - ${exam.subject}</h1>
+                </div>
                 
-                if (!exam) {
-                    throw new Error('Exam not found');
-                }
-                
-                const mainContent = document.getElementById('mainContent');
-                mainContent.innerHTML = `
-                    <div class="page-header">
-                        <h1 class="page-title">View Marks - ${exam.name} - ${exam.subject}</h1>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="exam-details">
-                                <p><strong>Date:</strong> ${exam.date} | <strong>Total Marks:</strong> ${exam.totalMarks} | <strong>Duration:</strong> ${exam.duration} minutes</p>
-                            </div>
-                            
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Roll No</th>
-                                        <th>Name</th>
-                                        <th>Department</th>
-                                        <th>Marks Obtained</th>
-                                        <th>Percentage</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="examMarksList"></tbody>
-                            </table>
-                            
-                            <div class="form-actions">
-                                <button class="btn btn-success" onclick="downloadMarks('${examId}')">Download</button>
-                                <button class="btn btn-secondary" onclick="loadPage('marks', event)">Back to Exams</button>
-                            </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="exam-details">
+                            <p><strong>Date:</strong> ${exam.date} | <strong>Total Marks:</strong> ${exam.totalMarks} | <strong>Duration:</strong> ${exam.duration} minutes</p>
+                        </div>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Roll No</th>
+                                    <th>Name</th>
+                                    <th>Department</th>
+                                    <th>Marks Obtained</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody id="examMarksList"></tbody>
+                        </table>
+                        
+                        <div class="form-actions">
+                            <button class="btn btn-success" onclick="downloadMarks('${examId}')">Download</button>
+                            <button class="btn btn-secondary" onclick="loadPage('marks', event)">Back to Exams</button>
                         </div>
                     </div>
-                `;
-                
-                // Populate the marks table
-                const marksList = document.getElementById('examMarksList');
-                marksList.innerHTML = '';
-                
-                // Get students who have attendance records (belong to this staff)
-                const staffStudents = getStaffStudents();
-                
-                if (staffStudents.length === 0) {
-                    marksList.innerHTML = '<tr><td colspan="5" class="empty-state">No students available.</td></tr>';
-                    return;
-                }
-                
-                // Get students data from server
+                </div>
+            `;
+            
+            // Populate the marks table
+            const marksList = document.getElementById('examMarksList');
+            marksList.innerHTML = '';
+            
+            // Get students who have attendance records (belong to this staff)
+            const staffStudents = getStaffStudents();
+            
+            if (staffStudents.length === 0) {
+                marksList.innerHTML = '<tr><td colspan="5" class="empty-state">No students available.</td></tr>';
+                return;
+            }
+            
+            // Get students data from server
+            try {
                 const studentsResponse = await fetch('/api/students?ids=' + staffStudents.join(','));
                 if (!studentsResponse.ok) {
                     throw new Error('Failed to fetch students data');
                 }
                 const studentsData = await studentsResponse.json();
                 
-                // Get marks data from server
-                const marksResponse = await fetch(`/api/exams/${examId}/marks`);
-                if (!marksResponse.ok) {
-                    throw new Error('Failed to fetch marks data');
-                }
-                const marksData = await marksResponse.json();
-                
                 studentsData.forEach(student => {
                     if (!student) return;
                     
-                    const marks = marksData[student.admissionno] || 'Not entered';
-                    const percentage = marks !== 'Not entered' && marks !== '' ? 
-                                     ((marks / exam.totalMarks) * 100).toFixed(2) + '%' : 'N/A';
-                    
                     const row = document.createElement('tr');
+                    const marks = exam.marks && exam.marks[student.admissionno] ? exam.marks[student.admissionno] : 'Not entered';
+                    const percentage = marks !== 'Not entered' && marks !== '' ? 
+                                    ((marks / exam.totalMarks) * 100).toFixed(2) + '%' : 'N/A';
+                
                     row.innerHTML = `
                         <td>${student.admissionno}</td>
                         <td>${student.name}</td>
@@ -913,8 +1659,9 @@
                     marksList.appendChild(row);
                 });
             } catch (error) {
-                console.error('Error viewing marks:', error);
-                showNotification('Failed to view marks: ' + error.message, 'error');
+                console.error('Error fetching student data:', error);
+                marksList.innerHTML = '<tr><td colspan="5" class="empty-state">Error loading student data</td></tr>';
+                showNotification('Failed to load student data', 'error');
             }
         }
         
@@ -1017,7 +1764,7 @@
                 sortedRequests.forEach(request => {
                     const student = studentMap[request.rollNo];
                     if (!student) return;
-                
+                    
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${request.rollNo}</td>
@@ -1066,6 +1813,31 @@
             }
         }
         
+        // Helper function to get file icon class
+        function getFileIconClass(fileType) {
+            if (fileType.startsWith('image/')) return 'fa-file-image';
+            if (fileType === 'application/pdf') return 'fa-file-pdf';
+            if (fileType === 'application/msword' || fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return 'fa-file-word';
+            if (fileType === 'application/vnd.ms-excel' || fileType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') return 'fa-file-excel';
+            return 'fa-file';
+        }
+
+        // Helper function to get file icon
+        function getFileIcon(fileType) {
+            if (fileType === 'pdf') return 'fa-file-pdf';
+            if (fileType === 'ppt' || fileType === 'pptx') return 'fa-file-powerpoint';
+            return 'fa-file';
+        }
+
+        // Helper function to format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
         // Document Upload Functions
         function initDocumentUploadPage() {
             const fileInput = document.getElementById('fileInput');
@@ -1130,7 +1902,7 @@
                 
                 fileItem.innerHTML = `
                     <div class="file-info">
-                        <div class="file-icon ${fileIconClass}">
+                        <div class="file-icon ${file.type}">
                             <i class="fas ${getFileIcon(file.type)}"></i>
                         </div>
                         <div class="file-details">
@@ -1260,50 +2032,6 @@
                     `;
                 }
             };
-            
-            // Get file icon class based on file type
-            function getFileIconClass(type) {
-                if (['pdf'].includes(type)) return 'pdf';
-                if (['ppt', 'pptx'].includes(type)) return 'ppt';
-                return 'default';
-            }
-            
-            // Get file icon based on file type
-            function getFileIcon(type) {
-                if (['pdf'].includes(type)) return 'fa-file-pdf';
-                if (['ppt', 'pptx'].includes(type)) return 'fa-file-powerpoint';
-                return 'fa-file';
-            }
-            
-            // Format file size
-            function formatFileSize(bytes) {
-                if (bytes === 0) return '0 Bytes';
-                
-                const k = 1024;
-                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                
-                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-            }
-            
-            // Close viewer when clicking outside the content
-            fileViewer.addEventListener('click', function(e) {
-                if (e.target === fileViewer) {
-                    closeFileViewer();
-                }
-            });
-        }
-        
-        // Utility Functions
-        function showNotification(message, type) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type}`;
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
         }
         
         // Get students who have attendance records (belong to this staff)
