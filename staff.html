@@ -1042,16 +1042,13 @@
         window.onload = async () => {
             // Load initial data from server
             try {
-                const responses = await Promise.all([
-                    fetch('/api/students'),
-                    fetch('/api/exams'),
-                    fetch('/api/attendance'),
-                    fetch('/api/leave-requests'),
-                    fetch('/api/documents')
+                const [studentsRes, examsRes, attendanceRes, leaveRes, documentsRes] = await Promise.all([
+                    fetch('/api/students').then(res => res.json()),
+                    fetch('/api/exams').then(res => res.json()),
+                    fetch('/api/attendance').then(res => res.json()),
+                    fetch('/api/leave-requests').then(res => res.json()),
+                    fetch('/api/documents').then(res => res.json())
                 ]);
-                const [studentsRes, examsRes, attendanceRes, leaveRes, documentsRes] = await Promise.all(
-                    responses.map(res => res.json())
-                );
 
                 students = studentsRes;
                 exams = examsRes;
@@ -1063,23 +1060,12 @@
                 // Set today's date as default for attendance
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('attendanceDate').value = today;
+
             } catch (error) {
-                console.error('Error initializing app:', error);
+                console.error('Error loading initial data:', error);
                 showNotification('Error loading data. Please refresh the page.', 'error');
             }
         };
-        
-        // Show notification function
-        function showNotification(message, type = 'success') {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = 'notification ' + type;
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
         
         // Load page content
         function loadPage(page, evt) {
@@ -1208,32 +1194,25 @@
         
         // Attendance Functions
         async function loadAttendance() {
+            const date = document.getElementById('attendanceDate').value;
+            const period = document.getElementById('attendancePeriod').value;
+            const attendanceList = document.getElementById('attendanceList');
+            attendanceList.innerHTML = '';
+            
+            if (!date || !period) {
+                attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">Please select both date and period</td></tr>';
+                return;
+            }
+            
+            // Skip break periods
+            if (period.includes('Break') || period.includes('Lunch')) {
+                attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">No attendance required for break periods</td></tr>';
+                return;
+            }
+            
             try {
-                const date = document.getElementById('attendanceDate').value;
-                const period = document.getElementById('attendancePeriod').value;
-                const attendanceList = document.getElementById('attendanceList');
+                showNotification('Loading students...', 'warning');
                 
-                if (!attendanceList) {
-                    console.error('Attendance list element not found');
-                    return;
-                }
-                
-                attendanceList.innerHTML = '';
-                
-                if (!date || !period) {
-                    attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">Please select both date and period</td></tr>';
-                    return;
-                }
-                
-                // Skip break periods
-                if (period.includes('Break') || period.includes('Lunch')) {
-                    attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">No attendance required for break periods</td></tr>';
-                    return;
-                }
-                
-                showNotification('Loading students...', 'info');
-                
-                // Load attendance records
                 const response = await fetch(`/api/attendance?date=${date}&period=${period}`);
                 if (!response.ok) {
                     throw new Error('Failed to load attendance data');
@@ -1246,7 +1225,6 @@
                     }
                 };
 
-                // Load students if not already loaded
                 if (!students || students.length === 0) {
                     const studentsResponse = await fetch('/api/students');
                     if (!studentsResponse.ok) {
@@ -1254,14 +1232,12 @@
                     }
                     students = await studentsResponse.json();
                 }
-                
-                // Handle empty student list
+
                 if (students.length === 0) {
                     attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">No students available</td></tr>';
                     return;
                 }
-                
-                // Populate attendance list
+
                 students.forEach(student => {
                     const row = document.createElement('tr');
                     const isPresent = attendanceRecords[date]?.[period]?.[student.admissionno] || false;
@@ -1271,25 +1247,11 @@
                         <td>${student.name}</td>
                         <td>${student.department}</td>
                         <td>
-                            <input type="checkbox" ${isPresent ? 'checked' : ''} 
-                                data-date="${date}" 
-                                data-period="${period}" 
-                                data-admission="${student.admissionno}"
-                                onchange="updateAttendance('${date}', '${period}', '${student.admissionno}', this.checked)" />
+                            <input type="checkbox" ${isPresent ? 'checked' : ''}                                    onchange="updateAttendance('${date}', '${period}', '${student.admissionno}', this.checked)" />
                         </td>
                     `;
                     attendanceList.appendChild(row);
                 });
-                
-                showNotification('Attendance loaded successfully', 'success');
-            } catch (error) {
-                console.error('Error loading attendance:', error);
-                const attendanceList = document.getElementById('attendanceList');
-                if (attendanceList) {
-                    attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">Error loading attendance data</td></tr>';
-                }
-                showNotification('Error loading attendance: ' + error.message, 'error');
-            }
                 
                 showNotification('Students loaded successfully', 'success');
             } catch (error) {
@@ -1608,83 +1570,96 @@
         }
         
         async function viewMarks(examId) {
-            const exam = exams.find(e => e.id === examId);
-            if (!exam) return;
-            
-            const mainContent = document.getElementById('mainContent');
-            mainContent.innerHTML = `
-                <div class="page-header">
-                    <h1 class="page-title">View Marks - ${exam.name} - ${exam.subject}</h1>
-                </div>
+            try {
+                const response = await fetch(`/api/exams/${examId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch exam details');
+                }
+                const exam = await response.json();
                 
-                <div class="card">
-                    <div class="card-body">
-                        <div class="exam-details">
-                            <p><strong>Date:</strong> ${exam.date} | <strong>Total Marks:</strong> ${exam.totalMarks} | <strong>Duration:</strong> ${exam.duration} minutes</p>
-                        </div>
-                        
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Roll No</th>
-                                    <th>Name</th>
-                                    <th>Department</th>
-                                    <th>Marks Obtained</th>
-                                    <th>Percentage</th>
-                                </tr>
-                            </thead>
-                            <tbody id="examMarksList"></tbody>
-                        </table>
-                        
-                        <div class="form-actions">
-                            <button class="btn btn-success" onclick="downloadMarks('${examId}')">Download</button>
-                            <button class="btn btn-secondary" onclick="loadPage('marks', event)">Back to Exams</button>
+                if (!exam) {
+                    showNotification('Exam not found', 'error');
+                    return;
+                }
+                
+                const mainContent = document.getElementById('mainContent');
+                mainContent.innerHTML = `
+                    <div class="page-header">
+                        <h1 class="page-title">View Marks - ${exam.name} - ${exam.subject}</h1>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="exam-details">
+                                <p><strong>Date:</strong> ${exam.date} | <strong>Total Marks:</strong> ${exam.totalMarks} | <strong>Duration:</strong> ${exam.duration} minutes</p>
+                            </div>
+                            
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Roll No</th>
+                                        <th>Name</th>
+                                        <th>Department</th>
+                                        <th>Marks Obtained</th>
+                                        <th>Percentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="examMarksList"></tbody>
+                            </table>
+                            
+                            <div class="form-actions">
+                                <button class="btn btn-success" onclick="downloadMarks('${examId}')">Download</button>
+                                <button class="btn btn-secondary" onclick="loadPage('marks', event)">Back to Exams</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
-            
-            // Populate the marks table
-            const marksList = document.getElementById('examMarksList');
-            marksList.innerHTML = '';
-            
-            // Get students who have attendance records (belong to this staff)
-            const staffStudents = getStaffStudents();
-            
-            if (staffStudents.length === 0) {
-                marksList.innerHTML = '<tr><td colspan="5" class="empty-state">No students available.</td></tr>';
-                return;
-            }
-            
-            // Get students data from server
-            try {
-                const studentsResponse = await fetch('/api/students?ids=' + staffStudents.join(','));
-                if (!studentsResponse.ok) {
-                    throw new Error('Failed to fetch students data');
+                `;
+                
+                // Populate the marks table
+                const marksList = document.getElementById('examMarksList');
+                marksList.innerHTML = '';
+                
+                // Get students who have attendance records (belong to this staff)
+                const staffStudents = getStaffStudents();
+                
+                if (staffStudents.length === 0) {
+                    marksList.innerHTML = '<tr><td colspan="5" class="empty-state">No students available.</td></tr>';
+                    return;
                 }
-                const studentsData = await studentsResponse.json();
                 
-                studentsData.forEach(student => {
-                    if (!student) return;
+                // Get students data from server
+                try {
+                    const studentsResponse = await fetch('/api/students?ids=' + staffStudents.join(','));
+                    if (!studentsResponse.ok) {
+                        throw new Error('Failed to fetch students data');
+                    }
+                    const studentsData = await studentsResponse.json();
                     
-                    const row = document.createElement('tr');
-                    const marks = exam.marks && exam.marks[student.admissionno] ? exam.marks[student.admissionno] : 'Not entered';
-                    const percentage = marks !== 'Not entered' && marks !== '' ? 
-                                    ((marks / exam.totalMarks) * 100).toFixed(2) + '%' : 'N/A';
-                
-                    row.innerHTML = `
-                        <td>${student.admissionno}</td>
-                        <td>${student.name}</td>
-                        <td>${student.department}</td>
-                        <td>${marks}</td>
-                        <td>${percentage}</td>
-                    `;
-                    marksList.appendChild(row);
-                });
+                    studentsData.forEach(student => {
+                        if (!student) return;
+                        
+                        const row = document.createElement('tr');
+                        const marks = exam.marks && exam.marks[student.admissionno] ? exam.marks[student.admissionno] : 'Not entered';
+                        const percentage = marks !== 'Not entered' && marks !== '' ? 
+                                        ((marks / exam.totalMarks) * 100).toFixed(2) + '%' : 'N/A';
+                    
+                        row.innerHTML = `
+                            <td>${student.admissionno}</td>
+                            <td>${student.name}</td>
+                            <td>${student.department}</td>
+                            <td>${marks}</td>
+                            <td>${percentage}</td>
+                        `;
+                        marksList.appendChild(row);
+                    });
+                } catch (error) {
+                    console.error('Error fetching student data:', error);
+                    marksList.innerHTML = '<tr><td colspan="5" class="empty-state">Error loading student data</td></tr>';
+                    showNotification('Failed to load student data', 'error');
+                }
             } catch (error) {
-                console.error('Error fetching student data:', error);
-                marksList.innerHTML = '<tr><td colspan="5" class="empty-state">Error loading student data</td></tr>';
-                showNotification('Failed to load student data', 'error');
+                console.error('Error:', error);
+                showNotification('Failed to fetch exam details', 'error');
             }
         }
         
@@ -1789,22 +1764,22 @@
                     if (!student) return;
                     
                     const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${request.rollNo}</td>
-                        <td>${student.name}</td>
-                        <td>${request.reason}</td>
-                        <td>${request.days}</td>
-                        <td>${request.date}</td>
-                        <td class="status-${request.status}">${request.status.charAt(0).toUpperCase() + request.status.slice(1)}</td>
-                        <td>
-                            ${request.status === 'pending' ? 
-                                `<div class="action-buttons">
-                                    <button class="btn btn-success" onclick="processLeave(${request.id}, 'approved')">Approve</button>
-                                    <button class="btn btn-danger" onclick="processLeave(${request.id}, 'rejected')">Reject</button>
-                                </div>` : 
-                                'Processed'}
-                        </td>
-                    `;
+                row.innerHTML = `
+                    <td>${request.rollNo}</td>
+                    <td>${student.name}</td>
+                    <td>${request.reason}</td>
+                    <td>${request.days}</td>
+                    <td>${request.date}</td>
+                    <td class="status-${request.status}">${request.status.charAt(0).toUpperCase() + request.status.slice(1)}</td>
+                    <td>
+                        ${request.status === 'pending' ? 
+                            `<div class="action-buttons">
+                                <button class="btn btn-success" onclick="processLeave(${request.id}, 'approved')">Approve</button>
+                                <button class="btn btn-danger" onclick="processLeave(${request.id}, 'rejected')">Reject</button>
+                            </div>` : 
+                            'Processed'}
+                    </td>
+                `;
                     leaveList.appendChild(row);
                 });
             } catch (error) {
@@ -1845,26 +1820,12 @@
             return 'fa-file';
         }
 
-        // Helper function to get file icon
-        function getFileIcon(fileType) {
-            if (fileType === 'pdf') return 'fa-file-pdf';
-            if (fileType === 'ppt' || fileType === 'pptx') return 'fa-file-powerpoint';
-            return 'fa-file';
-        }
-
-        // Helper function to format file size
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
         // Document Upload Functions
         function initDocumentUploadPage() {
             const fileInput = document.getElementById('fileInput');
             const fileContainer = document.getElementById('fileContainer');
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
             const fileViewer = document.getElementById('fileViewer');
             const viewerTitle = document.getElementById('viewerTitle');
             const viewerContent = document.getElementById('viewerContent');
@@ -1925,7 +1886,7 @@
                 
                 fileItem.innerHTML = `
                     <div class="file-info">
-                        <div class="file-icon ${file.type}">
+                        <div class="file-icon ${fileIconClass}">
                             <i class="fas ${getFileIcon(file.type)}"></i>
                         </div>
                         <div class="file-details">
@@ -2055,6 +2016,67 @@
                     `;
                 }
             };
+            
+            // Get file icon class based on file type
+            function getFileIconClass(type) {
+                if (['pdf'].includes(type)) return 'pdf';
+                if (['ppt', 'pptx'].includes(type)) return 'ppt';
+                return 'default';
+            }
+            
+            // Get file icon based on file type
+            function getFileIcon(type) {
+                if (['pdf'].includes(type)) return 'fa-file-pdf';
+                if (['ppt', 'pptx'].includes(type)) return 'fa-file-powerpoint';
+                return 'fa-file';
+            }
+            
+            // Format file size
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+            
+            // Show notification
+            function showNotification(message, isError = false) {
+                notificationText.textContent = message;
+                
+                if (isError) {
+                    notification.classList.add('error');
+                } else {
+                    notification.classList.remove('error');
+                }
+                
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            // Close viewer when clicking outside the content
+            fileViewer.addEventListener('click', function(e) {
+                if (e.target === fileViewer) {
+                    closeFileViewer();
+                }
+            });
+        }
+        
+        // Utility Functions
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
         }
         
         // Get students who have attendance records (belong to this staff)
@@ -2071,59 +2093,25 @@
         }
         
         // Get count of staff students
-        async function getStaffStudentsCount() {
-            try {
-                const response = await fetch('/api/staff/students/count');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch student count');
-                }
-                const data = await response.json();
-                return data.count;
-            } catch (error) {
-                console.error('Error fetching student count:', error);
-                return 0;
-            }
+        function getStaffStudentsCount() {
+            const staffStudents = new Set();
+            Object.values(attendanceRecords).forEach(dateRecords => {
+                Object.values(dateRecords).forEach(periodRecords => {
+                    Object.keys(periodRecords).forEach(admissionNo => {
+                        staffStudents.add(admissionNo);
+                    });
+                });
+            });
+            return staffStudents.size;
         }
         
         // Get unique subjects count
-        async function getUniqueSubjectsCount() {
-            try {
-                const response = await fetch('/api/subjects/count');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch subject count');
-                }
-                const data = await response.json();
-                return data.count;
-            } catch (error) {
-                console.error('Error fetching subject count:', error);
-                return 0;
-            }
-        }
-        // Update attendance status for a student
-        function updateAttendance(date, period, admissionNo, isPresent) {
-            try {
-                if (!date || !period || !admissionNo) {
-                    console.error('Missing required parameters for updateAttendance');
-                    return;
-                }
-
-                if (!attendanceRecords[date]) {
-                    attendanceRecords[date] = {};
-                }
-                if (!attendanceRecords[date][period]) {
-                    attendanceRecords[date][period] = {};
-                }
-                attendanceRecords[date][period][admissionNo] = isPresent;
-                
-                // Update UI to reflect the change
-                const checkbox = document.querySelector(`input[data-date="${date}"][data-period="${period}"][data-admission="${admissionNo}"]`);
-                if (checkbox) {
-                    checkbox.checked = isPresent;
-                }
-            } catch (error) {
-                console.error('Error updating attendance:', error);
-                showNotification('Error updating attendance status', 'error');
-            }
+        function getUniqueSubjectsCount() {
+            const subjects = new Set();
+            exams.forEach(exam => {
+                subjects.add(exam.subject);
+            });
+            return subjects.size;
         }
     </script>
 </body>
