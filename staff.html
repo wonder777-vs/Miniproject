@@ -756,13 +756,13 @@
 <body>
     <div class="sidebar">
         <h2><i class="fas fa-graduation-cap"></i> Staff ERP</h2>
-        <a href="#" onclick="loadPage('dashboard', event)" class="active"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
-        <a href="#" onclick="loadPage('students', event)"><i class="fas fa-users"></i> <span>View Students</span></a>
-        <a href="#" onclick="loadPage('attendance', event)"><i class="fas fa-calendar-check"></i> <span>Attendance</span></a>
-        <a href="#" onclick="loadPage('marks', event)"><i class="fas fa-chart-line"></i> <span>Internal Marks</span></a>
-        <a href="#" onclick="loadPage('leave', event)"><i class="fas fa-calendar-alt"></i> <span>Leave Requests</span></a>
-        <a href="#" onclick="loadPage('documents', event)"><i class="fas fa-file-upload"></i> <span>Document Upload</span></a>
-        <a href="#" onclick="loadPage('logout', event)"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
+        <a href="#" data-page="dashboard" class="active"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
+        <a href="#" data-page="students"><i class="fas fa-users"></i> <span>View Students</span></a>
+        <a href="#" data-page="attendance"><i class="fas fa-calendar-check"></i> <span>Attendance</span></a>
+        <a href="#" data-page="marks"><i class="fas fa-chart-line"></i> <span>Internal Marks</span></a>
+        <a href="#" data-page="leave"><i class="fas fa-calendar-alt"></i> <span>Leave Requests</span></a>
+        <a href="#" data-page="documents"><i class="fas fa-file-upload"></i> <span>Document Upload</span></a>
+        <a href="#" data-page="logout"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
     </div>
     
     <div class="main" id="mainContent">
@@ -794,6 +794,22 @@
         let attendanceRecords = {};
         let leaveRequests = [];
         let uploadedDocuments = [];
+        let currentPage = null;
+        
+        // Initialize event handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load initial data and setup UI
+            window.onload();
+            
+            // Set up navigation events
+            document.querySelectorAll('.sidebar a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.getAttribute('data-page');
+                    loadPage(page, e);
+                });
+            });
+        });
         
         // Page templates
         const pages = {
@@ -1083,28 +1099,57 @@
         
         // Load page content
         function loadPage(page, evt) {
+            if (!pages || !document.getElementById('mainContent')) {
+                console.error('Required elements not initialized');
+                return;
+            }
+
             if (page === 'logout') {
                 if (confirm('Are you sure you want to logout?')) {
                     window.location.href = 'index.html';
                 }
                 return;
             }
-            
-            document.getElementById('mainContent').innerHTML = pages[page];
-            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
-            if (evt) evt.currentTarget.classList.add('active');
-            
-            // Initialize page content
-            if (page === 'students') {
-                setupStudentSearch();
-            } else if (page === 'attendance') {
-                loadAttendance();
-            } else if (page === 'marks') {
-                displayExamsByCAT();
-            } else if (page === 'leave') {
-                displayLeaveRequests();
-            } else if (page === 'documents') {
-                initDocumentUploadPage();
+
+            try {
+                if (!pages[page]) {
+                    console.error('Page template not found:', page);
+                    return;
+                }
+
+                document.getElementById('mainContent').innerHTML = pages[page];
+                document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+                if (evt && evt.currentTarget) {
+                    evt.currentTarget.classList.add('active');
+                }
+                
+                // Store current page
+                currentPage = page;
+
+                // Initialize page content
+                switch (page) {
+                    case 'students':
+                        setupStudentSearch();
+                        break;
+                    case 'attendance':
+                        loadAttendance();
+                        break;
+                    case 'marks':
+                        displayExamsByCAT();
+                        break;
+                    case 'leave':
+                        displayLeaveRequests();
+                        break;
+                    case 'documents':
+                        initDocumentUploadPage();
+                        break;
+                    case 'dashboard':
+                        // Initialize dashboard if needed
+                        break;
+                }
+            } catch (error) {
+                console.error('Error loading page:', error);
+                showNotification('Error loading page: ' + error.message, 'error');
             }
         }
         
