@@ -6,7 +6,6 @@
     <title>Staff Dashboard - MEPCO ERP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* All your existing CSS styles remain unchanged */
         :root {
             --primary-color: #4a6bdf;
             --secondary-color: #6c757d;
@@ -715,6 +714,45 @@
             border-color: #ffeeba;
         }
 
+        .added-students-list {
+            margin-top: 20px;
+        }
+
+        .added-student-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .added-student-item:last-child {
+            border-bottom: none;
+        }
+
+        .student-name-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .student-name-info strong {
+            margin-right: 10px;
+        }
+
+        .remove-student-btn {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .remove-student-btn:hover {
+            background-color: #c82333;
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 width: 70px;
@@ -795,6 +833,7 @@
         let attendanceRecords = {};
         let leaveRequests = [];
         let uploadedDocuments = [];
+        let staffStudents = []; // Students assigned to this staff
         
         // Page templates
         const pages = {
@@ -815,20 +854,43 @@
                         <div class="form-row">
                             <div class="data-card">
                                 <h4>Total Students</h4>
-                                <p style="font-size: 2rem; font-weight: bold;">${students.length}</p>
+                                <p style="font-size: 2rem; font-weight: bold;" id="totalStudentsCount">0</p>
+                            </div>
+                            <div class="data-card">
+                                <h4>Students Assigned to You</h4>
+                                <p style="font-size: 2rem; font-weight: bold;" id="assignedStudentsCount">0</p>
                             </div>
                             <div class="data-card">
                                 <h4>Total Subjects</h4>
-                                <p style="font-size: 2rem; font-weight: bold;">${getUniqueSubjectsCount()}</p>
-                            </div>
-                            <div class="data-card">
-                                <h4>Total Exams</h4>
-                                <p style="font-size: 2rem; font-weight: bold;">${exams.length}</p>
+                                <p style="font-size: 2rem; font-weight: bold;" id="totalSubjectsCount">0</p>
                             </div>
                             <div class="data-card">
                                 <h4>Pending Leaves</h4>
-                                <p style="font-size: 2rem; font-weight: bold;">${leaveRequests.filter(req => req.status === 'pending').length}</p>
+                                <p style="font-size: 2rem; font-weight: bold;" id="pendingLeavesCount">0</p>
                             </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Assigned Students</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="assignedStudentsList" class="added-students-list">
+                            ${staffStudents.length === 0 ? 
+                                '<div class="empty-state"><i class="fas fa-user-graduate"></i><p>No students assigned yet. Add students from the View Students page.</p></div>' : 
+                                staffStudents.map(student => `
+                                    <div class="added-student-item">
+                                        <div class="student-name-info">
+                                            <strong>${student.name}</strong> (${student.admissionno})
+                                        </div>
+                                        <button class="remove-student-btn" onclick="removeStudentFromStaff('${student.admissionno}')">
+                                            <i class="fas fa-times"></i> Remove
+                                        </button>
+                                    </div>
+                                `).join('')
+                            }
                         </div>
                     </div>
                 </div>
@@ -866,6 +928,29 @@
                         <div id="studentDetails"></div>
                     </div>
                 </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Your Assigned Students</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="assignedStudentsList" class="added-students-list">
+                            ${staffStudents.length === 0 ? 
+                                '<div class="empty-state"><i class="fas fa-user-graduate"></i><p>No students assigned yet. Search and add students using the form above.</p></div>' : 
+                                staffStudents.map(student => `
+                                    <div class="added-student-item">
+                                        <div class="student-name-info">
+                                            <strong>${student.name}</strong> (${student.admissionno})
+                                        </div>
+                                        <button class="remove-student-btn" onclick="removeStudentFromStaff('${student.admissionno}')">
+                                            <i class="fas fa-times"></i> Remove
+                                        </button>
+                                    </div>
+                                `).join('')
+                            }
+                        </div>
+                    </div>
+                </div>
             `,
             
             attendance: `
@@ -875,6 +960,10 @@
                 
                 <div class="card">
                     <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Only students assigned to you are displayed below. You can add more students from the "View Students" page.
+                        </div>
+                        
                         <div class="attendance-controls">
                             <div class="form-group">
                                 <label class="form-label" for="attendanceDate">Select Date</label>
@@ -922,6 +1011,10 @@
                 
                 <div class="card">
                     <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Only students assigned to you are displayed below. You can add more students from the "View Students" page.
+                        </div>
+                        
                         <div class="cat-tabs">
                             <div class="cat-tab active" onclick="openCatTab(event, 'CAT1')">CAT 1</div>
                             <div class="cat-tab" onclick="openCatTab(event, 'CAT2')">CAT 2</div>
@@ -989,6 +1082,10 @@
                 
                 <div class="card">
                     <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Only leave requests from students assigned to you are displayed below.
+                        </div>
+                        
                         <table class="leave-table">
                             <thead>
                                 <tr>
@@ -1043,7 +1140,7 @@
         window.onload = async () => {
             try {
                 // Load data from server
-                const [studentsRes, examsRes, attendanceRes, leaveRes, documentsRes] = await Promise.all([
+                const [studentsRes, examsRes, attendanceRes, leaveRes, documentsRes, staffStudentsRes] = await Promise.all([
                     fetch('/api/students').then(res => {
                         if (!res.ok) throw new Error('Failed to fetch students');
                         return res.json();
@@ -1063,6 +1160,13 @@
                     fetch('/api/documents').then(res => {
                         if (!res.ok) throw new Error('Failed to fetch documents');
                         return res.json();
+                    }),
+                    fetch('/api/staff/students').then(res => {
+                        if (!res.ok) throw new Error('Failed to fetch staff students');
+                        return res.json();
+                    }).catch(err => {
+                        console.warn('Failed to fetch staff students, using empty array:', err);
+                        return [];
                     })
                 ]);
 
@@ -1071,6 +1175,7 @@
                 attendanceRecords = attendanceRes;
                 leaveRequests = leaveRes;
                 uploadedDocuments = documentsRes;
+                staffStudents = staffStudentsRes;
 
                 loadPage('dashboard');
                 // Set today's date as default for attendance
@@ -1096,9 +1201,18 @@
             document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
             if (evt) evt.currentTarget.classList.add('active');
             
+            // Update dashboard counts
+            if (page === 'dashboard') {
+                document.getElementById('totalStudentsCount').textContent = students.length;
+                document.getElementById('assignedStudentsCount').textContent = staffStudents.length;
+                document.getElementById('totalSubjectsCount').textContent = getUniqueSubjectsCount();
+                document.getElementById('pendingLeavesCount').textContent = leaveRequests.filter(req => req.status === 'pending').length;
+            }
+            
             // Initialize page content
             if (page === 'students') {
                 setupStudentSearch();
+                updateAssignedStudentsList();
             } else if (page === 'attendance') {
                 loadAttendance();
             } else if (page === 'marks') {
@@ -1160,6 +1274,9 @@
                     throw new Error('Student not found');
                 }
                 
+                // Check if student is already assigned to staff
+                const isAssigned = staffStudents.some(s => s.admissionno === admissionNo);
+                
                 studentDetails.innerHTML = `
                     <div class="student-card">
                         <h3>${student.name} (${student.admissionno})</h3>
@@ -1173,6 +1290,16 @@
                                 <div><strong>Date of Birth:</strong> ${student.dob}</div>
                                 <div><strong>Blood Group:</strong> ${student.bloodgroup}</div>
                                 <div><strong>Address:</strong> ${student.address}</div>
+                            </div>
+                            <div class="action-buttons">
+                                ${!isAssigned ? 
+                                    `<button class="btn btn-primary" onclick="addStudentToStaff('${student.admissionno}')">
+                                        <i class="fas fa-plus"></i> Add to My Students
+                                    </button>` : 
+                                    `<button class="btn btn-secondary" disabled>
+                                        <i class="fas fa-check"></i> Already Added
+                                    </button>`
+                                }
                             </div>
                         </div>
                     `;
@@ -1190,6 +1317,120 @@
             }
         }
         
+        // Add student to staff's list
+        async function addStudentToStaff(admissionNo) {
+            try {
+                showNotification('Adding student to your list...', 'warning');
+                
+                // Find student from all students
+                const student = students.find(s => s.admissionno === admissionNo);
+                if (!student) {
+                    throw new Error('Student not found');
+                }
+                
+                // Check if already added
+                if (staffStudents.some(s => s.admissionno === admissionNo)) {
+                    showNotification('Student is already in your list', 'warning');
+                    return;
+                }
+                
+                // Add to staff's students
+                staffStudents.push(student);
+                
+                // Save to server
+                try {
+                    const response = await fetch('/api/staff/students', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            admissionNo: admissionNo
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to save student assignment');
+                    }
+                } catch (err) {
+                    console.warn('Failed to save student assignment to server:', err);
+                }
+                
+                // Update UI
+                updateAssignedStudentsList();
+                
+                // Refresh student details to show updated button
+                searchStudentByAdmissionNo();
+                
+                showNotification('Student added successfully', 'success');
+            } catch (error) {
+                console.error('Error adding student to staff:', error);
+                showNotification('Failed to add student: ' + error.message, 'error');
+            }
+        }
+        
+        // Remove student from staff's list
+        async function removeStudentFromStaff(admissionNo) {
+            try {
+                if (!confirm('Are you sure you want to remove this student from your list?')) {
+                    return;
+                }
+                
+                showNotification('Removing student from your list...', 'warning');
+                
+                // Remove from staff's students
+                staffStudents = staffStudents.filter(s => s.admissionno !== admissionNo);
+                
+                // Save to server
+                try {
+                    const response = await fetch(`/api/staff/students/${admissionNo}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to remove student assignment');
+                    }
+                } catch (err) {
+                    console.warn('Failed to remove student assignment from server:', err);
+                }
+                
+                // Update UI
+                updateAssignedStudentsList();
+                
+                showNotification('Student removed successfully', 'success');
+            } catch (error) {
+                console.error('Error removing student from staff:', error);
+                showNotification('Failed to remove student: ' + error.message, 'error');
+            }
+        }
+        
+        // Update assigned students list UI
+        function updateAssignedStudentsList() {
+            const assignedStudentsList = document.getElementById('assignedStudentsList');
+            if (!assignedStudentsList) return;
+            
+            if (staffStudents.length === 0) {
+                assignedStudentsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-user-graduate"></i>
+                        <p>No students assigned yet. Search and add students using the form above.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            assignedStudentsList.innerHTML = staffStudents.map(student => `
+                <div class="added-student-item">
+                    <div class="student-name-info">
+                        <strong>${student.name}</strong> (${student.admissionno})
+                    </div>
+                    <button class="remove-student-btn" onclick="removeStudentFromStaff('${student.admissionno}')">
+                        <i class="fas fa-times"></i> Remove
+                    </button>
+                </div>
+            `).join('');
+        }
+        
         // Attendance Functions
         async function loadAttendance() {
             const date = document.getElementById('attendanceDate').value;
@@ -1205,6 +1446,12 @@
             // Skip break periods
             if (period.includes('Break') || period.includes('Lunch')) {
                 attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">No attendance required for break periods</td></tr>';
+                return;
+            }
+            
+            // Check if staff has any assigned students
+            if (staffStudents.length === 0) {
+                attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">No students assigned to you. Please add students from the View Students page.</td></tr>';
                 return;
             }
             
@@ -1228,21 +1475,7 @@
                 }
                 attendanceRecords[date][period] = dateRecords;
 
-                // Get all students
-                if (students.length === 0) {
-                    const studentsResponse = await fetch('/api/students');
-                    if (!studentsResponse.ok) {
-                        throw new Error('Failed to load students data');
-                    }
-                    students = await studentsResponse.json();
-                }
-
-                if (students.length === 0) {
-                    attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">No students available</td></tr>';
-                    return;
-                }
-
-                students.forEach(student => {
+                staffStudents.forEach(student => {
                     const row = document.createElement('tr');
                     const isPresent = dateRecords[student.admissionno] || false;
                     
@@ -1465,6 +1698,12 @@
                     return;
                 }
                 
+                // Check if staff has any assigned students
+                if (staffStudents.length === 0) {
+                    showNotification('No students assigned to you. Please add students from the View Students page.', 'warning');
+                    return;
+                }
+                
                 const mainContent = document.getElementById('mainContent');
                 mainContent.innerHTML = `
                     <div class="page-header">
@@ -1502,21 +1741,7 @@
                 const marksList = document.getElementById('examMarksList');
                 marksList.innerHTML = '';
                 
-                // Get all students
-                if (students.length === 0) {
-                    const studentsResponse = await fetch('/api/students');
-                    if (!studentsResponse.ok) {
-                        throw new Error('Failed to load students data');
-                    }
-                    students = await studentsResponse.json();
-                }
-                
-                if (students.length === 0) {
-                    marksList.innerHTML = '<tr><td colspan="4" class="empty-state">No students available</td></tr>';
-                    return;
-                }
-                
-                students.forEach(student => {
+                staffStudents.forEach(student => {
                     const row = document.createElement('tr');
                     const marks = exam.marks && exam.marks[student.admissionno] ? exam.marks[student.admissionno] : '';
                     
@@ -1541,7 +1766,7 @@
             try {
                 // Collect marks for each student
                 const marksData = {};
-                students.forEach(student => {
+                staffStudents.forEach(student => {
                     const marksInput = document.getElementById(`marks-${student.admissionno}`);
                     if (marksInput) {
                         const marks = marksInput.value === '' ? '' : parseInt(marksInput.value);
@@ -1590,6 +1815,12 @@
                     return;
                 }
                 
+                // Check if staff has any assigned students
+                if (staffStudents.length === 0) {
+                    showNotification('No students assigned to you. Please add students from the View Students page.', 'warning');
+                    return;
+                }
+                
                 const mainContent = document.getElementById('mainContent');
                 mainContent.innerHTML = `
                     <div class="page-header">
@@ -1627,21 +1858,7 @@
                 const marksList = document.getElementById('examMarksList');
                 marksList.innerHTML = '';
                 
-                // Get all students
-                if (students.length === 0) {
-                    const studentsResponse = await fetch('/api/students');
-                    if (!studentsResponse.ok) {
-                        throw new Error('Failed to load students data');
-                    }
-                    students = await studentsResponse.json();
-                }
-                
-                if (students.length === 0) {
-                    marksList.innerHTML = '<tr><td colspan="5" class="empty-state">No students available</td></tr>';
-                    return;
-                }
-                
-                students.forEach(student => {
+                staffStudents.forEach(student => {
                     const row = document.createElement('tr');
                     const marks = exam.marks && exam.marks[student.admissionno] ? exam.marks[student.admissionno] : 'Not entered';
                     const percentage = marks !== 'Not entered' && marks !== '' ? 
@@ -1675,15 +1892,6 @@
                     throw new Error('Exam not found');
                 }
                 
-                // Get students data
-                if (students.length === 0) {
-                    const studentsResponse = await fetch('/api/students');
-                    if (!studentsResponse.ok) {
-                        throw new Error('Failed to fetch students data');
-                    }
-                    students = await studentsResponse.json();
-                }
-                
                 // Get marks data
                 const marksResponse = await fetch(`/api/exams/${examId}/marks`);
                 if (!marksResponse.ok) {
@@ -1694,7 +1902,7 @@
                 // Create CSV content
                 let csvContent = "Roll No,Name,Department,Marks Obtained,Percentage\n";
                 
-                students.forEach(student => {
+                staffStudents.forEach(student => {
                     const marks = marksData[student.admissionno] || 'Not entered';
                     const percentage = marks !== 'Not entered' && marks !== '' ? 
                                      ((marks / exam.totalMarks) * 100).toFixed(2) + '%' : 'N/A';
@@ -1737,28 +1945,25 @@
                     console.warn('API call failed:', err);
                 }
                 
-                if (!allLeaveRequests || allLeaveRequests.length === 0) {
+                // Filter leave requests to only show those from assigned students
+                const staffStudentIds = staffStudents.map(s => s.admissionno);
+                const staffLeaveRequests = allLeaveRequests.filter(req => 
+                    staffStudentIds.includes(req.rollNo)
+                );
+                
+                if (!staffLeaveRequests || staffLeaveRequests.length === 0) {
                     leaveList.innerHTML = '<tr><td colspan="7" class="empty-state">No leave requests to display.</td></tr>';
                     return;
                 }
                 
-                // Get all students
-                if (students.length === 0) {
-                    const studentsResponse = await fetch('/api/students');
-                    if (!studentsResponse.ok) {
-                        throw new Error('Failed to load students data');
-                    }
-                    students = await studentsResponse.json();
-                }
-                
                 // Convert students array to map for easy lookup
-                const studentMap = students.reduce((map, student) => {
+                const studentMap = staffStudents.reduce((map, student) => {
                     map[student.admissionno] = student;
                     return map;
                 }, {});
                 
                 // Sort by date (newest first)
-                const sortedRequests = [...allLeaveRequests].sort((a, b) => new Date(b.date) - new Date(a.date));
+                const sortedRequests = [...staffLeaveRequests].sort((a, b) => new Date(b.date) - new Date(a.date));
                 
                 sortedRequests.forEach(request => {
                     const student = studentMap[request.rollNo];
