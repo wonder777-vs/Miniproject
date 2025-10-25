@@ -1139,8 +1139,8 @@
         // Initialize the app
         window.onload = async () => {
             try {
-                // Load data from server
-                const [studentsRes, examsRes, attendanceRes, leaveRes, documentsRes, staffStudentsRes] = await Promise.all([
+                // Load data from server with better error handling
+                const [studentsRes, examsRes, attendanceRes, leaveRes, documentsRes, staffStudentsRes] = await Promise.allSettled([
                     fetch('/api/students').then(res => {
                         if (!res.ok) throw new Error('Failed to fetch students');
                         return res.json();
@@ -1170,17 +1170,56 @@
                     })
                 ]);
 
-                students = studentsRes;
-                exams = examsRes;
-                attendanceRecords = attendanceRes;
-                leaveRequests = leaveRes;
-                uploadedDocuments = documentsRes;
-                staffStudents = staffStudentsRes;
+                // Process results
+                if (studentsRes.status === 'fulfilled') {
+                    students = studentsRes.value;
+                } else {
+                    console.error('Error loading students:', studentsRes.reason);
+                    showNotification('Failed to load students data', 'warning');
+                }
+
+                if (examsRes.status === 'fulfilled') {
+                    exams = examsRes.value;
+                } else {
+                    console.error('Error loading exams:', examsRes.reason);
+                    showNotification('Failed to load exams data', 'warning');
+                }
+
+                if (attendanceRes.status === 'fulfilled') {
+                    attendanceRecords = attendanceRes.value;
+                } else {
+                    console.error('Error loading attendance:', attendanceRes.reason);
+                    showNotification('Failed to load attendance data', 'warning');
+                }
+
+                if (leaveRes.status === 'fulfilled') {
+                    leaveRequests = leaveRes.value;
+                } else {
+                    console.error('Error loading leave requests:', leaveRes.reason);
+                    showNotification('Failed to load leave requests data', 'warning');
+                }
+
+                if (documentsRes.status === 'fulfilled') {
+                    uploadedDocuments = documentsRes.value;
+                } else {
+                    console.error('Error loading documents:', documentsRes.reason);
+                    showNotification('Failed to load documents data', 'warning');
+                }
+
+                if (staffStudentsRes.status === 'fulfilled') {
+                    staffStudents = staffStudentsRes.value;
+                } else {
+                    console.error('Error loading staff students:', staffStudentsRes.reason);
+                    showNotification('Failed to load staff students data', 'warning');
+                }
 
                 loadPage('dashboard');
                 // Set today's date as default for attendance
                 const today = new Date().toISOString().split('T')[0];
-                document.getElementById('attendanceDate').value = today;
+                const attendanceDateInput = document.getElementById('attendanceDate');
+                if (attendanceDateInput) {
+                    attendanceDateInput.value = today;
+                }
 
             } catch (error) {
                 console.error('Error loading initial data:', error);
@@ -1264,12 +1303,22 @@
             try {
                 showNotification('Searching for student...', 'warning');
                 
-                const response = await fetch(`/api/students/${admissionNo}`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch student details');
+                // Try to get student from API
+                let student;
+                try {
+                    const response = await fetch(`/api/students/${admissionNo}`);
+                    if (response.ok) {
+                        student = await response.json();
+                    }
+                } catch (err) {
+                    console.warn('API call failed, trying local data:', err);
                 }
                 
-                const student = await response.json();
+                // If API failed, try to find in local data
+                if (!student) {
+                    student = students.find(s => s.admissionno === admissionNo);
+                }
+                
                 if (!student) {
                     throw new Error('Student not found');
                 }
@@ -1281,15 +1330,15 @@
                     <div class="student-card">
                         <h3>${student.name} (${student.admissionno})</h3>
                             <div class="student-info">
-                                <div><strong>Roll Number:</strong> ${student.rollno}</div>
-                                <div><strong>Department:</strong> ${student.department}</div>
-                                <div><strong>Year:</strong> ${student.year}</div>
-                                <div><strong>Email:</strong> ${student.email}</div>
-                                <div><strong>Phone:</strong> ${student.phone}</div>
-                                <div><strong>Gender:</strong> ${student.gender}</div>
-                                <div><strong>Date of Birth:</strong> ${student.dob}</div>
-                                <div><strong>Blood Group:</strong> ${student.bloodgroup}</div>
-                                <div><strong>Address:</strong> ${student.address}</div>
+                                <div><strong>Roll Number:</strong> ${student.rollno || 'N/A'}</div>
+                                <div><strong>Department:</strong> ${student.department || 'N/A'}</div>
+                                <div><strong>Year:</strong> ${student.year || 'N/A'}</div>
+                                <div><strong>Email:</strong> ${student.email || 'N/A'}</div>
+                                <div><strong>Phone:</strong> ${student.phone || 'N/A'}</div>
+                                <div><strong>Gender:</strong> ${student.gender || 'N/A'}</div>
+                                <div><strong>Date of Birth:</strong> ${student.dob || 'N/A'}</div>
+                                <div><strong>Blood Group:</strong> ${student.bloodgroup || 'N/A'}</div>
+                                <div><strong>Address:</strong> ${student.address || 'N/A'}</div>
                             </div>
                             <div class="action-buttons">
                                 ${!isAssigned ? 
@@ -1322,8 +1371,22 @@
             try {
                 showNotification('Adding student to your list...', 'warning');
                 
-                // Find student from all students
-                const student = students.find(s => s.admissionno === admissionNo);
+                // Try to get student from API first
+                let student;
+                try {
+                    const response = await fetch(`/api/students/${admissionNo}`);
+                    if (response.ok) {
+                        student = await response.json();
+                    }
+                } catch (err) {
+                    console.warn('API call failed, trying local data:', err);
+                }
+                
+                // If API failed, try to find in local data
+                if (!student) {
+                    student = students.find(s => s.admissionno === admissionNo);
+                }
+                
                 if (!student) {
                     throw new Error('Student not found');
                 }
@@ -1482,7 +1545,7 @@
                     row.innerHTML = `
                         <td>${student.admissionno}</td>
                         <td>${student.name}</td>
-                        <td>${student.department}</td>
+                        <td>${student.department || 'N/A'}</td>
                         <td>
                             <input type="checkbox" ${isPresent ? 'checked' : ''} 
                                    onchange="updateAttendance('${date}', '${period}', '${student.admissionno}', this.checked)" />
@@ -1748,7 +1811,7 @@
                     row.innerHTML = `
                         <td>${student.admissionno}</td>
                         <td>${student.name}</td>
-                        <td>${student.department}</td>
+                        <td>${student.department || 'N/A'}</td>
                         <td>
                             <input type="number" id="marks-${student.admissionno}" value="${marks}" 
                                    min="0" max="${exam.totalMarks}" style="width: 100px;" />
@@ -1867,7 +1930,7 @@
                     row.innerHTML = `
                         <td>${student.admissionno}</td>
                         <td>${student.name}</td>
-                        <td>${student.department}</td>
+                        <td>${student.department || 'N/A'}</td>
                         <td>${marks}</td>
                         <td>${percentage}</td>
                     `;
@@ -1907,7 +1970,7 @@
                     const percentage = marks !== 'Not entered' && marks !== '' ? 
                                      ((marks / exam.totalMarks) * 100).toFixed(2) + '%' : 'N/A';
                     
-                    csvContent += `${student.admissionno},${student.name},${student.department},${marks},${percentage}\n`;
+                    csvContent += `${student.admissionno},${student.name},${student.department || 'N/A'},${marks},${percentage}\n`;
                 });
                 
                 // Create download link
