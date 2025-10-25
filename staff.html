@@ -1521,22 +1521,28 @@
             try {
                 showNotification('Loading students...', 'warning');
                 
+                // Initialize attendance records for this date and period if not exists
+                if (!attendanceRecords[date]) {
+                    attendanceRecords[date] = {};
+                }
+                if (!attendanceRecords[date][period]) {
+                    attendanceRecords[date][period] = {};
+                }
+                
                 // Get attendance records for the selected date and period
                 let dateRecords = {};
                 try {
                     const response = await fetch(`/api/attendance?date=${date}&period=${period}`);
                     if (response.ok) {
                         dateRecords = await response.json();
+                        // Update local attendance records
+                        attendanceRecords[date][period] = dateRecords;
                     }
                 } catch (err) {
-                    console.warn('API call failed:', err);
+                    console.warn('API call failed, using local data:', err);
+                    // Use local data if API fails
+                    dateRecords = attendanceRecords[date][period] || {};
                 }
-                
-                // Update attendance records
-                if (!attendanceRecords[date]) {
-                    attendanceRecords[date] = {};
-                }
-                attendanceRecords[date][period] = dateRecords;
 
                 staffStudents.forEach(student => {
                     const row = document.createElement('tr');

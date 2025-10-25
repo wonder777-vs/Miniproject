@@ -363,6 +363,25 @@
             margin-bottom: 20px;
         }
         
+        .attendance-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .attendance-controls .form-group {
+            margin-bottom: 0;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .attendance-controls .btn {
+            margin-left: 15px;
+        }
+        
         .attendance-container table {
             width: 100%;
             border-collapse: collapse;
@@ -546,6 +565,62 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* File Viewer */
+        .file-viewer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            overflow: auto;
+        }
+
+        .file-viewer-content {
+            position: relative;
+            margin: 30px auto;
+            max-width: 90%;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .file-viewer-header {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-viewer-header h3 {
+            margin: 0;
+        }
+
+        .close-viewer {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .file-viewer-body {
+            padding: 20px;
+            max-height: 80vh;
+            overflow: auto;
+            text-align: center;
+        }
+
+        .file-viewer-body iframe {
+            width: 100%;
+            height: 70vh;
+            border: none;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .form-row {
@@ -628,23 +703,48 @@
                 <div class="tab-content" id="attendance">
                     <div class="attendance-container">
                         <h2>📅 Attendance Report</h2>
+                        
+                        <div class="attendance-controls">
+                            <div class="form-group">
+                                <label class="form-label" for="attendanceDate">Select Date</label>
+                                <input type="date" id="attendanceDate" class="form-control" onchange="loadAttendance()" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="attendancePeriod">Select Period</label>
+                                <select id="attendancePeriod" class="form-control" onchange="loadAttendance()">
+                                    <option value="">Select Period</option>
+                                    <option value="9.00 to 9.50">9.00 to 9.50</option>
+                                    <option value="9.50 to 10.40">9.50 to 10.40</option>
+                                    <option value="10.40 to 11.00">10.40 to 11.00 (Break)</option>
+                                    <option value="11.00 to 11.50">11.00 to 11.50</option>
+                                    <option value="11.50 to 12.40">11.50 to 12.40</option>
+                                    <option value="12.40 to 1.30">12.40 to 1.30 (Lunch Break)</option>
+                                    <option value="1.30 to 2.15">1.30 to 2.15</option>
+                                    <option value="2.15 to 3.00">2.15 to 3.00</option>
+                                    <option value="3.00 to 3.15">3.00 to 3.15 (Break)</option>
+                                    <option value="3.15 to 4.00">3.15 to 4.00</option>
+                                    <option value="4.00 to 4.45">4.00 to 4.45</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="loadAttendance()">View Attendance</button>
+                        </div>
 
                         <div class="summary-section">
                             <div class="side-box">
-                                <div><span class="label">Total Absent</span> : <span class="highlight-red">0</span></div>
-                                <div><span class="label">Total Leave</span> : 0</div>
-                                <div><span class="label">Total OD</span> : 0</div>
-                                <div><span class="label">Total ML</span> : 0</div>
-                                <div><span class="label">Total Project ODs</span> : 0</div>
-                                <div><span class="label">Total Suspends</span> : 0</div>
-                                <div><span class="label">Attendance Fine (Rs.)</span> : <span class="highlight-red">0</span></div>
-                                <div><span class="label">Other Fine (Rs.)</span> : 0</div>
+                                <div><span class="label">Total Absent</span> : <span class="highlight-red" id="totalAbsent">0</span></div>
+                                <div><span class="label">Total Leave</span> : <span id="totalLeave">0</span></div>
+                                <div><span class="label">Total OD</span> : <span id="totalOD">0</span></div>
+                                <div><span class="label">Total ML</span> : <span id="totalML">0</span></div>
+                                <div><span class="label">Total Project ODs</span> : <span id="totalProjectOD">0</span></div>
+                                <div><span class="label">Total Suspends</span> : <span id="totalSuspend">0</span></div>
+                                <div><span class="label">Attendance Fine (Rs.)</span> : <span class="highlight-red" id="attendanceFine">0</span></div>
+                                <div><span class="label">Other Fine (Rs.)</span> : <span id="otherFine">0</span></div>
                             </div>
 
                             <div class="side-box">
-                                <div><span class="label">Total Hours Conducted</span> : <span class="highlight-green">0</span></div>
-                                <div><span class="label">Total Hours Attended</span> : <span class="highlight-green">0</span></div>
-                                <div><span class="label">Attendance Percentage</span> : <span class="highlight-green">0.0%</span></div>
+                                <div><span class="label">Total Hours Conducted</span> : <span class="highlight-green" id="totalHoursConducted">0</span></div>
+                                <div><span class="label">Total Hours Attended</span> : <span class="highlight-green" id="totalHoursAttended">0</span></div>
+                                <div><span class="label">Attendance Percentage</span> : <span class="highlight-green" id="attendancePercentage">0.0%</span></div>
                             </div>
                         </div>
 
@@ -652,84 +752,15 @@
                             <thead>
                                 <tr>
                                     <th>Date</th>
-                                    <th>H1</th>
-                                    <th>H2</th>
-                                    <th>H3</th>
-                                    <th>H4</th>
-                                    <th>H5</th>
-                                    <th>H6</th>
-                                    <th>H7</th>
-                                    <th>H8</th>
+                                    <th>Period</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody id="attendanceTableBody">
                                 <tr>
-                                    <td>30/06/2025 - Monday</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
+                                    <td colspan="3" class="empty-state">Select date and period to view attendance</td>
                                 </tr>
-                                <tr>
-                                    <td>01/07/2025 - Tuesday</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                </tr>
-                                <tr>
-                                    <td>02/07/2025 - Wednesday</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                </tr>
-                                <tr>
-                                    <td>03/07/2025 - Thursday</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                </tr>
-                                <tr>
-                                    <td>04/07/2025 - Friday</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                </tr>
-                                <tr>
-                                    <td>05/07/2025 - Saturday</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                    <td class="none">-</td>
-                                </tr>
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -925,6 +956,9 @@
                             <h3>Apply for Leave</h3>
                         </div>
                         <div class="card-body">
+                            <div id="assignedStaffInfo" class="form-group">
+                                <!-- Assigned staff info will be loaded here -->
+                            </div>
                             <form class="leave-form" id="leaveForm">
                                 <div class="form-row">
                                     <div class="form-group">
@@ -980,6 +1014,21 @@
     <!-- Notification -->
     <div class="notification" id="notification"></div>
 
+    <!-- File Viewer -->
+    <div id="fileViewer" class="file-viewer">
+        <div class="file-viewer-content">
+            <div class="file-viewer-header">
+                <h3 id="viewerTitle">Document Viewer</h3>
+                <button class="close-viewer" onclick="closeFileViewer()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="file-viewer-body" id="viewerContent">
+                <!-- Content will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Get DOM elements
@@ -991,6 +1040,7 @@
             const userAvatar = document.getElementById('userAvatar');
             const attendanceTableBody = document.getElementById('attendanceTableBody');
             const leaveForm = document.getElementById('leaveForm');
+            const assignedStaffInfo = document.getElementById('assignedStaffInfo');
             
             // CAT tabs
             const catTabs = document.querySelectorAll('.cat-tab');
@@ -999,6 +1049,13 @@
             // Extract admission number from URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             const admissionNo = urlParams.get('admissionno');
+            
+            // Set today's date as default for attendance
+            const today = new Date().toISOString().split('T')[0];
+            const attendanceDateInput = document.getElementById('attendanceDate');
+            if (attendanceDateInput) {
+                attendanceDateInput.value = today;
+            }
             
             // Tab switching functionality
             tabs.forEach(tab => {
@@ -1014,7 +1071,7 @@
                     
                     // Load tab-specific content if needed
                     if (tabId === 'attendance' && admissionNo) {
-                        fetchAttendanceData(admissionNo);
+                        loadAttendance();
                     } else if (tabId === 'internal' && admissionNo) {
                         // Load the first CAT tab by default
                         loadInternalMarks(admissionNo, 'CAT1');
@@ -1022,6 +1079,8 @@
                         fetchUniversityMarks(admissionNo);
                     } else if (tabId === 'documents' && admissionNo) {
                         fetchDocuments(admissionNo);
+                    } else if (tabId === 'leave' && admissionNo) {
+                        fetchAssignedStaff(admissionNo);
                     }
                 });
             });
@@ -1090,11 +1149,25 @@
             }
             
             // Fetch attendance data from API
-            async function fetchAttendanceData(admissionNo) {
+            async function loadAttendance() {
+                const date = document.getElementById('attendanceDate').value;
+                const period = document.getElementById('attendancePeriod').value;
+                
+                if (!date || !period) {
+                    attendanceTableBody.innerHTML = '<tr><td colspan="3" class="empty-state">Please select both date and period</td></tr>';
+                    return;
+                }
+                
+                // Skip break periods
+                if (period.includes('Break') || period.includes('Lunch')) {
+                    attendanceTableBody.innerHTML = '<tr><td colspan="3" class="empty-state">No attendance required for break periods</td></tr>';
+                    return;
+                }
+                
                 try {
                     showNotification('Fetching attendance data...', 'success');
                     
-                    const response = await fetch(`/attendance?admissionNo=${admissionNo}`);
+                    const response = await fetch(`/api/attendance?admissionNo=${admissionNo}&date=${date}&period=${period}`);
                     if (!response.ok) {
                         throw new Error('Failed to fetch attendance data');
                     }
@@ -1106,7 +1179,7 @@
                 } catch (error) {
                     console.error('Error fetching attendance data:', error);
                     showNotification('Attendance data not available.', 'warning');
-                    // Keep the default attendance table
+                    attendanceTableBody.innerHTML = '<tr><td colspan="3" class="empty-state">No attendance data available for selected date and period</td></tr>';
                 }
             }
             
@@ -1210,6 +1283,27 @@
                 }
             }
             
+            // Fetch assigned staff information
+            async function fetchAssignedStaff(admissionNo) {
+                try {
+                    showNotification('Fetching assigned staff information...', 'success');
+                    
+                    const response = await fetch(`/api/student/${admissionNo}/assigned-staff`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch assigned staff');
+                    }
+                    const staffData = await response.json();
+                    
+                    displayAssignedStaff(staffData);
+                    
+                    showNotification('Staff information loaded successfully!', 'success');
+                } catch (error) {
+                    console.error('Error fetching assigned staff:', error);
+                    showNotification('Staff information not available.', 'warning');
+                    assignedStaffInfo.innerHTML = '<p class="alert alert-warning">No staff assigned to you. Please contact the administrator.</p>';
+                }
+            }
+            
             // Display student data in the profile
             function displayStudentData(student) {
                 profileContent.innerHTML = `
@@ -1282,39 +1376,70 @@
                 // Clear existing table rows
                 attendanceTableBody.innerHTML = '';
                 
+                if (!attendanceData || attendanceData.length === 0) {
+                    attendanceTableBody.innerHTML = '<tr><td colspan="3" class="empty-state">No attendance data available for selected date and period</td></tr>';
+                    return;
+                }
+                
                 // Populate with new data
                 attendanceData.forEach(record => {
                     const row = document.createElement('tr');
                     
                     // Date cell
                     const dateCell = document.createElement('td');
-                    dateCell.textContent = `${record.date} - ${record.day}`;
+                    dateCell.textContent = record.date;
                     row.appendChild(dateCell);
                     
-                    // Hour cells (H1-H8)
-                    for (let i = 1; i <= 8; i++) {
-                        const hourCell = document.createElement('td');
-                        const hourData = record[`h${i}`];
-                        
-                        if (hourData === 'P') {
-                            hourCell.className = 'present';
-                            hourCell.textContent = 'P';
-                        } else if (hourData === 'A') {
-                            hourCell.className = 'absent';
-                            hourCell.textContent = 'A';
-                        } else {
-                            hourCell.className = 'none';
-                            hourCell.textContent = '-';
-                        }
-                        
-                        row.appendChild(hourCell);
+                    // Period cell
+                    const periodCell = document.createElement('td');
+                    periodCell.textContent = record.period;
+                    row.appendChild(periodCell);
+                    
+                    // Status cell
+                    const statusCell = document.createElement('td');
+                    if (record.status === 'P') {
+                        statusCell.className = 'present';
+                        statusCell.textContent = 'Present';
+                    } else if (record.status === 'A') {
+                        statusCell.className = 'absent';
+                        statusCell.textContent = 'Absent';
+                    } else {
+                        statusCell.className = 'none';
+                        statusCell.textContent = record.status || '-';
                     }
+                    row.appendChild(statusCell);
                     
                     attendanceTableBody.appendChild(row);
                 });
                 
                 // Update summary statistics
-                updateAttendanceSummary(attendanceData);
+                updateAttendanceSummary();
+            }
+            
+            // Update attendance summary
+            async function updateAttendanceSummary() {
+                try {
+                    const response = await fetch(`/api/attendance/summary/${admissionNo}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch attendance summary');
+                    }
+                    const summary = await response.json();
+                    
+                    // Update the summary boxes
+                    document.getElementById('totalAbsent').textContent = summary.totalAbsent || 0;
+                    document.getElementById('totalLeave').textContent = summary.totalLeave || 0;
+                    document.getElementById('totalOD').textContent = summary.totalOD || 0;
+                    document.getElementById('totalML').textContent = summary.totalML || 0;
+                    document.getElementById('totalProjectOD').textContent = summary.totalProjectOD || 0;
+                    document.getElementById('totalSuspend').textContent = summary.totalSuspend || 0;
+                    document.getElementById('attendanceFine').textContent = summary.attendanceFine || 0;
+                    document.getElementById('otherFine').textContent = summary.otherFine || 0;
+                    document.getElementById('totalHoursConducted').textContent = summary.totalHoursConducted || 0;
+                    document.getElementById('totalHoursAttended').textContent = summary.totalHoursAttended || 0;
+                    document.getElementById('attendancePercentage').textContent = summary.attendancePercentage || '0.0%';
+                } catch (error) {
+                    console.error('Error updating attendance summary:', error);
+                }
             }
             
             // Display internal marks
@@ -1322,6 +1447,12 @@
                 // Clear existing table rows
                 const tableBody = document.getElementById(`${catType}-table-body`);
                 tableBody.innerHTML = '';
+                
+                if (!marksData || marksData.length === 0) {
+                    document.getElementById(`${catType}-content`).style.display = 'none';
+                    document.getElementById(`${catType}-empty`).style.display = 'block';
+                    return;
+                }
                 
                 // Populate with new data
                 marksData.forEach(mark => {
@@ -1357,6 +1488,12 @@
                 // Clear existing table rows
                 const tableBody = document.getElementById('universityMarksTableBody');
                 tableBody.innerHTML = '';
+                
+                if (!universityMarks || universityMarks.length === 0) {
+                    document.getElementById('universityMarksContent').style.display = 'none';
+                    document.getElementById('universityMarksEmpty').style.display = 'block';
+                    return;
+                }
                 
                 // Populate with new data
                 universityMarks.forEach(mark => {
@@ -1408,6 +1545,12 @@
                 const documentList = document.getElementById('documentList');
                 documentList.innerHTML = '';
                 
+                if (!documents || documents.length === 0) {
+                    document.getElementById('documentsContent').style.display = 'none';
+                    document.getElementById('documentsEmpty').style.display = 'block';
+                    return;
+                }
+                
                 // Populate with new data
                 documents.forEach(doc => {
                     const documentCard = document.createElement('div');
@@ -1442,67 +1585,18 @@
                 });
             }
             
-            // Update attendance summary
-            function updateAttendanceSummary(attendanceData) {
-                let totalAbsent = 0;
-                let totalLeave = 0;
-                let totalOD = 0;
-                let totalML = 0;
-                let totalProjectOD = 0;
-                let totalSuspend = 0;
-                let totalHoursConducted = 0;
-                let totalHoursAttended = 0;
+            // Display assigned staff information
+            function displayAssignedStaff(staffData) {
+                if (!staffData || !staffData.name) {
+                    assignedStaffInfo.innerHTML = '<p class="alert alert-warning">No staff assigned to you. Please contact the administrator.</p>';
+                    return;
+                }
                 
-                attendanceData.forEach(record => {
-                    for (let i = 1; i <= 8; i++) {
-                        const hourData = record[`h${i}`];
-                        if (hourData !== '-') {
-                            totalHoursConducted++;
-                            
-                            if (hourData === 'P') {
-                                totalHoursAttended++;
-                            } else if (hourData === 'A') {
-                                totalAbsent++;
-                            } else if (hourData === 'L') {
-                                totalLeave++;
-                            } else if (hourData === 'OD') {
-                                totalOD++;
-                            } else if (hourData === 'ML') {
-                                totalML++;
-                            } else if (hourData === 'POD') {
-                                totalProjectOD++;
-                            } else if (hourData === 'S') {
-                                totalSuspend++;
-                            }
-                        }
-                    }
-                });
-                
-                // Calculate attendance percentage
-                const attendancePercentage = totalHoursConducted > 0 
-                    ? ((totalHoursAttended / totalHoursConducted) * 100).toFixed(1)
-                    : 0;
-                
-                // Update the summary boxes
-                const summaryBoxes = document.querySelectorAll('.summary-section .side-box');
-                
-                // First box
-                summaryBoxes[0].innerHTML = `
-                    <div><span class="label">Total Absent</span> : <span class="highlight-red">${totalAbsent}</span></div>
-                    <div><span class="label">Total Leave</span> : ${totalLeave}</div>
-                    <div><span class="label">Total OD</span> : ${totalOD}</div>
-                    <div><span class="label">Total ML</span> : ${totalML}</div>
-                    <div><span class="label">Total Project ODs</span> : ${totalProjectOD}</div>
-                    <div><span class="label">Total Suspends</span> : ${totalSuspend}</div>
-                    <div><span class="label">Attendance Fine (Rs.)</span> : <span class="highlight-red">0</span></div>
-                    <div><span class="label">Other Fine (Rs.)</span> : 0</div>
-                `;
-                
-                // Second box
-                summaryBoxes[1].innerHTML = `
-                    <div><span class="label">Total Hours Conducted</span> : <span class="highlight-green">${totalHoursConducted}</span></div>
-                    <div><span class="label">Total Hours Attended</span> : <span class="highlight-green">${totalHoursAttended}</span></div>
-                    <div><span class="label">Attendance Percentage</span> : <span class="highlight-green">${attendancePercentage}%</span></div>
+                assignedStaffInfo.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        Your leave application will be sent to: <strong>${staffData.name}</strong> (${staffData.department})
+                    </div>
                 `;
             }
             
@@ -1563,11 +1657,60 @@
             window.viewDocument = async function(docId) {
                 try {
                     showNotification('Opening document...', 'success');
-                    window.open(`/api/documents/view/${docId}`, '_blank');
+                    
+                    // Get document details
+                    const response = await fetch(`/api/documents/${docId}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch document details');
+                    }
+                    const document = await response.json();
+                    
+                    // Set viewer title
+                    document.getElementById('viewerTitle').textContent = document.name;
+                    
+                    // Clear previous content
+                    const viewerContent = document.getElementById('viewerContent');
+                    viewerContent.innerHTML = '';
+                    
+                    // Determine how to display the file based on its type
+                    if (document.type === 'pdf') {
+                        // Display PDF in iframe
+                        const iframe = document.createElement('iframe');
+                        iframe.src = `/api/documents/view/${docId}`;
+                        viewerContent.appendChild(iframe);
+                    } else if (['ppt', 'pptx'].includes(document.type)) {
+                        // For PPT files, show a message and download option
+                        const message = document.createElement('div');
+                        message.innerHTML = `
+                            <p>PowerPoint files cannot be previewed in the browser.</p>
+                            <button class="upload-btn" style="margin-top: 15px;" onclick="downloadDocument('${docId}'); closeFileViewer();">
+                                <i class="fas fa-download"></i> Download File
+                            </button>
+                        `;
+                        viewerContent.appendChild(message);
+                    } else {
+                        // For other file types, show a message and download option
+                        const message = document.createElement('div');
+                        message.innerHTML = `
+                            <p>This file type cannot be previewed in the browser.</p>
+                            <button class="upload-btn" style="margin-top: 15px;" onclick="downloadDocument('${docId}'); closeFileViewer();">
+                                <i class="fas fa-download"></i> Download File
+                            </button>
+                        `;
+                        viewerContent.appendChild(message);
+                    }
+                    
+                    // Show the viewer
+                    document.getElementById('fileViewer').style.display = 'block';
                 } catch (error) {
                     console.error('Error viewing document:', error);
                     showNotification('Failed to open document', 'error');
                 }
+            }
+            
+            // Close file viewer
+            window.closeFileViewer = function() {
+                document.getElementById('fileViewer').style.display = 'none';
             }
             
             // Download document function
