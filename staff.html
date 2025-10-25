@@ -1123,110 +1123,41 @@
         }
         
         async function searchStudentByAdmissionNo() {
-            try {
-                const admissionNo = document.getElementById('searchAdmissionNo').value.trim();
-                const studentDetails = document.getElementById('studentDetails');
-                
-                if (!admissionNo) {
-                    showNotification('Please enter an admission number', 'error');
-                    return;
-                }
-                
-                showNotification('Searching for student...', 'info');
-                
-                // First check if student exists in database
-                const response = await fetch(`/api/students/${admissionNo}`, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Cache-Control': 'no-cache'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(response.status === 404 ? 'Student not found' : 'Failed to fetch student details');
-                }
-
-                const student = await response.json();
-                
-                if (!student) {
-                    studentDetails.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-user-slash"></i>
-                            <p>No student found with admission number: ${admissionNo}</p>
-                        </div>
-                    `;
-                    showNotification('Student not found', 'error');
-                    return;
-                }
-
-                // After confirming student exists, check if they are assigned to this staff
-                const hasAttendance = Object.values(attendanceRecords).some(dateRecords => 
-                    Object.values(dateRecords).some(periodRecords => 
-                        Object.keys(periodRecords).some(id => 
-                            id.toLowerCase() === admissionNo.toLowerCase()
-                        )
-                    )
-                );
-
-                console.log('Student data:', student);
-                console.log('Has attendance:', hasAttendance);
-                console.log('Attendance records:', attendanceRecords);
-
-                // If student exists but is not assigned to this staff
-                if (!hasAttendance) {
-                    studentDetails.innerHTML = `
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <p>Student ${student.name} (${admissionNo}) exists but is not assigned to your class.</p>
-                        </div>
-                    `;
-                    showNotification('Student found but not in your class', 'warning');
-                    return;
-                }
-
-                // Display student details if everything is ok
-                studentDetails.innerHTML = `
-                    <div class="student-info">
-                        <h3>${student.name}</h3>
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <label>Admission No:</label>
-                                <span>${student.admissionNo || admissionNo}</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Department:</label>
-                                <span>${student.department || 'N/A'}</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Year:</label>
-                                <span>${student.year || 'N/A'}</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Section:</label>
-                                <span>${student.section || 'N/A'}</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Email:</label>
-                                <span>${student.email || 'N/A'}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                showNotification('Student details loaded successfully', 'success');
-
-            } catch (error) {
-                console.error('Error searching for student:', error);
-                studentDetails.innerHTML = `
-                    <div class="empty-state error">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <p>Error: ${error.message}</p>
-                        <small>Please try again or contact support if the issue persists.</small>
-                    </div>
-                `;
-                showNotification(error.message, 'error');
+            const admissionNo = document.getElementById('searchAdmissionNo').value.trim();
+            const studentDetails = document.getElementById('studentDetails');
+            
+            if (!admissionNo) {
+                showNotification('Please enter an admission number', 'error');
+                return;
             }
-        }
+            
+            // Check if student has attendance records (belongs to this staff)
+            const hasAttendance = Object.values(attendanceRecords).some(dateRecords => 
+                Object.values(dateRecords).some(periodRecords => 
+                    Object.keys(periodRecords).includes(admissionNo)
+                )
+            );
+            
+            if (!hasAttendance) {
+                studentDetails.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-user-slash"></i>
+                        <p>No student found with admission number: ${admissionNo} or student not assigned to you</p>
+                    </div>
+                `;
+                showNotification('Student not found or not assigned to you', 'error');
+                return;
+            }
+            
+            try {
+                showNotification('Searching for student...', 'warning');
+                
+                const response = await fetch(`/api/students/${admissionNo}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch student details');
+                }
+                
+                const student = await response.json();
                 if (!student) {
                     throw new Error('Student not found');
                 }
