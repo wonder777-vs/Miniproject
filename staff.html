@@ -753,6 +753,22 @@
             background-color: #c82333;
         }
 
+        /* Loading spinner */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 width: 70px;
@@ -841,8 +857,8 @@
                 <div class="page-header">
                     <h1 class="page-title">Staff Dashboard</h1>
                     <div class="user-info">
-                        <span>Staff Member</span>
-                        <div class="user-avatar">S</div>
+                        <span id="staffName">Staff Member</span>
+                        <div class="user-avatar" id="staffAvatar">S</div>
                     </div>
                 </div>
                 
@@ -854,19 +870,27 @@
                         <div class="form-row">
                             <div class="data-card">
                                 <h4>Total Students</h4>
-                                <p style="font-size: 2rem; font-weight: bold;" id="totalStudentsCount">0</p>
+                                <p style="font-size: 2rem; font-weight: bold;" id="totalStudentsCount">
+                                    <div class="spinner"></div>
+                                </p>
                             </div>
                             <div class="data-card">
                                 <h4>Students Assigned to You</h4>
-                                <p style="font-size: 2rem; font-weight: bold;" id="assignedStudentsCount">0</p>
+                                <p style="font-size: 2rem; font-weight: bold;" id="assignedStudentsCount">
+                                    <div class="spinner"></div>
+                                </p>
                             </div>
                             <div class="data-card">
                                 <h4>Total Subjects</h4>
-                                <p style="font-size: 2rem; font-weight: bold;" id="totalSubjectsCount">0</p>
+                                <p style="font-size: 2rem; font-weight: bold;" id="totalSubjectsCount">
+                                    <div class="spinner"></div>
+                                </p>
                             </div>
                             <div class="data-card">
                                 <h4>Pending Leaves</h4>
-                                <p style="font-size: 2rem; font-weight: bold;" id="pendingLeavesCount">0</p>
+                                <p style="font-size: 2rem; font-weight: bold;" id="pendingLeavesCount">
+                                    <div class="spinner"></div>
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -878,19 +902,7 @@
                     </div>
                     <div class="card-body">
                         <div id="assignedStudentsList" class="added-students-list">
-                            ${staffStudents.length === 0 ? 
-                                '<div class="empty-state"><i class="fas fa-user-graduate"></i><p>No students assigned yet. Add students from the View Students page.</p></div>' : 
-                                staffStudents.map(student => `
-                                    <div class="added-student-item">
-                                        <div class="student-name-info">
-                                            <strong>${student.name}</strong> (${student.admissionno})
-                                        </div>
-                                        <button class="remove-student-btn" onclick="removeStudentFromStaff('${student.admissionno}')">
-                                            <i class="fas fa-times"></i> Remove
-                                        </button>
-                                    </div>
-                                `).join('')
-                            }
+                            <div class="spinner"></div>
                         </div>
                     </div>
                 </div>
@@ -935,19 +947,7 @@
                     </div>
                     <div class="card-body">
                         <div id="assignedStudentsList" class="added-students-list">
-                            ${staffStudents.length === 0 ? 
-                                '<div class="empty-state"><i class="fas fa-user-graduate"></i><p>No students assigned yet. Search and add students using the form above.</p></div>' : 
-                                staffStudents.map(student => `
-                                    <div class="added-student-item">
-                                        <div class="student-name-info">
-                                            <strong>${student.name}</strong> (${student.admissionno})
-                                        </div>
-                                        <button class="remove-student-btn" onclick="removeStudentFromStaff('${student.admissionno}')">
-                                            <i class="fas fa-times"></i> Remove
-                                        </button>
-                                    </div>
-                                `).join('')
-                            }
+                            <div class="spinner"></div>
                         </div>
                     </div>
                 </div>
@@ -967,11 +967,11 @@
                         <div class="attendance-controls">
                             <div class="form-group">
                                 <label class="form-label" for="attendanceDate">Select Date</label>
-                                <input type="date" id="attendanceDate" class="form-control" onchange="loadAttendance()" />
+                                <input type="date" id="attendanceDate" class="form-control" />
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="attendancePeriod">Select Period</label>
-                                <select id="attendancePeriod" class="form-control" onchange="loadAttendance()">
+                                <select id="attendancePeriod" class="form-control">
                                     <option value="">Select Period</option>
                                     <option value="9.00 to 9.50">9.00 to 9.50</option>
                                     <option value="9.50 to 10.40">9.50 to 10.40</option>
@@ -986,10 +986,16 @@
                                     <option value="4.00 to 4.45">4.00 to 4.45</option>
                                 </select>
                             </div>
-                            <button class="btn btn-primary" onclick="saveAttendance()">Submit Attendance</button>
+                            <button class="btn btn-primary" onclick="loadAttendance()">Load Students</button>
+                            <button class="btn btn-success" onclick="saveAttendance()">Submit Attendance</button>
                         </div>
                         
-                        <table>
+                        <div id="attendanceLoading" style="display: none; text-align: center; padding: 20px;">
+                            <div class="spinner"></div>
+                            <p>Loading students...</p>
+                        </div>
+                        
+                        <table id="attendanceTable" style="display: none;">
                             <thead>
                                 <tr>
                                     <th>Roll No</th>
@@ -1000,6 +1006,11 @@
                             </thead>
                             <tbody id="attendanceList"></tbody>
                         </table>
+                        
+                        <div id="attendanceEmpty" class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <p>Select date and period to load students</p>
+                        </div>
                     </div>
                 </div>
             `,
@@ -1029,7 +1040,9 @@
                                 <h3>CAT 1 Exams</h3>
                                 <button class="btn btn-primary" onclick="createNewExam('CAT1')">Create New Exam</button>
                             </div>
-                            <div id="CAT1-exams"></div>
+                            <div id="CAT1-exams">
+                                <div class="spinner"></div>
+                            </div>
                         </div>
                         
                         <div id="CAT2" class="cat-content">
@@ -1037,7 +1050,9 @@
                                 <h3>CAT 2 Exams</h3>
                                 <button class="btn btn-primary" onclick="createNewExam('CAT2')">Create New Exam</button>
                             </div>
-                            <div id="CAT2-exams"></div>
+                            <div id="CAT2-exams">
+                                <div class="spinner"></div>
+                            </div>
                         </div>
                         
                         <div id="CAT3" class="cat-content">
@@ -1045,7 +1060,9 @@
                                 <h3>CAT 3 Exams</h3>
                                 <button class="btn btn-primary" onclick="createNewExam('CAT3')">Create New Exam</button>
                             </div>
-                            <div id="CAT3-exams"></div>
+                            <div id="CAT3-exams">
+                                <div class="spinner"></div>
+                            </div>
                         </div>
                         
                         <div id="Special" class="cat-content">
@@ -1053,7 +1070,9 @@
                                 <h3>Special Tests</h3>
                                 <button class="btn btn-primary" onclick="createNewExam('Special Test')">Create New Exam</button>
                             </div>
-                            <div id="Special-exams"></div>
+                            <div id="Special-exams">
+                                <div class="spinner"></div>
+                            </div>
                         </div>
                         
                         <div id="Model" class="cat-content">
@@ -1061,7 +1080,9 @@
                                 <h3>Model Exams</h3>
                                 <button class="btn btn-primary" onclick="createNewExam('Model Exam')">Create New Exam</button>
                             </div>
-                            <div id="Model-exams"></div>
+                            <div id="Model-exams">
+                                <div class="spinner"></div>
+                            </div>
                         </div>
                         
                         <div id="Assignment" class="cat-content">
@@ -1069,7 +1090,9 @@
                                 <h3>Assignments</h3>
                                 <button class="btn btn-primary" onclick="createNewExam('Assignment')">Create New Exam</button>
                             </div>
-                            <div id="Assignment-exams"></div>
+                            <div id="Assignment-exams">
+                                <div class="spinner"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1086,7 +1109,12 @@
                             <i class="fas fa-info-circle"></i> Only leave requests from students assigned to you are displayed below.
                         </div>
                         
-                        <table class="leave-table">
+                        <div id="leaveLoading" style="display: none; text-align: center; padding: 20px;">
+                            <div class="spinner"></div>
+                            <p>Loading leave requests...</p>
+                        </div>
+                        
+                        <table class="leave-table" id="leaveTable" style="display: none;">
                             <thead>
                                 <tr>
                                     <th>Roll No</th>
@@ -1100,6 +1128,11 @@
                             </thead>
                             <tbody id="leaveList"></tbody>
                         </table>
+                        
+                        <div id="leaveEmpty" class="empty-state">
+                            <i class="fas fa-calendar-times"></i>
+                            <p>No leave requests to display</p>
+                        </div>
                     </div>
                 </div>
             `,
@@ -1125,9 +1158,7 @@
                             <div class="file-list">
                                 <h2>Uploaded Documents</h2>
                                 <div id="fileContainer">
-                                    ${uploadedDocuments.length === 0 ? 
-                                        '<div class="empty-state"><i class="fas fa-folder-open"></i><p>No documents uploaded yet. Use the upload section above to add files.</p></div>' : 
-                                        ''}
+                                    <div class="spinner"></div>
                                 </div>
                             </div>
                         </div>
@@ -1139,8 +1170,11 @@
         // Initialize the app
         window.onload = async () => {
             try {
+                // Show loading state
+                showNotification('Loading dashboard...', 'warning');
+                
                 // Load data from server with better error handling
-                const [studentsRes, examsRes, attendanceRes, leaveRes, documentsRes, staffStudentsRes] = await Promise.allSettled([
+                const [studentsRes, examsRes, attendanceRes, leaveRes, documentsRes, staffStudentsRes, staffInfoRes] = await Promise.allSettled([
                     fetch('/api/students').then(res => {
                         if (!res.ok) throw new Error('Failed to fetch students');
                         return res.json();
@@ -1167,6 +1201,13 @@
                     }).catch(err => {
                         console.warn('Failed to fetch staff students, using empty array:', err);
                         return [];
+                    }),
+                    fetch('/api/staff/info').then(res => {
+                        if (!res.ok) throw new Error('Failed to fetch staff info');
+                        return res.json();
+                    }).catch(err => {
+                        console.warn('Failed to fetch staff info:', err);
+                        return { name: 'Staff Member', id: 'staff001' };
                     })
                 ]);
 
@@ -1213,14 +1254,16 @@
                     showNotification('Failed to load staff students data', 'warning');
                 }
 
-                loadPage('dashboard');
-                // Set today's date as default for attendance
-                const today = new Date().toISOString().split('T')[0];
-                const attendanceDateInput = document.getElementById('attendanceDate');
-                if (attendanceDateInput) {
-                    attendanceDateInput.value = today;
+                if (staffInfoRes.status === 'fulfilled') {
+                    const staffInfo = staffInfoRes.value;
+                    document.getElementById('staffName').textContent = staffInfo.name;
+                    document.getElementById('staffAvatar').textContent = staffInfo.name.charAt(0).toUpperCase();
+                } else {
+                    console.error('Error loading staff info:', staffInfoRes.reason);
                 }
 
+                loadPage('dashboard');
+                showNotification('Dashboard loaded successfully!', 'success');
             } catch (error) {
                 console.error('Error loading initial data:', error);
                 showNotification('Error loading data. Please check your connection and try again.', 'error');
@@ -1242,10 +1285,7 @@
             
             // Update dashboard counts
             if (page === 'dashboard') {
-                document.getElementById('totalStudentsCount').textContent = students.length;
-                document.getElementById('assignedStudentsCount').textContent = staffStudents.length;
-                document.getElementById('totalSubjectsCount').textContent = getUniqueSubjectsCount();
-                document.getElementById('pendingLeavesCount').textContent = leaveRequests.filter(req => req.status === 'pending').length;
+                updateDashboardCounts();
             }
             
             // Initialize page content
@@ -1253,13 +1293,28 @@
                 setupStudentSearch();
                 updateAssignedStudentsList();
             } else if (page === 'attendance') {
-                loadAttendance();
+                setupAttendancePage();
             } else if (page === 'marks') {
                 displayExamsByCAT();
             } else if (page === 'leave') {
                 displayLeaveRequests();
             } else if (page === 'documents') {
                 initDocumentUploadPage();
+            }
+        }
+        
+        // Update dashboard counts
+        async function updateDashboardCounts() {
+            try {
+                document.getElementById('totalStudentsCount').textContent = students.length;
+                document.getElementById('assignedStudentsCount').textContent = staffStudents.length;
+                document.getElementById('totalSubjectsCount').textContent = getUniqueSubjectsCount();
+                document.getElementById('pendingLeavesCount').textContent = leaveRequests.filter(req => req.status === 'pending').length;
+                
+                // Update assigned students list
+                updateAssignedStudentsList();
+            } catch (error) {
+                console.error('Error updating dashboard counts:', error);
             }
         }
         
@@ -1494,31 +1549,52 @@
             `).join('');
         }
         
+        // Setup attendance page
+        function setupAttendancePage() {
+            // Set today's date as default for attendance
+            const today = new Date().toISOString().split('T')[0];
+            const attendanceDateInput = document.getElementById('attendanceDate');
+            if (attendanceDateInput) {
+                attendanceDateInput.value = today;
+            }
+        }
+        
         // Attendance Functions
         async function loadAttendance() {
             const date = document.getElementById('attendanceDate').value;
             const period = document.getElementById('attendancePeriod').value;
             const attendanceList = document.getElementById('attendanceList');
+            const attendanceLoading = document.getElementById('attendanceLoading');
+            const attendanceTable = document.getElementById('attendanceTable');
+            const attendanceEmpty = document.getElementById('attendanceEmpty');
+            
+            // Reset UI
             attendanceList.innerHTML = '';
+            attendanceLoading.style.display = 'none';
+            attendanceTable.style.display = 'none';
+            attendanceEmpty.style.display = 'block';
             
             if (!date || !period) {
-                attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">Please select both date and period</td></tr>';
+                attendanceEmpty.innerHTML = '<i class="fas fa-calendar-day"></i><p>Please select both date and period</p>';
                 return;
             }
             
             // Skip break periods
             if (period.includes('Break') || period.includes('Lunch')) {
-                attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">No attendance required for break periods</td></tr>';
+                attendanceEmpty.innerHTML = '<i class="fas fa-coffee"></i><p>No attendance required for break periods</p>';
                 return;
             }
             
             // Check if staff has any assigned students
             if (staffStudents.length === 0) {
-                attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">No students assigned to you. Please add students from the View Students page.</td></tr>';
+                attendanceEmpty.innerHTML = '<i class="fas fa-user-graduate"></i><p>No students assigned to you. Please add students from the View Students page.</p>';
                 return;
             }
             
             try {
+                // Show loading state
+                attendanceLoading.style.display = 'block';
+                attendanceEmpty.style.display = 'none';
                 showNotification('Loading students...', 'warning');
                 
                 // Initialize attendance records for this date and period if not exists
@@ -1544,6 +1620,11 @@
                     dateRecords = attendanceRecords[date][period] || {};
                 }
 
+                // Hide loading state
+                attendanceLoading.style.display = 'none';
+                attendanceTable.style.display = 'table';
+                attendanceEmpty.style.display = 'none';
+
                 staffStudents.forEach(student => {
                     const row = document.createElement('tr');
                     const isPresent = dateRecords[student.admissionno] || false;
@@ -1563,7 +1644,9 @@
                 showNotification('Students loaded successfully', 'success');
             } catch (error) {
                 console.error('Error loading students:', error);
-                attendanceList.innerHTML = '<tr><td colspan="4" class="empty-state">Error loading students</td></tr>';
+                attendanceLoading.style.display = 'none';
+                attendanceEmpty.innerHTML = '<i class="fas fa-exclamation-triangle"></i><p>Error loading students</p>';
+                attendanceEmpty.style.display = 'block';
                 showNotification('Failed to load students', 'error');
             }
         }
@@ -1727,6 +1810,8 @@
                     };
                     
                     try {
+                        showNotification('Creating exam...', 'warning');
+                        
                         const response = await fetch('/api/exams', {
                             method: 'POST',
                             headers: {
@@ -1833,6 +1918,8 @@
 
         async function saveExamMarks(examId) {
             try {
+                showNotification('Saving marks...', 'warning');
+                
                 // Collect marks for each student
                 const marksData = {};
                 staffStudents.forEach(student => {
@@ -1950,6 +2037,8 @@
         
         async function downloadMarks(examId) {
             try {
+                showNotification('Preparing download...', 'warning');
+                
                 // Get exam details
                 const examResponse = await fetch(`/api/exams/${examId}`);
                 if (!examResponse.ok) {
@@ -1999,10 +2088,18 @@
         
         // Leave Request Functions
         async function displayLeaveRequests() {
+            const leaveList = document.getElementById('leaveList');
+            const leaveLoading = document.getElementById('leaveLoading');
+            const leaveTable = document.getElementById('leaveTable');
+            const leaveEmpty = document.getElementById('leaveEmpty');
+            
+            // Reset UI
+            leaveList.innerHTML = '';
+            leaveLoading.style.display = 'block';
+            leaveTable.style.display = 'none';
+            leaveEmpty.style.display = 'none';
+            
             try {
-                const leaveList = document.getElementById('leaveList');
-                leaveList.innerHTML = '';
-                
                 // Get all leave requests
                 let allLeaveRequests = [];
                 try {
@@ -2020,8 +2117,11 @@
                     staffStudentIds.includes(req.rollNo)
                 );
                 
+                // Hide loading state
+                leaveLoading.style.display = 'none';
+                
                 if (!staffLeaveRequests || staffLeaveRequests.length === 0) {
-                    leaveList.innerHTML = '<tr><td colspan="7" class="empty-state">No leave requests to display.</td></tr>';
+                    leaveEmpty.style.display = 'block';
                     return;
                 }
                 
@@ -2033,6 +2133,9 @@
                 
                 // Sort by date (newest first)
                 const sortedRequests = [...staffLeaveRequests].sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                // Show table
+                leaveTable.style.display = 'table';
                 
                 sortedRequests.forEach(request => {
                     const student = studentMap[request.rollNo];
@@ -2059,12 +2162,16 @@
                 });
             } catch (error) {
                 console.error('Error displaying leave requests:', error);
+                leaveLoading.style.display = 'none';
+                leaveEmpty.style.display = 'block';
                 showNotification('Failed to display leave requests: ' + error.message, 'error');
             }
         }
         
         async function processLeave(id, status) {
             try {
+                showNotification('Processing leave request...', 'warning');
+                
                 const response = await fetch(`/api/leave-requests/${id}`, {
                     method: 'PATCH',
                     headers: {
@@ -2096,171 +2203,85 @@
         }
 
         // Document Upload Functions
-        function initDocumentUploadPage() {
+        async function initDocumentUploadPage() {
             const fileInput = document.getElementById('fileInput');
             const fileContainer = document.getElementById('fileContainer');
             const fileViewer = document.getElementById('fileViewer');
             const viewerTitle = document.getElementById('viewerTitle');
             const viewerContent = document.getElementById('viewerContent');
             
+            // Load existing documents
+            try {
+                const response = await fetch('/api/documents');
+                if (response.ok) {
+                    uploadedDocuments = await response.json();
+                    displayDocuments();
+                } else {
+                    throw new Error('Failed to fetch documents');
+                }
+            } catch (error) {
+                console.error('Error loading documents:', error);
+                fileContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-folder-open"></i>
+                        <p>Error loading documents. Please refresh the page.</p>
+                    </div>
+                `;
+            }
+            
             // Handle file selection
-            fileInput.addEventListener('change', function(e) {
+            fileInput.addEventListener('change', async function(e) {
                 const files = e.target.files;
                 
                 if (files.length === 0) return;
                 
+                try {
+                    showNotification('Uploading files...', 'warning');
+                    
+                    // Create FormData for file upload
+                    const formData = new FormData();
+                    for (let i = 0; i < files.length; i++) {
+                        formData.append('files', files[i]);
+                    }
+                    
+                    // Upload files to server
+                    const response = await fetch('/api/documents/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to upload files');
+                    }
+                    
+                    const result = await response.json();
+                    
+                    // Update local documents array
+                    if (result.documents && result.documents.length > 0) {
+                        uploadedDocuments = [...uploadedDocuments, ...result.documents];
+                        displayDocuments();
+                        showNotification(`${files.length} file(s) uploaded successfully!`, 'success');
+                    }
+                } catch (error) {
+                    console.error('Error uploading files:', error);
+                    showNotification('Failed to upload files: ' + error.message, 'error');
+                }
+                
+                // Reset the input
+                fileInput.value = '';
+            });
+            
+            // Display documents in the UI
+            function displayDocuments() {
                 // Remove empty state if it exists
                 const emptyState = fileContainer.querySelector('.empty-state');
                 if (emptyState) {
                     emptyState.remove();
                 }
                 
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    const fileObj = {
-                        name: file.name,
-                        type: file.name.split('.').pop().toLowerCase(),
-                        size: formatFileSize(file.size),
-                        date: new Date().toISOString().split('T')[0],
-                        file: file
-                    };
-                    
-                    // Create a data URL for the file
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        fileObj.dataUrl = event.target.result;
-                        uploadedDocuments.push(fileObj);
-                        addFileToList(fileObj);
-                    };
-                    reader.readAsDataURL(file);
-                }
+                // Clear container
+                fileContainer.innerHTML = '';
                 
-                showNotification(`${files.length} file(s) uploaded successfully!`);
-                
-                // Reset the input
-                fileInput.value = '';
-            });
-            
-            // Add file to the list
-            function addFileToList(file) {
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-                
-                const fileIconClass = getFileIconClass(file.type);
-                
-                fileItem.innerHTML = `
-                    <div class="file-info">
-                        <div class="file-icon ${fileIconClass}">
-                            <i class="fas ${getFileIcon(file.type)}"></i>
-                        </div>
-                        <div class="file-details">
-                            <h4>${file.name}</h4>
-                            <p>${file.size} • ${file.date}</p>
-                        </div>
-                    </div>
-                    <div class="file-actions">
-                        <button class="action-btn download" title="Download" onclick="downloadFile('${file.name}')">
-                            <i class="fas fa-download"></i>
-                        </button>
-                        <button class="action-btn delete" title="Delete" onclick="deleteFile('${file.name}')">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
-                `;
-                
-                // Add click event to the entire file item for preview
-                fileItem.addEventListener('click', function(e) {
-                    // Don't trigger preview if clicking on action buttons
-                    if (!e.target.closest('.file-actions')) {
-                        viewFile(file.name);
-                    }
-                });
-                
-                fileContainer.appendChild(fileItem);
-            }
-            
-            // View file in the viewer
-            window.viewFile = function(fileName) {
-                const file = uploadedDocuments.find(f => f.name === fileName);
-                if (!file) return;
-                
-                viewerTitle.textContent = file.name;
-                
-                // Clear previous content
-                viewerContent.innerHTML = '';
-                
-                // Determine how to display the file based on its type
-                if (['pdf'].includes(file.type)) {
-                    // Display PDF in iframe
-                    const iframe = document.createElement('iframe');
-                    iframe.src = file.dataUrl;
-                    viewerContent.appendChild(iframe);
-                } else if (['ppt', 'pptx'].includes(file.type)) {
-                    // For PPT files, show a message and download option
-                    const message = document.createElement('div');
-                    message.innerHTML = `
-                        <p>PowerPoint files cannot be previewed in the browser.</p>
-                        <button class="upload-btn" style="margin-top: 15px;" onclick="downloadFile('${file.name}'); closeFileViewer();">
-                            <i class="fas fa-download"></i> Download File
-                        </button>
-                    `;
-                    viewerContent.appendChild(message);
-                } else {
-                    // For other file types, show a message and download option
-                    const message = document.createElement('div');
-                    message.innerHTML = `
-                        <p>This file type cannot be previewed in the browser.</p>
-                        <button class="upload-btn" style="margin-top: 15px;" onclick="downloadFile('${file.name}'); closeFileViewer();">
-                            <i class="fas fa-download"></i> Download File
-                        </button>
-                    `;
-                    viewerContent.appendChild(message);
-                }
-                
-                // Show the viewer
-                fileViewer.style.display = 'block';
-            };
-            
-            // Close file viewer
-            window.closeFileViewer = function() {
-                fileViewer.style.display = 'none';
-            };
-            
-            // Download file
-            window.downloadFile = function(fileName) {
-                const file = uploadedDocuments.find(f => f.name === fileName);
-                if (!file) return;
-                
-                // Create a temporary link to trigger download
-                const a = document.createElement('a');
-                a.href = file.dataUrl;
-                a.download = file.name;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                
-                showNotification(`Downloading ${file.name}...`);
-            };
-            
-            // Delete file
-            window.deleteFile = function(fileName) {
-                const fileIndex = uploadedDocuments.findIndex(f => f.name === fileName);
-                if (fileIndex === -1) return;
-                
-                // Remove from array
-                uploadedDocuments.splice(fileIndex, 1);
-                
-                // Find and remove the file item from the DOM
-                const fileItems = fileContainer.querySelectorAll('.file-item');
-                fileItems.forEach(item => {
-                    if (item.querySelector('h4').textContent === fileName) {
-                        item.remove();
-                    }
-                });
-                
-                showNotification(`${fileName} has been deleted.`);
-                
-                // Show empty state if no files left
                 if (uploadedDocuments.length === 0) {
                     fileContainer.innerHTML = `
                         <div class="empty-state">
@@ -2268,32 +2289,169 @@
                             <p>No documents uploaded yet. Use the upload section above to add files.</p>
                         </div>
                     `;
+                    return;
+                }
+                
+                // Add documents to the list
+                uploadedDocuments.forEach(doc => {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'file-item';
+                    
+                    // Set icon based on file type
+                    let iconClass = 'default';
+                    if (doc.type === 'pdf') {
+                        iconClass = 'pdf';
+                    } else if (doc.type === 'ppt' || doc.type === 'pptx') {
+                        iconClass = 'ppt';
+                    }
+                    
+                    fileItem.innerHTML = `
+                        <div class="file-info">
+                            <div class="file-icon ${iconClass}">
+                                <i class="fas ${getFileIcon(doc.type)}"></i>
+                            </div>
+                            <div class="file-details">
+                                <h4>${doc.name}</h4>
+                                <p>${doc.type.toUpperCase()} • ${doc.size} • ${doc.uploadedDate}</p>
+                            </div>
+                        </div>
+                        <div class="file-actions">
+                            <button class="action-btn download" title="Download" onclick="downloadDocument('${doc.id}')">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="action-btn delete" title="Delete" onclick="deleteDocument('${doc.id}')">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Add click event to the entire file item for preview
+                    fileItem.addEventListener('click', function(e) {
+                        // Don't trigger preview if clicking on action buttons
+                        if (!e.target.closest('.file-actions')) {
+                            viewDocument(doc.id);
+                        }
+                    });
+                    
+                    fileContainer.appendChild(fileItem);
+                });
+            }
+            
+            // View document in the viewer
+            window.viewDocument = async function(docId) {
+                try {
+                    showNotification('Loading document...', 'warning');
+                    
+                    // Get document details
+                    const response = await fetch(`/api/documents/${docId}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch document details');
+                    }
+                    const document = await response.json();
+                    
+                    // Set viewer title
+                    viewerTitle.textContent = document.name;
+                    
+                    // Clear previous content
+                    viewerContent.innerHTML = '';
+                    
+                    // Determine how to display the file based on its type
+                    if (document.type === 'pdf') {
+                        // Display PDF in iframe
+                        const iframe = document.createElement('iframe');
+                        iframe.src = `/api/documents/view/${docId}`;
+                        viewerContent.appendChild(iframe);
+                    } else if (['ppt', 'pptx'].includes(document.type)) {
+                        // For PPT files, show a message and download option
+                        const message = document.createElement('div');
+                        message.innerHTML = `
+                            <p>PowerPoint files cannot be previewed in the browser.</p>
+                            <button class="upload-btn" style="margin-top: 15px;" onclick="downloadDocument('${docId}'); closeFileViewer();">
+                                <i class="fas fa-download"></i> Download File
+                            </button>
+                        `;
+                        viewerContent.appendChild(message);
+                    } else {
+                        // For other file types, show a message and download option
+                        const message = document.createElement('div');
+                        message.innerHTML = `
+                            <p>This file type cannot be previewed in the browser.</p>
+                            <button class="upload-btn" style="margin-top: 15px;" onclick="downloadDocument('${docId}'); closeFileViewer();">
+                                <i class="fas fa-download"></i> Download File
+                            </button>
+                        `;
+                        viewerContent.appendChild(message);
+                    }
+                    
+                    // Show the viewer
+                    fileViewer.style.display = 'block';
+                } catch (error) {
+                    console.error('Error viewing document:', error);
+                    showNotification('Failed to open document', 'error');
                 }
             };
             
-            // Get file icon class based on file type
-            function getFileIconClass(type) {
-                if (['pdf'].includes(type)) return 'pdf';
-                if (['ppt', 'pptx'].includes(type)) return 'ppt';
-                return 'default';
-            }
+            // Close file viewer
+            window.closeFileViewer = function() {
+                fileViewer.style.display = 'none';
+            };
+            
+            // Download document
+            window.downloadDocument = async function(docId) {
+                try {
+                    showNotification('Preparing download...', 'warning');
+                    
+                    // Create a temporary link to trigger download
+                    const a = document.createElement('a');
+                    a.href = `/api/documents/download/${docId}`;
+                    a.download = '';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    showNotification('Download started', 'success');
+                } catch (error) {
+                    console.error('Error downloading document:', error);
+                    showNotification('Failed to download document', 'error');
+                }
+            };
+            
+            // Delete document
+            window.deleteDocument = async function(docId) {
+                try {
+                    if (!confirm('Are you sure you want to delete this document?')) {
+                        return;
+                    }
+                    
+                    showNotification('Deleting document...', 'warning');
+                    
+                    const response = await fetch(`/api/documents/${docId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to delete document');
+                    }
+                    
+                    // Remove from local array
+                    uploadedDocuments = uploadedDocuments.filter(doc => doc.id !== docId);
+                    
+                    // Refresh the display
+                    displayDocuments();
+                    
+                    showNotification('Document deleted successfully', 'success');
+                } catch (error) {
+                    console.error('Error deleting document:', error);
+                    showNotification('Failed to delete document: ' + error.message, 'error');
+                }
+            };
             
             // Get file icon based on file type
             function getFileIcon(type) {
                 if (['pdf'].includes(type)) return 'fa-file-pdf';
                 if (['ppt', 'pptx'].includes(type)) return 'fa-file-powerpoint';
+                if (['doc', 'docx'].includes(type)) return 'fa-file-word';
                 return 'fa-file';
-            }
-            
-            // Format file size
-            function formatFileSize(bytes) {
-                if (bytes === 0) return '0 Bytes';
-                
-                const k = 1024;
-                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                
-                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
             }
             
             // Close viewer when clicking outside the content
