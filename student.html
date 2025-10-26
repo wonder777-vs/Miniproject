@@ -333,6 +333,10 @@
             color: var(--dark-color);
         }
 
+        .notification.info {
+            background-color: #17a2b8;
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -621,6 +625,35 @@
             border: none;
         }
 
+        /* Error Panel */
+        .error-panel {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .error-panel h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .error-panel button {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .error-panel button:hover {
+            background-color: #c82333;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .form-row {
@@ -707,11 +740,11 @@
                         <div class="attendance-controls">
                             <div class="form-group">
                                 <label class="form-label" for="attendanceDate">Select Date</label>
-                                <input type="date" id="attendanceDate" class="form-control" onchange="loadAttendance()" />
+                                <input type="date" id="attendanceDate" class="form-control" />
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="attendancePeriod">Select Period</label>
-                                <select id="attendancePeriod" class="form-control" onchange="loadAttendance()">
+                                <select id="attendancePeriod" class="form-control">
                                     <option value="">Select Period</option>
                                     <option value="9.00 to 9.50">9.00 to 9.50</option>
                                     <option value="9.50 to 10.40">9.50 to 10.40</option>
@@ -726,7 +759,7 @@
                                     <option value="4.00 to 4.45">4.00 to 4.45</option>
                                 </select>
                             </div>
-                            <button class="btn btn-primary" onclick="loadAttendance()">View Attendance</button>
+                            <button class="btn btn-primary" id="loadAttendanceBtn">View Attendance</button>
                         </div>
 
                         <div class="summary-section">
@@ -1030,6 +1063,9 @@
     </div>
 
     <script>
+        // Global variables
+        let admissionNo = null;
+        
         document.addEventListener('DOMContentLoaded', function() {
             // Get DOM elements
             const tabs = document.querySelectorAll('.tab');
@@ -1041,6 +1077,7 @@
             const attendanceTableBody = document.getElementById('attendanceTableBody');
             const leaveForm = document.getElementById('leaveForm');
             const assignedStaffInfo = document.getElementById('assignedStaffInfo');
+            const loadAttendanceBtn = document.getElementById('loadAttendanceBtn');
             
             // CAT tabs
             const catTabs = document.querySelectorAll('.cat-tab');
@@ -1048,7 +1085,7 @@
             
             // Extract admission number from URL parameters
             const urlParams = new URLSearchParams(window.location.search);
-            const admissionNo = urlParams.get('admissionno');
+            admissionNo = urlParams.get('admissionno');
             
             // Set today's date as default for attendance
             const today = new Date().toISOString().split('T')[0];
@@ -1104,6 +1141,11 @@
                 });
             });
             
+            // Add event listener for load attendance button
+            if (loadAttendanceBtn) {
+                loadAttendanceBtn.addEventListener('click', loadAttendance);
+            }
+            
             // If admission number is available, fetch student data
             if (admissionNo) {
                 fetchStudentData(admissionNo);
@@ -1121,7 +1163,7 @@
             // Fetch student data from API
             async function fetchStudentData(admissionNo) {
                 try {
-                    showNotification('Fetching student data...', 'success');
+                    showNotification('Fetching student data...', 'info');
                     
                     const response = await fetch(`/api/student/${admissionNo}`);
                     if (!response.ok) {
@@ -1165,9 +1207,9 @@
                 }
                 
                 try {
-                    showNotification('Fetching attendance data...', 'success');
+                    showNotification('Fetching attendance data...', 'info');
                     
-                    const response = await fetch(`/api/attendance?admissionNo=${admissionNo}&date=${date}&period=${period}`);
+                    const response = await fetch(`/api/attendance?admissionNo=${admissionNo}&date=${date}&period=${encodeURIComponent(period)}`);
                     if (!response.ok) {
                         throw new Error('Failed to fetch attendance data');
                     }
@@ -1191,7 +1233,7 @@
                 document.getElementById(`${catType}-empty`).style.display = 'none';
                 
                 try {
-                    showNotification(`Fetching ${catType} marks...`, 'success');
+                    showNotification(`Fetching ${catType} marks...`, 'info');
                     
                     const response = await fetch(`/api/internal-marks/${admissionNo}?catType=${catType}`);
                     if (!response.ok) {
@@ -1225,7 +1267,7 @@
                 document.getElementById('universityMarksEmpty').style.display = 'none';
                 
                 try {
-                    showNotification('Fetching university marks...', 'success');
+                    showNotification('Fetching university marks...', 'info');
                     
                     const response = await fetch(`/api/university-marks/${admissionNo}`);
                     if (!response.ok) {
@@ -1258,7 +1300,7 @@
                 document.getElementById('documentsEmpty').style.display = 'none';
                 
                 try {
-                    showNotification('Fetching documents...', 'success');
+                    showNotification('Fetching documents...', 'info');
                     
                     const response = await fetch(`/api/documents/${admissionNo}`);
                     if (!response.ok) {
@@ -1286,9 +1328,9 @@
             // Fetch assigned staff information
             async function fetchAssignedStaff(admissionNo) {
                 try {
-                    showNotification('Fetching assigned staff information...', 'success');
+                    showNotification('Fetching assigned staff information...', 'info');
                     
-                    const response = await fetch(`/api/student/${admissionNo}/assigned-staff`);
+                    const response = await fetch(`/api/staff/${admissionNo}/assigned-staff`);
                     if (!response.ok) {
                         throw new Error('Failed to fetch assigned staff');
                     }
@@ -1625,7 +1667,7 @@
                 }
                 
                 try {
-                    showNotification('Submitting leave application...', 'success');
+                    showNotification('Submitting leave application...', 'info');
                     
                     const response = await fetch('/api/leave/apply', {
                         method: 'POST',
@@ -1633,7 +1675,8 @@
                     });
                     
                     if (!response.ok) {
-                        throw new Error('Failed to submit leave application');
+                        const errorText = await response.text();
+                        throw new Error(`Server returned ${response.status}: ${errorText}`);
                     }
                     const result = await response.json();
                     
@@ -1649,80 +1692,9 @@
                     
                 } catch (error) {
                     console.error('Error submitting leave application:', error);
-                    showNotification('Failed to submit leave application. Please try again.', 'error');
+                    showNotification('Failed to submit leave application. Please try again later.', 'error');
                 }
             });
-            
-            // View document function
-            window.viewDocument = async function(docId) {
-                try {
-                    showNotification('Opening document...', 'success');
-                    
-                    // Get document details
-                    const response = await fetch(`/api/documents/${docId}`);
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch document details');
-                    }
-                    const document = await response.json();
-                    
-                    // Set viewer title
-                    document.getElementById('viewerTitle').textContent = document.name;
-                    
-                    // Clear previous content
-                    const viewerContent = document.getElementById('viewerContent');
-                    viewerContent.innerHTML = '';
-                    
-                    // Determine how to display the file based on its type
-                    if (document.type === 'pdf') {
-                        // Display PDF in iframe
-                        const iframe = document.createElement('iframe');
-                        iframe.src = `/api/documents/view/${docId}`;
-                        viewerContent.appendChild(iframe);
-                    } else if (['ppt', 'pptx'].includes(document.type)) {
-                        // For PPT files, show a message and download option
-                        const message = document.createElement('div');
-                        message.innerHTML = `
-                            <p>PowerPoint files cannot be previewed in the browser.</p>
-                            <button class="upload-btn" style="margin-top: 15px;" onclick="downloadDocument('${docId}'); closeFileViewer();">
-                                <i class="fas fa-download"></i> Download File
-                            </button>
-                        `;
-                        viewerContent.appendChild(message);
-                    } else {
-                        // For other file types, show a message and download option
-                        const message = document.createElement('div');
-                        message.innerHTML = `
-                            <p>This file type cannot be previewed in the browser.</p>
-                            <button class="upload-btn" style="margin-top: 15px;" onclick="downloadDocument('${docId}'); closeFileViewer();">
-                                <i class="fas fa-download"></i> Download File
-                            </button>
-                        `;
-                        viewerContent.appendChild(message);
-                    }
-                    
-                    // Show the viewer
-                    document.getElementById('fileViewer').style.display = 'block';
-                } catch (error) {
-                    console.error('Error viewing document:', error);
-                    showNotification('Failed to open document', 'error');
-                }
-            }
-            
-            // Close file viewer
-            window.closeFileViewer = function() {
-                document.getElementById('fileViewer').style.display = 'none';
-            }
-            
-            // Download document function
-            window.downloadDocument = async function(docId) {
-                try {
-                    showNotification('Preparing download...', 'success');
-                    window.location.href = `/api/documents/download/${docId}`;
-                } catch (error) {
-                    console.error('Error downloading document:', error);
-                    showNotification('Failed to download document', 'error');
-                }
-            }
             
             // Show notification
             function showNotification(message, type) {
@@ -1740,6 +1712,75 @@
                 window.location.href = 'index.html';
             }
         });
+        
+        // Global functions that need to be accessible from HTML
+        window.viewDocument = async function(docId) {
+            try {
+                showNotification('Opening document...', 'info');
+                
+                // Get document details
+                const response = await fetch(`/api/documents/${docId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch document details');
+                }
+                const doc = await response.json();
+                
+                // Set viewer title
+                document.getElementById('viewerTitle').textContent = doc.name;
+                
+                // Clear previous content
+                const viewerContent = document.getElementById('viewerContent');
+                viewerContent.innerHTML = '';
+                
+                // Determine how to display the file based on its type
+                if (doc.type === 'pdf') {
+                    // Display PDF in iframe
+                    const iframe = document.createElement('iframe');
+                    iframe.src = `/api/documents/view/${docId}`;
+                    viewerContent.appendChild(iframe);
+                } else if (['ppt', 'pptx'].includes(doc.type)) {
+                    // For PPT files, show a message and download option
+                    const message = document.createElement('div');
+                    message.innerHTML = `
+                        <p>PowerPoint files cannot be previewed in the browser.</p>
+                        <button class="upload-btn" style="margin-top: 15px;" onclick="downloadDocument('${docId}'); closeFileViewer();">
+                            <i class="fas fa-download"></i> Download File
+                        </button>
+                    `;
+                    viewerContent.appendChild(message);
+                } else {
+                    // For other file types, show a message and download option
+                    const message = document.createElement('div');
+                    message.innerHTML = `
+                        <p>This file type cannot be previewed in the browser.</p>
+                        <button class="upload-btn" style="margin-top: 15px;" onclick="downloadDocument('${docId}'); closeFileViewer();">
+                            <i class="fas fa-download"></i> Download File
+                        </button>
+                    `;
+                    viewerContent.appendChild(message);
+                }
+                
+                // Show the viewer
+                document.getElementById('fileViewer').style.display = 'block';
+            } catch (error) {
+                console.error('Error viewing document:', error);
+                showNotification('Failed to open document', 'error');
+            }
+        }
+        
+        window.closeFileViewer = function() {
+            document.getElementById('fileViewer').style.display = 'none';
+        }
+        
+        window.downloadDocument = async function(docId) {
+            try {
+                showNotification('Preparing download...', 'info');
+                window.location.href = `/api/documents/download/${docId}`;
+            } catch (error) {
+                console.error('Error downloading document:', error);
+                showNotification('Failed to download document', 'error');
+            }
+        }
     </script>
 </body>
 </html>
