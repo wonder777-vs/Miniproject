@@ -101,7 +101,6 @@ const Student = mongoose.model("Student", new mongoose.Schema({
     department: String,
     address: String,
     umisno: String,
-    department: String,
     tweleve: String,
     sslc: String,
     father: String,
@@ -111,7 +110,6 @@ const Student = mongoose.model("Student", new mongoose.Schema({
     course: String,
     year: String,
     scholarship: String,
-    address: String,
     status: String
 }));
 
@@ -150,21 +148,48 @@ const Course = mongoose.model("Course", CourseSchema);
 
 // Exam model
 const examSchema = new mongoose.Schema({
-    examId: { type: String, required: true, unique: true },
+    id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     subject: { type: String, required: true },
-    course: { type: String, required: true },
     date: { type: String, required: true },
     totalMarks: { type: Number, required: true },
     duration: { type: Number, required: true },
-    startTime: { type: String, required: true },
-    endTime: { type: String, required: true },
-    venue: { type: String, required: true },
-    status: { type: String, required: true, enum: ['Scheduled', 'Completed', 'Cancelled'] },
+    marks: {
+        type: Map,
+        of: Number,
+        default: {}
+    },
     createdAt: { type: Date, default: Date.now }
 });
 
 const Exam = mongoose.model("Exam", examSchema);
+
+// Attendance model - FIX: Add missing model
+const attendanceSchema = new mongoose.Schema({
+    date: {
+        type: String,
+        required: true
+    },
+    period: {
+        type: String,
+        required: true
+    },
+    records: {
+        type: Map,
+        of: Boolean,
+        required: true
+    },
+    staffId: {
+        type: String,
+        required: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+const Attendance = mongoose.model("Attendance", attendanceSchema);
 
 // Marks model
 const marksSchema = new mongoose.Schema({
@@ -284,7 +309,17 @@ const universityMarksSchema = new mongoose.Schema({
 
 const UniversityMarks = mongoose.model("UniversityMarks", universityMarksSchema);
 
+// Grade model - FIX: Add missing model
+const gradeSchema = new mongoose.Schema({
+    admissionNo: { type: String, required: true },
+    subject: { type: String, required: true },
+    grade: { type: String, required: true },
+    semester: { type: String, required: true },
+    academicYear: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+});
 
+const Grade = mongoose.model("Grade", gradeSchema);
 
 // Document Schema
 const documentSchema = new mongoose.Schema({
@@ -468,7 +503,7 @@ app.get('/api/students/:admissionNo', async (req, res) => {
     }
 });
 
-// Attendance routes
+// Attendance routes - FIX: Update to use proper model
 app.get('/api/attendance', async (req, res) => {
     try {
         const { date, period } = req.query;
@@ -487,25 +522,31 @@ app.get('/api/attendance', async (req, res) => {
 
 app.post('/api/attendance', async (req, res) => {
     try {
-        const { date, period, records } = req.body;
+        const { date, period, records, staffId } = req.body;
         console.log(`Saving attendance for date: ${date}, period: ${period}`);
         console.log('Records:', records);
+        
+        // Validate required fields
+        if (!date || !period || !records || !staffId) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
         
         const attendance = new Attendance({
             date,
             period,
-            records
+            records,
+            staffId
         });
         await attendance.save();
         console.log('Attendance saved successfully');
-        res.json({ message: 'Attendance saved successfully' });
+        res.json({ message: 'Attendance saved successfully', attendance });
     } catch (error) {
         console.error('Error saving attendance:', error);
         res.status(500).json({ error: 'Failed to save attendance' });
     }
 });
 
-// Exam routes
+// Exam routes - FIX: Remove duplicate routes and keep only API routes
 app.get('/api/exams', async (req, res) => {
     try {
         console.log('Fetching all exams');
@@ -521,7 +562,7 @@ app.get('/api/exams', async (req, res) => {
 app.get('/api/exams/:id', async (req, res) => {
     try {
         console.log(`Fetching exam with ID: ${req.params.id}`);
-        const exam = await Exam.findById(req.params.id);
+        const exam = await Exam.findOne({ id: req.params.id });
         if (!exam) {
             console.log('Exam not found');
             return res.status(404).json({ error: 'Exam not found' });
@@ -536,12 +577,25 @@ app.get('/api/exams/:id', async (req, res) => {
 app.post('/api/exams', async (req, res) => {
     try {
         console.log('Creating new exam:', req.body);
+        
+        // Validate required fields
+        const { id, name, subject, date, totalMarks, duration } = req.body;
+        if (!id || !name || !subject || !date || !totalMarks || !duration) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        
         const exam = new Exam(req.body);
         await exam.save();
         console.log('Exam created successfully');
-        res.json(exam);
+        res.status(201).json(exam);
     } catch (error) {
         console.error('Error creating exam:', error);
+        
+        // Handle duplicate key error
+        if (error.code === 11000) {
+            return res.status(400).json({ error: 'Exam with this ID already exists' });
+        }
+        
         res.status(500).json({ error: 'Failed to create exam' });
     }
 });
@@ -567,7 +621,7 @@ app.post('/api/exams/:id/marks', async (req, res) => {
         });
         await marks.save();
         console.log('Marks saved successfully');
-        res.json(marks);
+        res.status(201).json(marks);
     } catch (error) {
         console.error('Error saving marks:', error);
         res.status(500).json({ error: 'Failed to save marks' });
@@ -801,114 +855,6 @@ app.delete("/fees/:id", async (req, res) => {
     }
 });
 
-// Exam APIs
-// GET all exams
-app.get("/exams", async (req, res) => {
-    try {
-        const exams = await Exam.find();
-        res.json(exams);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "❌ Error fetching exams", error: err.message });
-    }
-});
-
-// POST a new exam
-app.post("/exams", async (req, res) => {
-    try {
-        const exam = new Exam(req.body);
-        await exam.save();
-        res.json({ message: "✅ Exam saved!", exam });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "❌ Error saving exam", error: err.message });
-    }
-});
-
-// PUT (update) an exam
-app.put("/exams/:id", async (req, res) => {
-    try {
-        const updated = await Exam.findOneAndUpdate(
-            { examId: req.params.id },
-            req.body,
-            { new: true }
-        );
-        if (!updated) return res.status(404).json({ message: "Exam not found" });
-        res.json({ message: "✅ Exam updated!", exam: updated });
-    } catch (err) {
-        res.status(500).json({ message: "❌ Error updating exam", error: err.message });
-    }
-});
-
-// DELETE an exam
-app.delete("/exams/:id", async (req, res) => {
-    try {
-        const deleted = await Exam.findOneAndDelete({ examId: req.params.id });
-        if (!deleted) return res.status(404).json({ message: "Exam not found" });
-        res.json({ message: "🗑️ Exam deleted!" });
-    } catch (err) {
-        res.status(500).json({ message: "❌ Error deleting exam", error: err.message });
-    }
-});
-
-// New Attendance API
-app.post("/attendance", async (req, res) => {
-    try {
-        const { date, period, records, staffId } = req.body;
-        
-        // Check if attendance already exists for this date and period
-        let attendance = await Attendance.findOne({ date, period });
-        
-        if (attendance) {
-            // Update existing attendance record
-            attendance.records = Object.entries(records).map(([admissionNo, status]) => ({
-                admissionNo,
-                status: status ? 'present' : 'absent',
-                timestamp: new Date()
-            }));
-            attendance.staffId = staffId;
-            await attendance.save();
-        } else {
-            // Create new attendance record
-            attendance = new Attendance({
-                date,
-                period,
-                records: Object.entries(records).map(([admissionNo, status]) => ({
-                    admissionNo,
-                    status: status ? 'present' : 'absent',
-                    timestamp: new Date()
-                })),
-                staffId
-            });
-            await attendance.save();
-        }
-        
-        console.log(`Attendance saved for ${date}, period: ${period}`);
-        res.json({ message: "✅ Attendance saved successfully" });
-    } catch (err) {
-        console.error("Error saving attendance:", err);
-        res.status(500).json({ message: "❌ Error saving attendance", error: err.message });
-    }
-});
-
-// Get attendance records
-app.get("/attendance", async (req, res) => {
-    try {
-        const { date, period, admissionNo } = req.query;
-        let query = {};
-        
-        if (date) query.date = date;
-        if (period) query.period = period;
-        if (admissionNo) query['records.admissionNo'] = admissionNo;
-        
-        const attendance = await Attendance.find(query);
-        res.json(attendance);
-    } catch (err) {
-        console.error("Error fetching attendance:", err);
-        res.status(500).json({ message: "❌ Error fetching attendance", error: err.message });
-    }
-});
-
 // Student Dashboard - Internal Marks API
 app.get("/api/internal-marks/:admissionno", async (req, res) => {
     try {
@@ -994,8 +940,10 @@ app.get("/api/dashboard/stats", async (req, res) => {
         const staffStudents = new Set();
         
         attendanceRecords.forEach(record => {
-            record.records.forEach(studentRecord => {
-                staffStudents.add(studentRecord.admissionNo);
+            // Convert Map to Object to iterate
+            const recordsObj = Object.fromEntries(record.records);
+            Object.keys(recordsObj).forEach(admissionNo => {
+                staffStudents.add(admissionNo);
             });
         });
         
@@ -1213,6 +1161,10 @@ app.post("/api/reports/generate", async (req, res) => {
                 data = await Fee.find().lean();
                 fileName = 'fee_report';
                 break;
+            case 'grades': // FIX: Use the Grade model
+                data = await Grade.find().lean();
+                fileName = 'grades_report';
+                break;
             default:
                 throw new Error('Invalid report type');
         }
@@ -1362,777 +1314,6 @@ app.get("/api/reports/fee-collection", async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "❌ Error fetching fee collection data", error: err.message });
-    }
-});
-
-// Generate and download a report
-app.post("/api/reports/generate", async (req, res) => {
-    try {
-        const { reportType, format, dateRange } = req.body;
-        
-        // Create a temporary directory for reports if it doesn't exist
-        const reportsDir = path.join(__dirname, 'reports');
-        if (!fs.existsSync(reportsDir)) {
-            fs.mkdirSync(reportsDir, { recursive: true });
-        }
-        
-        // Generate filename with timestamp
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const filename = `${reportType}_report_${timestamp}.${format}`;
-        const filepath = path.join(reportsDir, filename);
-        
-        // Generate report based on type and format
-        switch (reportType) {
-            case 'enrollment':
-                await generateEnrollmentReport(format, dateRange, filepath);
-                break;
-            case 'fees':
-                await generateFeesReport(format, dateRange, filepath);
-                break;
-            case 'attendance':
-                await generateAttendanceReport(format, dateRange, filepath);
-                break;
-            case 'grades':
-                await generateGradesReport(format, dateRange, filepath);
-                break;
-            case 'faculty':
-                await generateFacultyReport(format, dateRange, filepath);
-                break;
-            default:
-                return res.status(400).json({ message: "Invalid report type" });
-        }
-        
-        // Send the file for download
-        res.download(filepath, filename, (err) => {
-            if (err) {
-                console.error(err);
-                res.status(500).json({ message: "❌ Error downloading report" });
-            }
-            
-            // Delete the file after download
-            fs.unlink(filepath, (unlinkErr) => {
-                if (unlinkErr) console.error("Error deleting temporary file:", unlinkErr);
-            });
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "❌ Error generating report", error: err.message });
-    }
-});
-
-// Generate and download all reports as a ZIP file
-app.post("/api/reports/generate-all", async (req, res) => {
-    try {
-        const { format, dateRange } = req.body;
-        
-        // Create a temporary directory for reports if it doesn't exist
-        const reportsDir = path.join(__dirname, 'reports');
-        if (!fs.existsSync(reportsDir)) {
-            fs.mkdirSync(reportsDir, { recursive: true });
-        }
-        
-        // Generate timestamp for filenames
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const zipFilename = `all_reports_${timestamp}.zip`;
-        const zipPath = path.join(reportsDir, zipFilename);
-        
-        // Create a ZIP file
-        const output = fs.createWriteStream(zipPath);
-        const archive = archiver('zip', { zlib: { level: 9 } });
-        
-        output.on('close', () => {
-            // Send the ZIP file for download
-            res.download(zipPath, zipFilename, (err) => {
-                if (err) {
-                    console.error(err);
-                    res.status(500).json({ message: "❌ Error downloading reports" });
-                }
-                
-                // Delete the ZIP file after download
-                fs.unlink(zipPath, (unlinkErr) => {
-                    if (unlinkErr) console.error("Error deleting temporary ZIP file:", unlinkErr);
-                });
-            });
-        });
-        
-        archive.on('error', (err) => {
-            throw err;
-        });
-        
-        archive.pipe(output);
-        
-        // Generate and add each report to the ZIP
-        const reportTypes = ['enrollment', 'fees', 'attendance', 'grades', 'faculty'];
-        
-        for (const reportType of reportTypes) {
-            const filename = `${reportType}_report_${timestamp}.${format}`;
-            const filepath = path.join(reportsDir, filename);
-            
-            // Generate report based on type and format
-            switch (reportType) {
-                case 'enrollment':
-                    await generateEnrollmentReport(format, dateRange, filepath);
-                    break;
-                case 'fees':
-                    await generateFeesReport(format, dateRange, filepath);
-                    break;
-                case 'attendance':
-                    await generateAttendanceReport(format, dateRange, filepath);
-                    break;
-                case 'grades':
-                    await generateGradesReport(format, dateRange, filepath);
-                    break;
-                case 'faculty':
-                    await generateFacultyReport(format, dateRange, filepath);
-                    break;
-            }
-            
-            // Add the generated file to the ZIP
-            archive.file(filepath, { name: filename });
-            
-            // Delete the temporary file
-            fs.unlink(filepath, (unlinkErr) => {
-                if (unlinkErr) console.error("Error deleting temporary file:", unlinkErr);
-            });
-        }
-        
-        archive.finalize();
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "❌ Error generating reports", error: err.message });
-    }
-});
-
-// Helper function to generate enrollment report
-async function generateEnrollmentReport(format, dateRange, filepath) {
-    try {
-        // Fetch student data
-        const students = await Student.find();
-        
-        if (format === 'csv') {
-            // Generate CSV report
-            const csvHeader = 'Name,Email,Department,Course,Year,Status\n';
-            const csvContent = students.map(student => 
-                `"${student.name}","${student.email}","${student.department}","${student.course}","${student.year}","${student.status}"`
-            ).join('\n');
-            
-            fs.writeFileSync(filepath, csvHeader + csvContent);
-        } else if (format === 'excel') {
-            // Generate Excel report using exceljs
-            const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet('Enrollment Report');
-            
-            // Add header row
-            worksheet.columns = [
-                { header: 'Name', key: 'name', width: 30 },
-                { header: 'Email', key: 'email', width: 30 },
-                { header: 'Department', key: 'department', width: 20 },
-                { header: 'Course', key: 'course', width: 20 },
-                { header: 'Year', key: 'year', width: 10 },
-                { header: 'Status', key: 'status', width: 15 }
-            ];
-            
-            // Add data rows
-            students.forEach(student => {
-                worksheet.addRow({
-                    name: student.name,
-                    email: student.email,
-                    department: student.department,
-                    course: student.course,
-                    year: student.year,
-                    status: student.status
-                });
-            });
-            
-            // Style the header row
-            worksheet.getRow(1).font = { bold: true };
-            worksheet.getRow(1).fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FFD3D3D3' }
-            };
-            
-            // Save the workbook
-            await workbook.xlsx.writeFile(filepath);
-        } else if (format === 'pdf') {
-            // Generate PDF report using pdfkit
-            const doc = new PDFDocument({ margin: 30 });
-            doc.pipe(fs.createWriteStream(filepath));
-            
-            // Add title
-            doc.fontSize(20).text('Student Enrollment Report', { align: 'center' });
-            doc.moveDown();
-            
-            // Add table header
-            doc.fontSize(12).font('Helvetica-Bold');
-            const tableTop = doc.y;
-            const cellPadding = 5;
-            const rowHeight = 20;
-            const colWidths = [100, 120, 80, 80, 50, 60];
-            const headers = ['Name', 'Email', 'Department', 'Course', 'Year', 'Status'];
-            
-            // Draw header row
-            let x = 50;
-            headers.forEach((header, i) => {
-                doc.text(header, x, tableTop, { width: colWidths[i], align: 'left' });
-                doc.rect(x, tableTop, colWidths[i], rowHeight).stroke();
-                x += colWidths[i];
-            });
-            
-            // Draw data rows
-            doc.font('Helvetica').fontSize(10);
-            let y = tableTop + rowHeight;
-            
-            students.forEach(student => {
-                x = 50;
-                
-                // Name
-                doc.text(student.name || '', x, y + cellPadding, { width: colWidths[0], align: 'left' });
-                doc.rect(x, y, colWidths[0], rowHeight).stroke();
-                x += colWidths[0];
-                
-                // Email
-                doc.text(student.email || '', x, y + cellPadding, { width: colWidths[1], align: 'left' });
-                doc.rect(x, y, colWidths[1], rowHeight).stroke();
-                x += colWidths[1];
-                
-                // Department
-                doc.text(student.department || '', x, y + cellPadding, { width: colWidths[2], align: 'left' });
-                doc.rect(x, y, colWidths[2], rowHeight).stroke();
-                x += colWidths[2];
-                
-                // Course
-                doc.text(student.course || '', x, y + cellPadding, { width: colWidths[3], align: 'left' });
-                doc.rect(x, y, colWidths[3], rowHeight).stroke();
-                x += colWidths[3];
-                
-                // Year
-                doc.text(student.year || '', x, y + cellPadding, { width: colWidths[4], align: 'left' });
-                doc.rect(x, y, colWidths[4], rowHeight).stroke();
-                x += colWidths[4];
-                
-                // Status
-                doc.text(student.status || '', x, y + cellPadding, { width: colWidths[5], align: 'left' });
-                doc.rect(x, y, colWidths[5], rowHeight).stroke();
-                
-                y += rowHeight;
-                
-                // Add a new page if needed
-                if (y > 700) {
-                    doc.addPage();
-                    y = 50;
-                }
-            });
-            
-            // Finalize the PDF
-            doc.end();
-        }
-    } catch (err) {
-        console.error("Error generating enrollment report:", err);
-        throw err;
-    }
-}
-
-// Helper function to generate fees report
-async function generateFeesReport(format, dateRange, filepath) {
-    try {
-        // Fetch fee data
-        const fees = await Fee.find();
-        
-        if (format === 'csv') {
-            // Generate CSV report
-            const csvHeader = 'Receipt No,Student Name,Roll No,Course,Amount,Date,Status\n';
-            const csvContent = fees.map(fee => 
-                `"${fee.receipt}","${fee.name}","${fee.roll}","${fee.course}",${fee.amount},"${fee.date}","${fee.status}"`
-            ).join('\n');
-            
-            fs.writeFileSync(filepath, csvHeader + csvContent);
-        } else if (format === 'excel') {
-            // Generate Excel report using exceljs
-            const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet('Fees Report');
-            
-            // Add header row
-            worksheet.columns = [
-                { header: 'Receipt No', key: 'receipt', width: 15 },
-                { header: 'Student Name', key: 'name', width: 30 },
-                { header: 'Roll No', key: 'roll', width: 15 },
-                { header: 'Course', key: 'course', width: 20 },
-                { header: 'Amount', key: 'amount', width: 15 },
-                { header: 'Date', key: 'date', width: 15 },
-                { header: 'Status', key: 'status', width: 15 }
-            ];
-            
-            // Add data rows
-            fees.forEach(fee => {
-                worksheet.addRow({
-                    receipt: fee.receipt,
-                    name: fee.name,
-                    roll: fee.roll,
-                    course: fee.course,
-                    amount: fee.amount,
-                    date: fee.date,
-                    status: fee.status
-                });
-            });
-            
-            // Style the header row
-            worksheet.getRow(1).font = { bold: true };
-            worksheet.getRow(1).fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FFD3D3D3' }
-            };
-            
-            // Format amount column as currency
-            worksheet.getColumn('amount').numFmt = '"₹"#,##0.00';
-            
-            // Save the workbook
-            await workbook.xlsx.writeFile(filepath);
-        } else if (format === 'pdf') {
-            // Generate PDF report using pdfkit
-            const doc = new PDFDocument({ margin: 30 });
-            doc.pipe(fs.createWriteStream(filepath));
-            
-            // Add title
-            doc.fontSize(20).text('Fee Collection Report', { align: 'center' });
-            doc.moveDown();
-            
-            // Add table header
-            doc.fontSize(12).font('Helvetica-Bold');
-            const tableTop = doc.y;
-            const cellPadding = 5;
-            const rowHeight = 20;
-            const colWidths = [80, 100, 60, 80, 60, 60, 60];
-            const headers = ['Receipt', 'Student', 'Roll', 'Course', 'Amount', 'Date', 'Status'];
-            
-            // Draw header row
-            let x = 50;
-            headers.forEach((header, i) => {
-                doc.text(header, x, tableTop, { width: colWidths[i], align: 'left' });
-                doc.rect(x, tableTop, colWidths[i], rowHeight).stroke();
-                x += colWidths[i];
-            });
-            
-            // Draw data rows
-            doc.font('Helvetica').fontSize(10);
-            let y = tableTop + rowHeight;
-            
-            fees.forEach(fee => {
-                x = 50;
-                
-                // Receipt
-                doc.text(fee.receipt || '', x, y + cellPadding, { width: colWidths[0], align: 'left' });
-                doc.rect(x, y, colWidths[0], rowHeight).stroke();
-                x += colWidths[0];
-                
-                // Student Name
-                doc.text(fee.name || '', x, y + cellPadding, { width: colWidths[1], align: 'left' });
-                doc.rect(x, y, colWidths[1], rowHeight).stroke();
-                x += colWidths[1];
-                
-                // Roll No
-                doc.text(fee.roll || '', x, y + cellPadding, { width: colWidths[2], align: 'left' });
-                doc.rect(x, y, colWidths[2], rowHeight).stroke();
-                x += colWidths[2];
-                
-                // Course
-                doc.text(fee.course || '', x, y + cellPadding, { width: colWidths[3], align: 'left' });
-                doc.rect(x, y, colWidths[3], rowHeight).stroke();
-                x += colWidths[3];
-                
-                // Amount
-                doc.text(`₹${fee.amount || 0}`, x, y + cellPadding, { width: colWidths[4], align: 'right' });
-                doc.rect(x, y, colWidths[4], rowHeight).stroke();
-                x += colWidths[4];
-                
-                // Date
-                doc.text(fee.date || '', x, y + cellPadding, { width: colWidths[5], align: 'left' });
-                doc.rect(x, y, colWidths[5], rowHeight).stroke();
-                x += colWidths[5];
-                
-                // Status
-                doc.text(fee.status || '', x, y + cellPadding, { width: colWidths[6], align: 'left' });
-                doc.rect(x, y, colWidths[6], rowHeight).stroke();
-                
-                y += rowHeight;
-                
-                // Add a new page if needed
-                if (y > 700) {
-                    doc.addPage();
-                    y = 50;
-                }
-            });
-            
-            // Finalize the PDF
-            doc.end();
-        }
-    } catch (err) {
-        console.error("Error generating fees report:", err);
-        throw err;
-    }
-}
-
-// Helper function to generate attendance report
-async function generateAttendanceReport(format, dateRange, filepath) {
-    try {
-        // Fetch attendance data
-        const attendance = await Attendance.find();
-        
-        if (format === 'csv') {
-            // Generate CSV report
-            const csvHeader = 'Date,Period,Admission No,Status,Timestamp\n';
-            let csvContent = '';
-            
-            attendance.forEach(att => {
-                att.records.forEach(record => {
-                    csvContent += `"${att.date}","${att.period}","${record.admissionNo}","${record.status}","${record.timestamp}"\n`;
-                });
-            });
-            
-            fs.writeFileSync(filepath, csvHeader + csvContent);
-        } else if (format === 'excel') {
-            // Generate Excel report using exceljs
-            const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet('Attendance Report');
-            
-            // Add header row
-            worksheet.columns = [
-                { header: 'Date', key: 'date', width: 15 },
-                { header: 'Period', key: 'period', width: 15 },
-                { header: 'Admission No', key: 'admissionNo', width: 15 },
-                { header: 'Status', key: 'status', width: 10 },
-                { header: 'Timestamp', key: 'timestamp', width: 20 }
-            ];
-            
-            // Add data rows
-            attendance.forEach(att => {
-                att.records.forEach(record => {
-                    worksheet.addRow({
-                        date: att.date,
-                        period: att.period,
-                        admissionNo: record.admissionNo,
-                        status: record.status,
-                        timestamp: record.timestamp
-                    });
-                });
-            });
-            
-            // Style the header row
-            worksheet.getRow(1).font = { bold: true };
-            worksheet.getRow(1).fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FFD3D3D3' }
-            };
-            
-            // Save the workbook
-            await workbook.xlsx.writeFile(filepath);
-        } else if (format === 'pdf') {
-            // Generate PDF report using pdfkit
-            const doc = new PDFDocument({ margin: 30 });
-            doc.pipe(fs.createWriteStream(filepath));
-            
-            // Add title
-            doc.fontSize(20).text('Attendance Report', { align: 'center' });
-            doc.moveDown();
-            
-            // Add table header
-            doc.fontSize(12).font('Helvetica-Bold');
-            const tableTop = doc.y;
-            const cellPadding = 5;
-            const rowHeight = 20;
-            const colWidths = [80, 80, 80, 60, 80];
-            const headers = ['Date', 'Period', 'Admission No', 'Status', 'Timestamp'];
-            
-            // Draw header row
-            let x = 50;
-            headers.forEach((header, i) => {
-                doc.text(header, x, tableTop, { width: colWidths[i], align: 'left' });
-                doc.rect(x, tableTop, colWidths[i], rowHeight).stroke();
-                x += colWidths[i];
-            });
-            
-            // Draw data rows
-            doc.font('Helvetica').fontSize(10);
-            let y = tableTop + rowHeight;
-            
-            attendance.forEach(att => {
-                att.records.forEach(record => {
-                    x = 50;
-                    
-                    // Date
-                    doc.text(att.date || '', x, y + cellPadding, { width: colWidths[0], align: 'left' });
-                    doc.rect(x, y, colWidths[0], rowHeight).stroke();
-                    x += colWidths[0];
-                    
-                    // Period
-                    doc.text(att.period || '', x, y + cellPadding, { width: colWidths[1], align: 'left' });
-                    doc.rect(x, y, colWidths[1], rowHeight).stroke();
-                    x += colWidths[1];
-                    
-                    // Admission No
-                    doc.text(record.admissionNo || '', x, y + cellPadding, { width: colWidths[2], align: 'left' });
-                    doc.rect(x, y, colWidths[2], rowHeight).stroke();
-                    x += colWidths[2];
-                    
-                    // Status
-                    doc.text(record.status || '', x, y + cellPadding, { width: colWidths[3], align: 'left' });
-                    doc.rect(x, y, colWidths[3], rowHeight).stroke();
-                    x += colWidths[3];
-                    
-                    // Timestamp
-                    doc.text(record.timestamp ? new Date(record.timestamp).toLocaleString() : '', x, y + cellPadding, { width: colWidths[4], align: 'left' });
-                    doc.rect(x, y, colWidths[4], rowHeight).stroke();
-                    
-                    y += rowHeight;
-                    
-                    // Add a new page if needed
-                    if (y > 700) {
-                        doc.addPage();
-                        y = 50;
-                    }
-                });
-            });
-            
-            // Finalize the PDF
-            doc.end();
-        }
-    } catch (err) {
-        console.error("Error generating attendance report:", err);
-        throw err;
-    }
-}
-
-// Helper function to generate grades report
-async function generateGradesReport(format, dateRange, filepath) {
-    try {
-        // Placeholder for grades report generation
-        // In a real implementation, you would fetch grades data
-        
-        if (format === 'csv') {
-            const content = "Grades Report\n\nThis is a placeholder for the grades report.";
-            fs.writeFileSync(filepath, content);
-        } else if (format === 'excel') {
-            const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet('Grades Report');
-            
-            worksheet.addRow(['Grades Report']);
-            worksheet.addRow(['This is a placeholder for the grades report']);
-            
-            await workbook.xlsx.writeFile(filepath);
-        } else if (format === 'pdf') {
-            const doc = new PDFDocument();
-            doc.pipe(fs.createWriteStream(filepath));
-            
-            doc.fontSize(20).text('Grades Report', { align: 'center' });
-            doc.moveDown();
-            doc.text('This is a placeholder for the grades report');
-            
-            doc.end();
-        }
-    } catch (err) {
-        console.error("Error generating grades report:", err);
-        throw err;
-    }
-}
-
-// Helper function to generate faculty report
-async function generateFacultyReport(format, dateRange, filepath) {
-    try {
-        // Fetch faculty data
-        const faculties = await Faculty.find();
-        
-        if (format === 'csv') {
-            // Generate CSV report
-            const csvHeader = 'Name,Email,Department,Designation,Status\n';
-            const csvContent = faculties.map(faculty => 
-                `"${faculty.name}","${faculty.email}","${faculty.department}","${faculty.designation}","${faculty.status}"`
-            ).join('\n');
-            
-            fs.writeFileSync(filepath, csvHeader + csvContent);
-        } else if (format === 'excel') {
-            // Generate Excel report using exceljs
-            const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet('Faculty Report');
-            
-            // Add header row
-            worksheet.columns = [
-                { header: 'Name', key: 'name', width: 30 },
-                { header: 'Email', key: 'email', width: 30 },
-                { header: 'Department', key: 'department', width: 20 },
-                { header: 'Designation', key: 'designation', width: 20 },
-                { header: 'Status', key: 'status', width: 15 }
-            ];
-            
-            // Add data rows
-            faculties.forEach(faculty => {
-                worksheet.addRow({
-                    name: faculty.name,
-                    email: faculty.email,
-                    department: faculty.department,
-                    designation: faculty.designation,
-                    status: faculty.status
-                });
-            });
-            
-            // Style the header row
-            worksheet.getRow(1).font = { bold: true };
-            worksheet.getRow(1).fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FFD3D3D3' }
-            };
-            
-            // Save the workbook
-            await workbook.xlsx.writeFile(filepath);
-        } else if (format === 'pdf') {
-            // Generate PDF report using pdfkit
-            const doc = new PDFDocument({ margin: 30 });
-            doc.pipe(fs.createWriteStream(filepath));
-            
-            // Add title
-            doc.fontSize(20).text('Faculty Report', { align: 'center' });
-            doc.moveDown();
-            
-            // Add table header
-            doc.fontSize(12).font('Helvetica-Bold');
-            const tableTop = doc.y;
-            const cellPadding = 5;
-            const rowHeight = 20;
-            const colWidths = [100, 120, 80, 80, 60];
-            const headers = ['Name', 'Email', 'Department', 'Designation', 'Status'];
-            
-            // Draw header row
-            let x = 50;
-            headers.forEach((header, i) => {
-                doc.text(header, x, tableTop, { width: colWidths[i], align: 'left' });
-                doc.rect(x, tableTop, colWidths[i], rowHeight).stroke();
-                x += colWidths[i];
-            });
-            
-            // Draw data rows
-            doc.font('Helvetica').fontSize(10);
-            let y = tableTop + rowHeight;
-            
-            faculties.forEach(faculty => {
-                x = 50;
-                
-                // Name
-                doc.text(faculty.name || '', x, y + cellPadding, { width: colWidths[0], align: 'left' });
-                doc.rect(x, y, colWidths[0], rowHeight).stroke();
-                x += colWidths[0];
-                
-                // Email
-                doc.text(faculty.email || '', x, y + cellPadding, { width: colWidths[1], align: 'left' });
-                doc.rect(x, y, colWidths[1], rowHeight).stroke();
-                x += colWidths[1];
-                
-                // Department
-                doc.text(faculty.department || '', x, y + cellPadding, { width: colWidths[2], align: 'left' });
-                doc.rect(x, y, colWidths[2], rowHeight).stroke();
-                x += colWidths[2];
-                
-                // Designation
-                doc.text(faculty.designation || '', x, y + cellPadding, { width: colWidths[3], align: 'left' });
-                doc.rect(x, y, colWidths[3], rowHeight).stroke();
-                x += colWidths[3];
-                
-                // Status
-                doc.text(faculty.status || '', x, y + cellPadding, { width: colWidths[4], align: 'left' });
-                doc.rect(x, y, colWidths[4], rowHeight).stroke();
-                
-                y += rowHeight;
-                
-                // Add a new page if needed
-                if (y > 700) {
-                    doc.addPage();
-                    y = 50;
-                }
-            });
-            
-            // Finalize the PDF
-            doc.end();
-        }
-    } catch (err) {
-        console.error("Error generating faculty report:", err);
-        throw err;
-    }
-}
-
-// Report generation endpoint
-app.post('/api/reports/generate', async (req, res) => {
-    try {
-        const { reportType, format, dateRange } = req.body;
-
-        // Validate required fields
-        if (!reportType || !format || !dateRange) {
-            return res.status(400).json({ error: 'Missing required fields' });
-        }
-
-        let data;
-        // Fetch data based on report type and date range
-        switch (reportType) {
-            case 'enrollment':
-                // Query student enrollment data
-                data = await Student.find({ 
-                    createdAt: getDateRangeQuery(dateRange)
-                });
-                break;
-            case 'attendance':
-                // Query attendance data
-                data = await Attendance.find({
-                    date: getDateRangeQuery(dateRange)
-                });
-                break;
-            case 'grades':
-                // Query grades data
-                data = await Grade.find({
-                    createdAt: getDateRangeQuery(dateRange)
-                });
-                break;
-            case 'fees':
-                // Query fee collection data
-                data = await Fee.find({
-                    paymentDate: getDateRangeQuery(dateRange)
-                });
-                break;
-            case 'faculty':
-                // Query faculty performance data
-                data = await Faculty.find({
-                    evaluationDate: getDateRangeQuery(dateRange)
-                });
-                break;
-            default:
-                return res.status(400).json({ error: 'Invalid report type' });
-        }
-
-        // Generate report in requested format
-        let report;
-        switch (format.toLowerCase()) {
-            case 'pdf':
-                report = await generatePDFReport(data, reportType);
-                res.setHeader('Content-Type', 'application/pdf');
-                res.setHeader('Content-Disposition', `attachment; filename=${reportType}-report.pdf`);
-                break;
-            case 'excel':
-                report = await generateExcelReport(data, reportType);
-                res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-                res.setHeader('Content-Disposition', `attachment; filename=${reportType}-report.xlsx`);
-                break;
-            case 'csv':
-                report = await generateCSVReport(data, reportType);
-                res.setHeader('Content-Type', 'text/csv');
-                res.setHeader('Content-Disposition', `attachment; filename=${reportType}-report.csv`);
-                break;
-            default:
-                return res.status(400).json({ error: 'Invalid format' });
-        }
-
-        res.send(report);
-    } catch (error) {
-        console.error('Error generating report:', error);
-        res.status(500).json({ error: 'Failed to generate report' });
     }
 });
 

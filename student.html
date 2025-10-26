@@ -625,35 +625,6 @@
             border: none;
         }
 
-        /* Error Panel */
-        .error-panel {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            border: 1px solid #f5c6cb;
-        }
-
-        .error-panel h3 {
-            margin-top: 0;
-            margin-bottom: 10px;
-        }
-
-        .error-panel button {
-            background-color: var(--danger-color);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .error-panel button:hover {
-            background-color: #c82333;
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
             .form-row {
@@ -1066,12 +1037,25 @@
         // Global variables
         let admissionNo = null;
         
+        // Make showNotification globally accessible
+        window.showNotification = function(message, type) {
+            const notification = document.getElementById('notification');
+            if (!notification) return;
+            
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        };
+        
         document.addEventListener('DOMContentLoaded', function() {
             // Get DOM elements
             const tabs = document.querySelectorAll('.tab');
             const tabContents = document.querySelectorAll('.tab-content');
             const profileContent = document.getElementById('profileContent');
-            const notification = document.getElementById('notification');
             const studentName = document.getElementById('studentName');
             const userAvatar = document.getElementById('userAvatar');
             const attendanceTableBody = document.getElementById('attendanceTableBody');
@@ -1157,13 +1141,13 @@
                         <p>No admission number provided. Please log in again.</p>
                     </div>
                 `;
-                showNotification('No admission number provided. Please log in again.', 'error');
+                window.showNotification('No admission number provided. Please log in again.', 'error');
             }
             
             // Fetch student data from API
             async function fetchStudentData(admissionNo) {
                 try {
-                    showNotification('Fetching student data...', 'info');
+                    window.showNotification('Fetching student data...', 'info');
                     
                     const response = await fetch(`/api/student/${admissionNo}`);
                     if (!response.ok) {
@@ -1177,10 +1161,10 @@
                     studentName.textContent = student.name;
                     userAvatar.textContent = student.name.charAt(0).toUpperCase();
                     
-                    showNotification('Student data loaded successfully!', 'success');
+                    window.showNotification('Student data loaded successfully!', 'success');
                 } catch (error) {
                     console.error('Error fetching student data:', error);
-                    showNotification('Student not found. Please check the admission number.', 'error');
+                    window.showNotification('Student not found. Please check the admission number.', 'error');
                     profileContent.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-exclamation-triangle"></i>
@@ -1207,7 +1191,7 @@
                 }
                 
                 try {
-                    showNotification('Fetching attendance data...', 'info');
+                    window.showNotification('Fetching attendance data...', 'info');
                     
                     const response = await fetch(`/api/attendance?admissionNo=${admissionNo}&date=${date}&period=${encodeURIComponent(period)}`);
                     if (!response.ok) {
@@ -1217,10 +1201,10 @@
                     
                     displayAttendanceData(attendanceData);
                     
-                    showNotification('Attendance data loaded successfully!', 'success');
+                    window.showNotification('Attendance data loaded successfully!', 'success');
                 } catch (error) {
                     console.error('Error fetching attendance data:', error);
-                    showNotification('Attendance data not available.', 'warning');
+                    window.showNotification('Attendance data not available.', 'warning');
                     attendanceTableBody.innerHTML = '<tr><td colspan="3" class="empty-state">No attendance data available for selected date and period</td></tr>';
                 }
             }
@@ -1233,7 +1217,7 @@
                 document.getElementById(`${catType}-empty`).style.display = 'none';
                 
                 try {
-                    showNotification(`Fetching ${catType} marks...`, 'info');
+                    window.showNotification(`Fetching ${catType} marks...`, 'info');
                     
                     const response = await fetch(`/api/internal-marks/${admissionNo}?catType=${catType}`);
                     if (!response.ok) {
@@ -1248,10 +1232,10 @@
                     document.getElementById(`${catType}-loading`).style.display = 'none';
                     document.getElementById(`${catType}-content`).style.display = 'block';
                     
-                    showNotification(`${catType} marks loaded successfully!`, 'success');
+                    window.showNotification(`${catType} marks loaded successfully!`, 'success');
                 } catch (error) {
                     console.error(`Error fetching ${catType} marks:`, error);
-                    showNotification(`${catType} marks not available.`, 'warning');
+                    window.showNotification(`${catType} marks not available.`, 'warning');
                     
                     // Show empty state
                     document.getElementById(`${catType}-loading`).style.display = 'none';
@@ -1267,7 +1251,7 @@
                 document.getElementById('universityMarksEmpty').style.display = 'none';
                 
                 try {
-                    showNotification('Fetching university marks...', 'info');
+                    window.showNotification('Fetching university marks...', 'info');
                     
                     const response = await fetch(`/api/university-marks/${admissionNo}`);
                     if (!response.ok) {
@@ -1281,10 +1265,10 @@
                     document.getElementById('universityMarksLoading').style.display = 'none';
                     document.getElementById('universityMarksContent').style.display = 'block';
                     
-                    showNotification('University marks loaded successfully!', 'success');
+                    window.showNotification('University marks loaded successfully!', 'success');
                 } catch (error) {
                     console.error('Error fetching university marks:', error);
-                    showNotification('University marks not available.', 'warning');
+                    window.showNotification('University marks not available.', 'warning');
                     
                     // Show empty state
                     document.getElementById('universityMarksLoading').style.display = 'none';
@@ -1300,7 +1284,7 @@
                 document.getElementById('documentsEmpty').style.display = 'none';
                 
                 try {
-                    showNotification('Fetching documents...', 'info');
+                    window.showNotification('Fetching documents...', 'info');
                     
                     const response = await fetch(`/api/documents/${admissionNo}`);
                     if (!response.ok) {
@@ -1314,10 +1298,10 @@
                     document.getElementById('documentsLoading').style.display = 'none';
                     document.getElementById('documentsContent').style.display = 'block';
                     
-                    showNotification('Documents loaded successfully!', 'success');
+                    window.showNotification('Documents loaded successfully!', 'success');
                 } catch (error) {
                     console.error('Error fetching documents:', error);
-                    showNotification('Documents not available.', 'warning');
+                    window.showNotification('Documents not available.', 'warning');
                     
                     // Show empty state
                     document.getElementById('documentsLoading').style.display = 'none';
@@ -1328,9 +1312,9 @@
             // Fetch assigned staff information
             async function fetchAssignedStaff(admissionNo) {
                 try {
-                    showNotification('Fetching assigned staff information...', 'info');
+                    window.showNotification('Fetching assigned staff information...', 'info');
                     
-                    const response = await fetch(`/api/staff/${admissionNo}/assigned-staff`);
+                    const response = await fetch(`/api/student/${admissionNo}/assigned-staff`);
                     if (!response.ok) {
                         throw new Error('Failed to fetch assigned staff');
                     }
@@ -1338,10 +1322,10 @@
                     
                     displayAssignedStaff(staffData);
                     
-                    showNotification('Staff information loaded successfully!', 'success');
+                    window.showNotification('Staff information loaded successfully!', 'success');
                 } catch (error) {
                     console.error('Error fetching assigned staff:', error);
-                    showNotification('Staff information not available.', 'warning');
+                    window.showNotification('Staff information not available.', 'warning');
                     assignedStaffInfo.innerHTML = '<p class="alert alert-warning">No staff assigned to you. Please contact the administrator.</p>';
                 }
             }
@@ -1653,21 +1637,25 @@
                 const reason = document.getElementById('reason').value;
                 const attachment = document.getElementById('attachment').files[0];
                 
+                // Calculate number of days
+                const start = new Date(fromDate);
+                const end = toDate ? new Date(toDate) : start;
+                const timeDiff = Math.abs(end.getTime() - start.getTime());
+                const days = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // +1 to include both start and end
+                
                 // Create form data
                 const formData = new FormData();
-                formData.append('admissionNo', admissionNo);
-                formData.append('leaveType', leaveType);
-                formData.append('leaveDuration', leaveDuration);
-                formData.append('fromDate', fromDate);
-                formData.append('toDate', toDate);
+                formData.append('rollNo', admissionNo); // Using admissionNo as rollNo
                 formData.append('reason', reason);
+                formData.append('days', days);
+                formData.append('date', fromDate); // Using fromDate as the date
                 
                 if (attachment) {
                     formData.append('attachment', attachment);
                 }
                 
                 try {
-                    showNotification('Submitting leave application...', 'info');
+                    window.showNotification('Submitting leave application...', 'info');
                     
                     const response = await fetch('/api/leave/apply', {
                         method: 'POST',
@@ -1680,32 +1668,21 @@
                     }
                     const result = await response.json();
                     
-                    showNotification('Leave application submitted successfully!', 'success');
+                    window.showNotification('Leave application submitted successfully!', 'success');
                     
                     // Reset form
                     leaveForm.reset();
                     
                     // Show additional info about submission
                     setTimeout(() => {
-                        showNotification(`Your application has been sent to ${result.staffName} for approval.`, 'success');
+                        window.showNotification(`Your application has been sent to ${result.staffName} for approval.`, 'success');
                     }, 1500);
                     
                 } catch (error) {
                     console.error('Error submitting leave application:', error);
-                    showNotification('Failed to submit leave application. Please try again later.', 'error');
+                    window.showNotification('Failed to submit leave application: ' + error.message, 'error');
                 }
             });
-            
-            // Show notification
-            function showNotification(message, type) {
-                notification.textContent = message;
-                notification.className = `notification ${type}`;
-                notification.classList.add('show');
-                
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                }, 3000);
-            }
             
             // Logout function
             window.logout = function() {
@@ -1716,7 +1693,7 @@
         // Global functions that need to be accessible from HTML
         window.viewDocument = async function(docId) {
             try {
-                showNotification('Opening document...', 'info');
+                window.showNotification('Opening document...', 'info');
                 
                 // Get document details
                 const response = await fetch(`/api/documents/${docId}`);
@@ -1764,7 +1741,7 @@
                 document.getElementById('fileViewer').style.display = 'block';
             } catch (error) {
                 console.error('Error viewing document:', error);
-                showNotification('Failed to open document', 'error');
+                window.showNotification('Failed to open document', 'error');
             }
         }
         
@@ -1774,11 +1751,11 @@
         
         window.downloadDocument = async function(docId) {
             try {
-                showNotification('Preparing download...', 'info');
+                window.showNotification('Preparing download...', 'info');
                 window.location.href = `/api/documents/download/${docId}`;
             } catch (error) {
                 console.error('Error downloading document:', error);
-                showNotification('Failed to download document', 'error');
+                window.showNotification('Failed to download document', 'error');
             }
         }
     </script>
