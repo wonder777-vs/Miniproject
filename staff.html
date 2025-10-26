@@ -1198,16 +1198,10 @@
                     fetch('/api/staff/students').then(res => {
                         if (!res.ok) throw new Error('Failed to fetch staff students');
                         return res.json();
-                    }).catch(err => {
-                        console.warn('Failed to fetch staff students, using empty array:', err);
-                        return [];
                     }),
                     fetch('/api/staff/info').then(res => {
                         if (!res.ok) throw new Error('Failed to fetch staff info');
                         return res.json();
-                    }).catch(err => {
-                        console.warn('Failed to fetch staff info:', err);
-                        return { name: 'Staff Member', id: 'staff001' };
                     })
                 ]);
 
@@ -1256,10 +1250,19 @@
 
                 if (staffInfoRes.status === 'fulfilled') {
                     const staffInfo = staffInfoRes.value;
-                    document.getElementById('staffName').textContent = staffInfo.name;
-                    document.getElementById('staffAvatar').textContent = staffInfo.name.charAt(0).toUpperCase();
+                    const staffNameEl = document.getElementById('staffName');
+                    const staffAvatarEl = document.getElementById('staffAvatar');
+                    
+                    if (staffNameEl) staffNameEl.textContent = staffInfo.name;
+                    if (staffAvatarEl) staffAvatarEl.textContent = staffInfo.name.charAt(0).toUpperCase();
                 } else {
                     console.error('Error loading staff info:', staffInfoRes.reason);
+                    const staffNameEl = document.getElementById('staffName');
+                    const staffAvatarEl = document.getElementById('staffAvatar');
+                    
+                    if (staffNameEl) staffNameEl.textContent = 'Staff Member';
+                    if (staffAvatarEl) staffAvatarEl.textContent = 'S';
+                    showNotification('Using default staff info', 'warning');
                 }
 
                 loadPage('dashboard');
@@ -1267,6 +1270,15 @@
             } catch (error) {
                 console.error('Error loading initial data:', error);
                 showNotification('Error loading data. Please check your connection and try again.', 'error');
+                
+                // Set default staff info if everything fails
+                const staffNameEl = document.getElementById('staffName');
+                const staffAvatarEl = document.getElementById('staffAvatar');
+                
+                if (staffNameEl) staffNameEl.textContent = 'Staff Member';
+                if (staffAvatarEl) staffAvatarEl.textContent = 'S';
+                
+                loadPage('dashboard');
             }
         };
         
@@ -1306,10 +1318,15 @@
         // Update dashboard counts
         async function updateDashboardCounts() {
             try {
-                document.getElementById('totalStudentsCount').textContent = students.length;
-                document.getElementById('assignedStudentsCount').textContent = staffStudents.length;
-                document.getElementById('totalSubjectsCount').textContent = getUniqueSubjectsCount();
-                document.getElementById('pendingLeavesCount').textContent = leaveRequests.filter(req => req.status === 'pending').length;
+                const totalStudentsEl = document.getElementById('totalStudentsCount');
+                const assignedStudentsEl = document.getElementById('assignedStudentsCount');
+                const totalSubjectsEl = document.getElementById('totalSubjectsCount');
+                const pendingLeavesEl = document.getElementById('pendingLeavesCount');
+                
+                if (totalStudentsEl) totalStudentsEl.textContent = students.length;
+                if (assignedStudentsEl) assignedStudentsEl.textContent = staffStudents.length;
+                if (totalSubjectsEl) totalSubjectsEl.textContent = getUniqueSubjectsCount();
+                if (pendingLeavesEl) pendingLeavesEl.textContent = leaveRequests.filter(req => req.status === 'pending').length;
                 
                 // Update assigned students list
                 updateAssignedStudentsList();
@@ -1625,9 +1642,15 @@
                 attendanceTable.style.display = 'table';
                 attendanceEmpty.style.display = 'none';
 
+                // Clear the attendance list before adding new rows
+                attendanceList.innerHTML = '';
+
                 staffStudents.forEach(student => {
                     const row = document.createElement('tr');
-                    const isPresent = dateRecords[student.admissionno] || false;
+                    // Use the fetched attendance records if available, otherwise default to false
+                    const isPresent = dateRecords[student.admissionno] !== undefined ? 
+                                     dateRecords[student.admissionno] : 
+                                     (attendanceRecords[date][period][student.admissionno] || false);
                     
                     row.innerHTML = `
                         <td>${student.admissionno}</td>
@@ -1823,8 +1846,13 @@
                         if (!response.ok) {
                             throw new Error('Failed to create exam');
                         }
-
-                        exams.push(newExam);
+                        
+                        // Get the created exam from the response
+                        const createdExam = await response.json();
+                        
+                        // Update local exams array with the created exam
+                        exams.push(createdExam);
+                        
                         showNotification('Exam created successfully', 'success');
                         
                         // Go back to marks page
@@ -1833,7 +1861,7 @@
                         }, 1000);
                     } catch (error) {
                         console.error('Error creating exam:', error);
-                        showNotification('Failed to create exam', 'error');
+                        showNotification('Failed to create exam: ' + error.message, 'error');
                     }
                 });
             }
@@ -1942,10 +1970,13 @@
                     throw new Error('Failed to save marks');
                 }
                 
+                // Get the updated exam from the response
+                const updatedExam = await response.json();
+                
                 // Update local exam data
-                const exam = exams.find(e => e.id === examId);
-                if (exam) {
-                    exam.marks = { ...exam.marks, ...marksData };
+                const examIndex = exams.findIndex(e => e.id === examId);
+                if (examIndex !== -1) {
+                    exams[examIndex] = updatedExam;
                 }
                 
                 showNotification('Marks saved successfully', 'success');
@@ -2214,7 +2245,14 @@
             try {
                 const response = await fetch('/api/documents');
                 if (response.ok) {
-                    uploadedDocuments = await response.json();
+                    const allDocuments = await response.json();
+                    
+                    // Filter documents to only show those associated with assigned students
+                    const staffStudentIds = staffStudents.map(s => s.admissionno);
+                    uploadedDocuments = allDocuments.filter(doc => 
+                        doc.studentIds && doc.studentIds.some(id => staffStudentIds.includes(id))
+                    );
+                    
                     displayDocuments();
                 } else {
                     throw new Error('Failed to fetch documents');
@@ -2243,6 +2281,10 @@
                     for (let i = 0; i < files.length; i++) {
                         formData.append('files', files[i]);
                     }
+                    
+                    // Add student IDs to the form data
+                    const staffStudentIds = staffStudents.map(s => s.admissionno);
+                    formData.append('studentIds', JSON.stringify(staffStudentIds));
                     
                     // Upload files to server
                     const response = await fetch('/api/documents/upload', {
@@ -2465,6 +2507,8 @@
         // Utility Functions
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
+            if (!notification) return;
+            
             notification.textContent = message;
             notification.className = `notification ${type}`;
             notification.classList.add('show');
