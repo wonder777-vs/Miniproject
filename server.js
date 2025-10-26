@@ -82,8 +82,8 @@ const settingsSchema = new mongoose.Schema({
 
 const Settings = mongoose.model("Settings", settingsSchema);
 
-// Student model definition
-const Student = mongoose.model("Student", new mongoose.Schema({
+// Student model definition with assignedStaff field
+const studentSchema = new mongoose.Schema({
     name: String,
     gender: String,
     dob: String,
@@ -110,11 +110,14 @@ const Student = mongoose.model("Student", new mongoose.Schema({
     course: String,
     year: String,
     scholarship: String,
-    status: String
-}));
+    status: String,
+    assignedStaff: { type: String, default: "" } // Add this field to track assigned staff
+});
+
+const Student = mongoose.model("Student", studentSchema);
 
 // Faculty model definition
-const Faculty = mongoose.model("Faculty", new mongoose.Schema({
+const facultySchema = new mongoose.Schema({
     name: String,
     gender: String,
     dob: String,
@@ -131,7 +134,9 @@ const Faculty = mongoose.model("Faculty", new mongoose.Schema({
     courses: String,
     performance: String,
     status: String
-}));
+});
+
+const Faculty = mongoose.model("Faculty", facultySchema);
 
 // Course model definition
 const CourseSchema = new mongoose.Schema({
@@ -164,7 +169,7 @@ const examSchema = new mongoose.Schema({
 
 const Exam = mongoose.model("Exam", examSchema);
 
-// Attendance model - FIX: Add missing model
+// Attendance model
 const attendanceSchema = new mongoose.Schema({
     date: {
         type: String,
@@ -309,7 +314,7 @@ const universityMarksSchema = new mongoose.Schema({
 
 const UniversityMarks = mongoose.model("UniversityMarks", universityMarksSchema);
 
-// Grade model - FIX: Add missing model
+// Grade model
 const gradeSchema = new mongoose.Schema({
     admissionNo: { type: String, required: true },
     subject: { type: String, required: true },
@@ -503,7 +508,31 @@ app.get('/api/students/:admissionNo', async (req, res) => {
     }
 });
 
-// Attendance routes - FIX: Update to use proper model
+// NEW: Get assigned staff for a student
+app.get('/api/student/:admissionno/assigned-staff', async (req, res) => {
+    try {
+        const student = await Student.findOne({ admissionno: req.params.admissionno });
+        if (!student) {
+            return res.status(404).json({ message: "Student not found" });
+        }
+
+        if (!student.assignedStaff) {
+            return res.status(404).json({ message: "No staff assigned to this student" });
+        }
+
+        const staff = await Faculty.findOne({ id: student.assignedStaff });
+        if (!staff) {
+            return res.status(404).json({ message: "Assigned staff not found" });
+        }
+
+        res.json(staff);
+    } catch (err) {
+        console.error("Error fetching assigned staff:", err);
+        res.status(500).json({ message: "❌ Error fetching assigned staff", error: err.message });
+    }
+});
+
+// Attendance routes
 app.get('/api/attendance', async (req, res) => {
     try {
         const { date, period } = req.query;
@@ -546,7 +575,7 @@ app.post('/api/attendance', async (req, res) => {
     }
 });
 
-// Exam routes - FIX: Remove duplicate routes and keep only API routes
+// Exam routes
 app.get('/api/exams', async (req, res) => {
     try {
         console.log('Fetching all exams');
@@ -918,10 +947,53 @@ app.get("/api/documents/:admissionno", async (req, res) => {
     }
 });
 
-// Student Dashboard - Leave Application API
+// NEW: Document download endpoint
+app.get('/api/documents/download/:id', async (req, res) => {
+    try {
+        const document = await Document.findById(req.params.id);
+        if (!document) {
+            return res.status(404).json({ message: "Document not found" });
+        }
+
+        // Check if file exists
+        if (!fs.existsSync(document.filePath)) {
+            return res.status(404).json({ message: "File not found on server" });
+        }
+
+        // Set appropriate headers
+        res.setHeader('Content-Type', 'application/octet-stream');
+        res.setHeader('Content-Disposition', `attachment; filename="${document.name}"`);
+
+        // Stream the file
+        const fileStream = fs.createReadStream(document.filePath);
+        fileStream.pipe(res);
+    } catch (err) {
+        console.error("Error downloading document:", err);
+        res.status(500).json({ message: "❌ Error downloading document", error: err.message });
+    }
+});
+
+// Student Dashboard - Leave Application API (FIXED)
 app.post("/api/leave/apply", async (req, res) => {
     try {
-        const leaveRequest = new LeaveRequest(req.body);
+        const { rollNo, reason, days, date } = req.body;
+
+        // Check for required fields
+        if (!rollNo || !reason || !days || !date) {
+            return res.status(400).json({ 
+                message: "Missing required fields", 
+                required: ["rollNo", "reason", "days", "date"],
+                received: req.body 
+            });
+        }
+
+        const leaveRequest = new LeaveRequest({
+            rollNo,
+            reason,
+            days,
+            date
+        });
+
         await leaveRequest.save();
         res.json({ message: "✅ Leave application submitted successfully!" });
     } catch (err) {
@@ -1123,16 +1195,33 @@ app.delete("/api/documents/:id", async (req, res) => {
     }
 });
 
-// Helper function to format file size
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
+// NEW: Assign student to staff endpoint
+app.post("/api/staff/assign-student", async (req, res) => {
+    try {
+        const { staffId, admissionNo } = req.body;
+        
+        // Check if staff exists
+        const staff = await Faculty.findOne({ id: staffId });
+        if (!staff) {
+            return res.status(404).json({ message: "Staff not found" });
+        }
+        
+        // Check if student exists
+        const student = await Student.findOne({ admissionno: admissionNo });
+        if (!student) {
+            return res.status(404).json({ message: "Student not found" });
+        }
+        
+        // Update student with assigned staff
+        student.assignedStaff = staffId;
+        await student.save();
+        
+        res.json({ message: "✅ Student assigned to staff successfully!" });
+    } catch (err) {
+        console.error("Error assigning student to staff:", err);
+        res.status(500).json({ message: "❌ Error assigning student to staff", error: err.message });
+    }
+});
 
 // Reports APIs
 
@@ -1161,7 +1250,7 @@ app.post("/api/reports/generate", async (req, res) => {
                 data = await Fee.find().lean();
                 fileName = 'fee_report';
                 break;
-            case 'grades': // FIX: Use the Grade model
+            case 'grades':
                 data = await Grade.find().lean();
                 fileName = 'grades_report';
                 break;
@@ -1346,6 +1435,17 @@ function getDateRangeQuery(range) {
     }
 
     return { $gte: startDate };
+}
+
+// Helper function to format file size
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
 app.listen(port, () => {

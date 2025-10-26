@@ -6,6 +6,7 @@
     <title>Student Dashboard - MEPCO ERP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* CSS remains unchanged - keeping your existing styles */
         :root {
             --primary-color: #4a6bdf;
             --secondary-color: #6c757d;
@@ -1193,7 +1194,7 @@
                 try {
                     window.showNotification('Fetching attendance data...', 'info');
                     
-                    const response = await fetch(`/api/attendance?admissionNo=${admissionNo}&date=${date}&period=${encodeURIComponent(period)}`);
+                    const response = await fetch(`/api/attendance?date=${date}&period=${encodeURIComponent(period)}`);
                     if (!response.ok) {
                         throw new Error('Failed to fetch attendance data');
                     }
@@ -1343,6 +1344,7 @@
                             <p>Roll No: ${student.rollno}</p>
                             <p>Register No: ${student.registerno}</p>
                             <p>${student.department} - ${student.course} (${student.year})</p>
+                            ${student.assignedStaff ? `<p>Assigned Staff: ${student.assignedStaff}</p>` : ''}
                         </div>
                     </div>
                     
@@ -1592,16 +1594,19 @@
                         iconClass = 'fa-file-word';
                     }
                     
+                    // Use MongoDB _id if available, otherwise use id
+                    const docId = doc._id || doc.id;
+                    
                     documentCard.innerHTML = `
                         <h4><i class="fas ${iconClass}"></i> ${doc.name}</h4>
                         <p>${doc.type.toUpperCase()} • ${doc.size}</p>
                         <p><strong>Uploaded by:</strong> ${doc.uploadedBy}</p>
-                        <p><strong>Date:</strong> ${doc.uploadedDate}</p>
+                        <p><strong>Date:</strong> ${doc.date}</p>
                         <div class="document-actions">
-                            <button class="btn btn-primary" onclick="viewDocument('${doc.id}')">
+                            <button class="btn btn-primary" onclick="viewDocument('${docId}')">
                                 <i class="fas fa-eye"></i> View
                             </button>
-                            <button class="btn btn-secondary" onclick="downloadDocument('${doc.id}')">
+                            <button class="btn btn-secondary" onclick="downloadDocument('${docId}')">
                                 <i class="fas fa-download"></i> Download
                             </button>
                         </div>
@@ -1675,7 +1680,7 @@
                     
                     // Show additional info about submission
                     setTimeout(() => {
-                        window.showNotification(`Your application has been sent to ${result.staffName} for approval.`, 'success');
+                        window.showNotification(`Your application has been sent for approval.`, 'success');
                     }, 1500);
                     
                 } catch (error) {
@@ -1713,7 +1718,7 @@
                 if (doc.type === 'pdf') {
                     // Display PDF in iframe
                     const iframe = document.createElement('iframe');
-                    iframe.src = `/api/documents/view/${docId}`;
+                    iframe.src = `/api/documents/download/${docId}`; // Changed to download endpoint
                     viewerContent.appendChild(iframe);
                 } else if (['ppt', 'pptx'].includes(doc.type)) {
                     // For PPT files, show a message and download option
