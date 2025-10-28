@@ -7,14 +7,47 @@ const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const cors = require('cors');
 const multer = require('multer');
-const port = 3000;
+const dotenv = require('dotenv'); // Add dotenv for environment variables
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 3000; // Use environment variable for port
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'; // Use environment variable for frontend URL
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Use cors middleware for better CORS handling
-app.use(cors());
+// Comprehensive CORS configuration
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        // List of allowed origins
+        const allowedOrigins = [
+            frontendUrl,
+            'http://localhost:3000',
+            'http://localhost:5000',
+            'http://127.0.0.1:5500'
+        ];
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            console.log('Origin not allowed by CORS:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true,
+    optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Enable pre-flight requests for all routes
 
 app.use(express.static(__dirname));
 
@@ -34,14 +67,15 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// MongoDB Atlas Connection
-mongoose.connect('mongodb+srv://admin:admin@cluster0.kdgkues.mongodb.net/mepco_erp?retryWrites=true&w=majority&appName=Cluster0', {
+// MongoDB Atlas Connection - Use environment variable
+mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://admin:admin@cluster0.kdgkues.mongodb.net/mepco_erp?retryWrites=true&w=majority&appName=Cluster0', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
 .then(() => {
     console.log('✅ Connected to MongoDB Atlas successfully');
     console.log(`🚀 Server running at http://localhost:${port}/`);
+    console.log(`🌐 Frontend URL: ${frontendUrl}`);
 })
 .catch(err => {
     console.error('❌ MongoDB Atlas Connection Error:', err);
@@ -91,7 +125,6 @@ const studentSchema = new mongoose.Schema({
     email: String,
     bloodgroup: String,
     religion: String,
-    caste: String,
     admissionno: String,
     rollno: String,
     registerno: String,

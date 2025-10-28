@@ -1,27 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>College ERP - Fees Management</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fee Management - College ERP</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="config.js"></script>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(to right, #f2d7ee, #c6e7f0, #b5e3c3);
+      color: #333;
       min-height: 100vh;
     }
     header {
+      background: linear-gradient(to right, #d66d9b, #7d77ff);
+      color: white;
+      padding: 15px 30px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 15px 30px;
-      background: linear-gradient(to right, #d66d9b, #7d77ff);
-      color: #fff;
-      font-weight: bold;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    header h2 { margin: 0; }
+    header h2 {
+      margin: 0;
+    }
     .profile {
       display: flex;
       align-items: center;
@@ -55,168 +59,158 @@
       color: #7b1fa2; 
       margin: 0;
     }
+    .search-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .search-input {
+      flex: 1;
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      border-radius: 25px;
+      font-size: 16px;
+    }
     .btn {
+      padding: 10px 20px;
       border: none;
-      border-radius: 20px;
-      padding: 10px 18px;
-      font-weight: bold;
+      border-radius: 25px;
       cursor: pointer;
-      transition: all 0.2s;
+      font-weight: bold;
+      transition: all 0.3s;
       display: inline-flex;
       align-items: center;
       gap: 8px;
     }
-    .btn-add {
-      background: #e91e63;
-      color: #fff;
+    .btn-primary {
+      background: #7b1fa2;
+      color: white;
     }
-    .btn-add:hover { 
-      background: #d81b60;
-      transform: scale(1.05);
+    .btn-primary:hover {
+      background: #6a1b9a;
+    }
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+    .btn-success:hover {
+      background: #218838;
+    }
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+    .btn-danger:hover {
+      background: #c82333;
+    }
+    .table-container {
+      overflow-x: auto;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
+      background: white;
     }
-    table th, table td {
-      padding: 12px;
+    th, td {
+      padding: 12px 15px;
       text-align: left;
-      border-bottom: 1px solid #ddd;
+      border-bottom: 1px solid #eee;
     }
-    table th { 
-      color: #a00052;
+    th {
+      background-color: #f8f9fa;
+      color: #495057;
       font-weight: 600;
-      text-transform: uppercase;
-      font-size: 0.85rem;
-      letter-spacing: 0.5px;
     }
-    .status {
+    tr:hover {
+      background-color: #f8f9fa;
+    }
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    .action-btn {
       padding: 5px 10px;
-      border-radius: 12px;
-      font-size: 0.8em;
-      font-weight: bold;
-    }
-    .paid { 
-      background: #4caf50; 
-      color: white; 
-    }
-    .pending {  
-      background: #ffc107; 
-      color: black; 
-    }
-    .overdue {  
-      background: #f44336; 
-      color: white; 
-    }
-    .actions button {
       border: none;
-      border-radius: 50%;
-      padding: 8px;
-      margin: 0 2px;
+      border-radius: 4px;
       cursor: pointer;
-      color: white;
+      font-size: 14px;
       transition: all 0.2s;
     }
-    .view { 
-      background: #00bcd4; 
-    }
-    .view:hover {
-      background: #0097a7;
-      transform: scale(1.1);
-    }
-    .edit { 
-      background: #ff9800; 
-    }
-    .edit:hover {
-      background: #fb8c00;
-      transform: scale(1.1);
-    }
-    .delete { 
-      background: #f44336; 
-    }
-    .delete:hover {
-      background: #e53935;
-      transform: scale(1.1);
-    }
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: #666;
-    }
-    .empty-state i {
-      font-size: 3rem;
-      margin-bottom: 15px;
-      color: #ccc;
-    }
-
-    /* Modal Styles */
-    .modal-bg {
+    .modal {
       display: none;
       position: fixed;
-      z-index: 2000;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 1000;
       justify-content: center;
       align-items: center;
     }
-    .modal {
-      background: white;
-      border-radius: 15px;
-      padding: 25px;
-      width: 500px;
+    .modal-content {
+      background-color: white;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 600px;
       max-height: 90vh;
       overflow-y: auto;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
-    .modal h3 { 
-      margin-top: 0; 
+    .modal-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-title {
+      margin: 0;
       color: #7b1fa2;
-      margin-bottom: 20px;
     }
-    .modal label { 
-      display: block; 
-      margin-top: 15px; 
-      font-weight: bold;
-      color: #333;
+    .modal-body {
+      padding: 20px;
     }
-    .modal input, .modal select {
+    .modal-footer {
+      padding: 15px 20px;
+      border-top: 1px solid #eee;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    .form-control {
       width: 100%;
-      padding: 12px;
-      margin-top: 5px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 1rem;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
     }
-    .modal input:focus, .modal select:focus {
+    .form-control:focus {
       outline: none;
       border-color: #7b1fa2;
       box-shadow: 0 0 0 2px rgba(123, 31, 162, 0.2);
     }
-    .modal-actions { 
-      text-align: right; 
-      margin-top: 25px;
+    .close {
+      font-size: 24px;
+      cursor: pointer;
     }
-    .modal-actions .btn { 
-      margin-left: 8px;
-    }
-    .btn-cancel {
-      background: #6c757d;
-      color: white;
-    }
-    .btn-cancel:hover {
-      background: #5a6268;
-    }
-    .btn-save {
-      background: #e91e63;
-      color: white;
-    }
-    .btn-save:hover {
-      background: #d81b60;
-    }
-
-    /* Notification Styles */
     .notification {
       position: fixed;
       top: 20px;
@@ -233,7 +227,7 @@
       transform: translateX(0);
     }
     .notification.success {
-      background-color: #4caf50;
+      background-color: #28a745;
     }
     .notification.error {
       background-color: #f44336;
@@ -242,300 +236,503 @@
       background-color: #ffc107;
       color: #333;
     }
+    .pagination {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .page-btn {
+      padding: 8px 12px;
+      margin: 0 5px;
+      border: 1px solid #ddd;
+      background: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .page-btn.active {
+      background: #7b1fa2;
+      color: white;
+      border-color: #7b1fa2;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6c757d;
+    }
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 15px;
+      color: #dee2e6;
+    }
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .status-paid {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .status-pending {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    .status-overdue {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .summary-card {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .summary-card h4 {
+      margin: 0 0 10px 0;
+      color: #6c757d;
+      font-size: 14px;
+    }
+    .summary-card p {
+      margin: 0;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .summary-card.total {
+      border-left: 4px solid #7b1fa2;
+    }
+    .summary-card.paid {
+      border-left: 4px solid #28a745;
+    }
+    .summary-card.pending {
+      border-left: 4px solid #ffc107;
+    }
+    .summary-card.overdue {
+      border-left: 4px solid #dc3545;
+    }
   </style>
 </head>
 <body>
-
-<header>
-  <h2><i class="fas fa-graduation-cap"></i> College ERP Admin Dashboard</h2>
-  <div class="profile">
-    <span>Admin User</span>
-    <div class="user-avatar">AU</div>
-  </div>
-</header>
-
-<div class="container">
-  <div class="page-header">
-    <h3>Fees Management</h3>
-    <button class="btn btn-add" onclick="openAddFee()">
-      <i class="fas fa-plus"></i> Add Fee Record
-    </button>
-  </div>
-
-  <div id="feeTableContainer">
-    <table>
-      <thead>
-        <tr>
-          <th>Receipt No</th>
-          <th>Student Name</th>
-          <th>Roll No</th>
-          <th>Course</th>
-          <th>Amount</th>
-          <th>Date</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="feesTable"></tbody>
-    </table>
-    <div class="empty-state" id="emptyState">
-      <i class="fas fa-money-check-alt"></i>
-      <p>No fee records available. Fee records added will appear here.</p>
+  <header>
+    <h2><i class="fas fa-money-check-alt"></i> Fee Management</h2>
+    <div class="profile">
+      <span>Admin User</span>
+      <div class="user-avatar">AU</div>
     </div>
-  </div>
-</div>
+  </header>
 
-<!-- Add/Edit Fee Modal -->
-<div class="modal-bg" id="feeModal">
-  <div class="modal">
-    <h3 id="modalTitle">Add Fee Record</h3>
-    <label>Receipt No</label>
-    <input type="text" id="feeReceipt" />
-    
-    <label>Student Name</label>
-    <input type="text" id="feeName" />
-    
-    <label>Roll No</label>
-    <input type="text" id="feeRoll" />
-    
-    <label>Course</label>
-    <input type="text" id="feeCourse" />
-    
-    <label>Amount</label>
-    <input type="number" id="feeAmount" />
-    
-    <label>Date</label>
-    <input type="date" id="feeDate" />
-    
-    <label>Status</label>
-    <select id="feeStatus">
-      <option>Paid</option>
-      <option>Pending</option>
-      <option>Overdue</option>
-    </select>
-    
-    <div class="modal-actions">
-      <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-save" onclick="saveFee()">
-        <i class="fas fa-save"></i> Save
+  <div class="container">
+    <div class="page-header">
+      <h3>Fees</h3>
+      <button class="btn btn-primary" id="addFeeBtn">
+        <i class="fas fa-plus"></i> Add Fee Record
       </button>
     </div>
-  </div>
-</div>
 
-<!-- View Fee Modal -->
-<div class="modal-bg" id="viewModal">
-  <div class="modal">
-    <h3>Fee Details</h3>
-    <div id="viewContent"></div>
-    <div class="modal-actions">
-      <button class="btn btn-cancel" onclick="closeModal()">Close</button>
+    <div class="summary-cards">
+      <div class="summary-card total">
+        <h4>Total Fees</h4>
+        <p id="totalFees">$0</p>
+      </div>
+      <div class="summary-card paid">
+        <h4>Paid</h4>
+        <p id="paidFees">$0</p>
+      </div>
+      <div class="summary-card pending">
+        <h4>Pending</h4>
+        <p id="pendingFees">$0</p>
+      </div>
+      <div class="summary-card overdue">
+        <h4>Overdue</h4>
+        <p id="overdueFees">$0</p>
+      </div>
+    </div>
+
+    <div class="search-container">
+      <input type="text" class="search-input" id="searchInput" placeholder="Search by receipt, name, or roll number...">
+      <button class="btn btn-secondary" id="searchBtn">
+        <i class="fas fa-search"></i> Search
+      </button>
+      <button class="btn btn-secondary" id="resetBtn">
+        <i class="fas fa-redo"></i> Reset
+      </button>
+    </div>
+
+    <div class="table-container">
+      <table id="feesTable">
+        <thead>
+          <tr>
+            <th>Receipt</th>
+            <th>Name</th>
+            <th>Roll No</th>
+            <th>Course</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="feesTableBody">
+          <!-- Table rows will be dynamically added here -->
+        </tbody>
+      </table>
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <i class="fas fa-money-check-alt"></i>
+        <p>No fee records found</p>
+      </div>
+    </div>
+
+    <div class="pagination" id="pagination">
+      <!-- Pagination will be dynamically added here -->
     </div>
   </div>
-</div>
 
-<!-- Notification -->
-<div class="notification" id="notification"></div>
+  <!-- Add/Edit Fee Modal -->
+  <div class="modal" id="feeModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Add Fee Record</h3>
+        <span class="close" id="closeModal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="feeForm">
+          <div class="form-group">
+            <label class="form-label" for="receipt">Receipt No</label>
+            <input type="text" class="form-control" id="receipt" name="receipt" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="name">Student Name</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="roll">Roll Number</label>
+            <input type="text" class="form-control" id="roll" name="roll" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="course">Course</label>
+            <input type="text" class="form-control" id="course" name="course" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="amount">Amount ($)</label>
+            <input type="number" class="form-control" id="amount" name="amount" min="0" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="date">Date</label>
+            <input type="date" class="form-control" id="date" name="date" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="status">Status</label>
+            <select class="form-control" id="status" name="status" required>
+              <option value="">Select Status</option>
+              <option value="Paid">Paid</option>
+              <option value="Pending">Pending</option>
+              <option value="Overdue">Overdue</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="saveBtn">Save</button>
+      </div>
+    </div>
+  </div>
 
-<script>
-  let fees = [];
-  let editingIndex = null;
+  <!-- Notification -->
+  <div class="notification" id="notification"></div>
 
-  // API base URL
-  const API_URL = "https://miniproject-1-fcw7.onrender.com/fees";
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // DOM Elements
+      const elements = {
+        addFeeBtn: document.getElementById('addFeeBtn'),
+        feeModal: document.getElementById('feeModal'),
+        closeModal: document.getElementById('closeModal'),
+        cancelBtn: document.getElementById('cancelBtn'),
+        saveBtn: document.getElementById('saveBtn'),
+        feeForm: document.getElementById('feeForm'),
+        feesTableBody: document.getElementById('feesTableBody'),
+        searchInput: document.getElementById('searchInput'),
+        searchBtn: document.getElementById('searchBtn'),
+        resetBtn: document.getElementById('resetBtn'),
+        emptyState: document.getElementById('emptyState'),
+        modalTitle: document.getElementById('modalTitle'),
+        pagination: document.getElementById('pagination'),
+        totalFees: document.getElementById('totalFees'),
+        paidFees: document.getElementById('paidFees'),
+        pendingFees: document.getElementById('pendingFees'),
+        overdueFees: document.getElementById('overdueFees')
+      };
 
-  // Fetch all fees from backend
-  async function fetchFees() {
-    try {
-      showNotification("Loading fee records...", "warning");
-      const res = await fetch(API_URL);
-      
-      if (!res.ok) {
-        throw new Error(`HTTP error! Status: ${res.status}`);
+      // State variables
+      let fees = [];
+      let filteredFees = [];
+      let currentPage = 1;
+      const itemsPerPage = 10;
+      let currentAction = 'create';
+      let currentFeeId = null;
+
+      // Event Listeners
+      elements.addFeeBtn.addEventListener('click', openAddModal);
+      elements.closeModal.addEventListener('click', closeModalHandler);
+      elements.cancelBtn.addEventListener('click', closeModalHandler);
+      elements.saveBtn.addEventListener('click', saveFee);
+      elements.searchBtn.addEventListener('click', searchFees);
+      elements.resetBtn.addEventListener('click', resetSearch);
+      elements.searchInput.addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
+          searchFees();
+        }
+      });
+
+      // Functions
+      function openAddModal() {
+        currentAction = 'create';
+        elements.modalTitle.textContent = 'Add Fee Record';
+        elements.feeForm.reset();
+        elements.feeModal.style.display = 'flex';
       }
-      
-      fees = await res.json();
-      renderTable();
-      showNotification("Fee records loaded successfully!", "success");
-    } catch (error) {
-      console.error("Error fetching fees:", error);
-      showNotification("Failed to load fee records. Please try again.", "error");
-    }
-  }
 
-  function renderTable() {
-    const tbody = document.getElementById('feesTable');
-    const emptyState = document.getElementById('emptyState');
-    
-    tbody.innerHTML = '';
-    
-    if (fees.length === 0) {
-      emptyState.style.display = 'block';
-      return;
-    }
-    
-    emptyState.style.display = 'none';
-    
-    fees.forEach((fee, index) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${fee.receipt}</td>
-        <td>${fee.name}</td>
-        <td>${fee.roll}</td>
-        <td>${fee.course}</td>
-        <td>₹${fee.amount}</td>
-        <td>${fee.date}</td>
-        <td><span class="status ${fee.status.toLowerCase()}">${fee.status}</span></td>
-        <td class="actions">
-          <button class="edit" onclick="editFee(${index})" title="Edit">
-            <i class="fas fa-edit"></i>
-          </button>
-          <button class="delete" onclick="deleteFee(${index})" title="Delete">
-            <i class="fas fa-trash"></i>
-          </button>
-        </td>
-      `;
-      tbody.appendChild(row);
+      function openEditModal(feeId) {
+        currentAction = 'edit';
+        currentFeeId = feeId;
+        elements.modalTitle.textContent = 'Edit Fee Record';
+        
+        const fee = fees.find(f => f._id === feeId);
+        if (fee) {
+          elements.receipt.value = fee.receipt;
+          elements.name.value = fee.name;
+          elements.roll.value = fee.roll;
+          elements.course.value = fee.course;
+          elements.amount.value = fee.amount;
+          elements.date.value = fee.date;
+          elements.status.value = fee.status;
+          
+          elements.feeModal.style.display = 'flex';
+        }
+      }
+
+      function closeModalHandler() {
+        elements.feeModal.style.display = 'none';
+        elements.feeForm.reset();
+      }
+
+      async function saveFee() {
+        if (!elements.feeForm.checkValidity()) {
+          elements.feeForm.reportValidity();
+          return;
+        }
+
+        const formData = new FormData(elements.feeForm);
+        const feeData = Object.fromEntries(formData.entries());
+        
+        // Convert amount to number
+        feeData.amount = parseFloat(feeData.amount);
+        
+        try {
+          if (currentAction === 'create') {
+            const response = await handleApiCall('/fees', {
+              method: 'POST',
+              body: JSON.stringify(feeData)
+            });
+            
+            showNotification(response.message || 'Fee record added successfully!', 'success');
+          } else if (currentAction === 'edit') {
+            const response = await handleApiCall(`/fees/${currentFeeId}`, {
+              method: 'PUT',
+              body: JSON.stringify(feeData)
+            });
+            
+            showNotification(response.message || 'Fee record updated successfully!', 'success');
+          }
+          
+          closeModalHandler();
+          loadFees();
+        } catch (error) {
+          // Error is already handled by handleApiCall
+        }
+      }
+
+      async function deleteFee(feeId) {
+        if (confirm('Are you sure you want to delete this fee record?')) {
+          try {
+            const response = await handleApiCall(`/fees/${feeId}`, {
+              method: 'DELETE'
+            });
+            
+            showNotification(response.message || 'Fee record deleted successfully!', 'success');
+            loadFees();
+          } catch (error) {
+            // Error is already handled by handleApiCall
+          }
+        }
+      }
+
+      async function loadFees() {
+        try {
+          showNotification('Loading fee records...', 'warning');
+          fees = await handleApiCall('/fees');
+          filteredFees = [...fees];
+          renderTable();
+          updateSummaryCards();
+          showNotification('Fee records loaded successfully!', 'success');
+        } catch (error) {
+          // Error is already handled by handleApiCall
+        }
+      }
+
+      function updateSummaryCards() {
+        const total = fees.reduce((sum, fee) => sum + fee.amount, 0);
+        const paid = fees.filter(fee => fee.status === 'Paid').reduce((sum, fee) => sum + fee.amount, 0);
+        const pending = fees.filter(fee => fee.status === 'Pending').reduce((sum, fee) => sum + fee.amount, 0);
+        const overdue = fees.filter(fee => fee.status === 'Overdue').reduce((sum, fee) => sum + fee.amount, 0);
+        
+        elements.totalFees.textContent = `$${total.toFixed(2)}`;
+        elements.paidFees.textContent = `$${paid.toFixed(2)}`;
+        elements.pendingFees.textContent = `$${pending.toFixed(2)}`;
+        elements.overdueFees.textContent = `$${overdue.toFixed(2)}`;
+      }
+
+      function searchFees() {
+        const searchTerm = elements.searchInput.value.toLowerCase().trim();
+        
+        if (searchTerm === '') {
+          filteredFees = [...fees];
+        } else {
+          filteredFees = fees.filter(fee => 
+            fee.receipt.toLowerCase().includes(searchTerm) ||
+            fee.name.toLowerCase().includes(searchTerm) ||
+            fee.roll.toLowerCase().includes(searchTerm) ||
+            fee.course.toLowerCase().includes(searchTerm)
+          );
+        }
+        
+        currentPage = 1;
+        renderTable();
+      }
+
+      function resetSearch() {
+        elements.searchInput.value = '';
+        filteredFees = [...fees];
+        currentPage = 1;
+        renderTable();
+      }
+
+      function getStatusBadgeClass(status) {
+        switch (status) {
+          case 'Paid':
+            return 'status-paid';
+          case 'Pending':
+            return 'status-pending';
+          case 'Overdue':
+            return 'status-overdue';
+          default:
+            return '';
+        }
+      }
+
+      function renderTable() {
+        elements.feesTableBody.innerHTML = '';
+        
+        if (filteredFees.length === 0) {
+          elements.emptyState.style.display = 'block';
+          elements.pagination.innerHTML = '';
+          return;
+        }
+        
+        elements.emptyState.style.display = 'none';
+        
+        // Calculate pagination
+        const totalPages = Math.ceil(filteredFees.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedFees = filteredFees.slice(startIndex, endIndex);
+        
+        // Render table rows
+        paginatedFees.forEach(fee => {
+          const row = document.createElement('tr');
+          
+          row.innerHTML = `
+            <td>${fee.receipt}</td>
+            <td>${fee.name}</td>
+            <td>${fee.roll}</td>
+            <td>${fee.course}</td>
+            <td>$${fee.amount.toFixed(2)}</td>
+            <td>${fee.date}</td>
+            <td><span class="status-badge ${getStatusBadgeClass(fee.status)}">${fee.status}</span></td>
+            <td>
+              <div class="action-buttons">
+                <button class="action-btn btn-success" onclick="openEditModal('${fee._id}')">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn btn-danger" onclick="deleteFee('${fee._id}')">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          `;
+          
+          elements.feesTableBody.appendChild(row);
+        });
+        
+        // Render pagination
+        renderPagination(totalPages);
+      }
+
+      function renderPagination(totalPages) {
+        elements.pagination.innerHTML = '';
+        
+        if (totalPages <= 1) return;
+        
+        // Previous button
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'page-btn';
+        prevBtn.textContent = 'Previous';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.addEventListener('click', () => {
+          if (currentPage > 1) {
+            currentPage--;
+            renderTable();
+          }
+        });
+        elements.pagination.appendChild(prevBtn);
+        
+        // Page numbers
+        for (let i = 1; i <= totalPages; i++) {
+          const pageBtn = document.createElement('button');
+          pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+          pageBtn.textContent = i;
+          pageBtn.addEventListener('click', () => {
+            currentPage = i;
+            renderTable();
+          });
+          elements.pagination.appendChild(pageBtn);
+        }
+        
+        // Next button
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'page-btn';
+        nextBtn.textContent = 'Next';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.addEventListener('click', () => {
+          if (currentPage < totalPages) {
+            currentPage++;
+            renderTable();
+          }
+        });
+        elements.pagination.appendChild(nextBtn);
+      }
+
+      // Load fees on page load
+      loadFees();
     });
-  }
-
-  function openAddFee() {
-    editingIndex = null;
-    document.getElementById('modalTitle').innerText = 'Add Fee Record';
-    document.getElementById('feeReceipt').value = '';
-    document.getElementById('feeName').value = '';
-    document.getElementById('feeRoll').value = '';
-    document.getElementById('feeCourse').value = '';
-    document.getElementById('feeAmount').value = '';
-    document.getElementById('feeDate').value = '';
-    document.getElementById('feeStatus').value = 'Paid';
-    document.getElementById('feeModal').style.display = 'flex';
-  }
-
-  function editFee(index) {
-    editingIndex = index;
-    const fee = fees[index];
-    document.getElementById('modalTitle').innerText = 'Edit Fee Record';
-    document.getElementById('feeReceipt').value = fee.receipt;
-    document.getElementById('feeName').value = fee.name;
-    document.getElementById('feeRoll').value = fee.roll;
-    document.getElementById('feeCourse').value = fee.course;
-    document.getElementById('feeAmount').value = fee.amount;
-    document.getElementById('feeDate').value = fee.date;
-    document.getElementById('feeStatus').value = fee.status;
-    document.getElementById('feeModal').style.display = 'flex';
-  }
-
-  function viewFee(index) {
-    const fee = fees[index];
-    document.getElementById('viewContent').innerHTML = `
-      <p><strong>Receipt No:</strong> ${fee.receipt}</p>
-      <p><strong>Student Name:</strong> ${fee.name}</p>
-      <p><strong>Roll No:</strong> ${fee.roll}</p>
-      <p><strong>Course:</strong> ${fee.course}</p>
-      <p><strong>Amount:</strong> ₹${fee.amount}</p>
-      <p><strong>Date:</strong> ${fee.date}</p>
-      <p><strong>Status:</strong> ${fee.status}</p>
-    `;
-    document.getElementById('viewModal').style.display = 'flex';
-  }
-
-  async function deleteFee(index) {
-    const fee = fees[index];
-    if (confirm('Are you sure you want to delete this fee record?')) {
-      try {
-        showNotification("Deleting fee record...", "warning");
-        const response = await fetch(`${API_URL}/${fee._id}`, { 
-          method: "DELETE" 
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        fetchFees();
-        showNotification("Fee record deleted successfully!", "success");
-      } catch (error) {
-        console.error("Error deleting fee:", error);
-        showNotification("Failed to delete fee record. Please try again.", "error");
-      }
-    }
-  }
-
-  async function saveFee() {
-    const receipt = document.getElementById('feeReceipt').value.trim();
-    const name = document.getElementById('feeName').value.trim();
-    const roll = document.getElementById('feeRoll').value.trim();
-    const course = document.getElementById('feeCourse').value.trim();
-    const amount = document.getElementById('feeAmount').value.trim();
-    const date = document.getElementById('feeDate').value;
-    const status = document.getElementById('feeStatus').value;
-
-    if (!receipt || !name || !roll || !course || !amount || !date) {
-      showNotification("Please fill all required fields.", "warning");
-      return;
-    }
-
-    const feeData = { receipt, name, roll, course, amount, date, status };
-
-    try {
-      if (editingIndex !== null) {
-        showNotification("Updating fee record...", "warning");
-        const feeId = fees[editingIndex]._id;
-        const response = await fetch(`${API_URL}/${feeId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(feeData)
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        showNotification("Fee record updated successfully!", "success");
-      } else {
-        showNotification("Adding fee record...", "warning");
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(feeData)
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        showNotification("Fee record added successfully!", "success");
-      }
-
-      closeModal();
-      fetchFees();
-    } catch (error) {
-      console.error("Error saving fee:", error);
-      showNotification("Failed to save fee record. Please try again.", "error");
-    }
-  }
-
-  function closeModal() {
-    document.getElementById('feeModal').style.display = 'none';
-    document.getElementById('viewModal').style.display = 'none';
-  }
-
-  // Show notification
-  function showNotification(message, type = 'success') {
-    const notification = document.getElementById('notification');
-    notification.textContent = message;
-    notification.className = `notification ${type}`;
-    notification.classList.add('show');
-    
-    setTimeout(() => {
-      notification.classList.remove('show');
-    }, 3000);
-  }
-
-  // Load fees on page start
-  document.addEventListener("DOMContentLoaded", fetchFees);
-</script>
-
+  </script>
 </body>
 </html>

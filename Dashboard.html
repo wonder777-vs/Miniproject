@@ -5,24 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>College ERP Admin Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="config.js"></script>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(to right, #f2d7ee, #c6e7f0, #b5e3c3);
+      color: #333;
       min-height: 100vh;
     }
     header {
+      background: linear-gradient(to right, #d66d9b, #7d77ff);
+      color: white;
+      padding: 15px 30px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 15px 30px;
-      background: linear-gradient(to right, #d66d9b, #7d77ff);
-      color: #fff;
-      font-weight: bold;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    header h2 { margin: 0; }
+    header h2 {
+      margin: 0;
+    }
     .profile {
       display: flex;
       align-items: center;
@@ -265,19 +268,19 @@
     <div class="stats">
       <div class="card">
         <h4><i class="fas fa-user-graduate"></i> STUDENTS</h4>
-        <p>2,453</p>
+        <p id="studentCount">0</p>
       </div>
       <div class="card">
         <h4><i class="fas fa-chalkboard-teacher"></i> FACULTY</h4>
-        <p>156</p>
+        <p id="facultyCount">0</p>
       </div>
       <div class="card">
         <h4><i class="fas fa-book"></i> COURSES</h4>
-        <p>42</p>
+        <p id="courseCount">0</p>
       </div>
       <div class="card">
         <h4><i class="fas fa-money-check-alt"></i> PENDING FEES</h4>
-        <p>$18,230</p>
+        <p id="pendingFees">0</p>
       </div>
     </div>
     
@@ -466,8 +469,7 @@
 
   <!-- Initialize the forms -->
   <script>
-    // Wait for DOM to be fully loaded before attaching event listeners
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async function() {
       // Get references to all elements
       const elements = {
         addStudentBtn: document.getElementById('addStudentBtn'),
@@ -475,7 +477,11 @@
         createCourseBtn: document.getElementById('createCourseBtn'),
         studentForm: document.getElementById('studentForm'),
         facultyForm: document.getElementById('facultyForm'),
-        courseForm: document.getElementById('courseForm')
+        courseForm: document.getElementById('courseForm'),
+        studentCount: document.getElementById('studentCount'),
+        facultyCount: document.getElementById('facultyCount'),
+        courseCount: document.getElementById('courseCount'),
+        pendingFees: document.getElementById('pendingFees')
       };
 
       // Helper functions
@@ -498,16 +504,6 @@
         }
       }
 
-      function showNotification(message, type = 'success') {
-        const notification = document.getElementById('notification');
-        if (notification) {
-          notification.textContent = message;
-          notification.className = `notification ${type}`;
-          notification.classList.add('show');
-          setTimeout(() => notification.classList.remove('show'), 3000);
-        }
-      }
-
       // Add button click handlers
       if (elements.addStudentBtn) {
         elements.addStudentBtn.addEventListener('click', () => showModal('addStudentModal'));
@@ -519,6 +515,31 @@
       
       if (elements.createCourseBtn) {
         elements.createCourseBtn.addEventListener('click', () => showModal('addCourseModal'));
+      }
+
+      // Load dashboard statistics
+      async function loadDashboardStats() {
+        try {
+          // Fetch student count
+          const students = await handleApiCall('/students');
+          elements.studentCount.textContent = students.length;
+
+          // Fetch faculty count
+          const faculties = await handleApiCall('/faculty');
+          elements.facultyCount.textContent = faculties.length;
+
+          // Fetch course count
+          const courses = await handleApiCall('/courses');
+          elements.courseCount.textContent = courses.length;
+
+          // Fetch pending fees
+          const fees = await handleApiCall('/fees');
+          const pendingFees = fees.filter(fee => fee.status !== 'Paid');
+          const totalPending = pendingFees.reduce((sum, fee) => sum + fee.amount, 0);
+          elements.pendingFees.textContent = `$${totalPending.toLocaleString()}`;
+        } catch (error) {
+          console.error('Error loading dashboard stats:', error);
+        }
       }
 
       // Handle form submissions
@@ -534,28 +555,16 @@
           }
 
           try {
-            console.log('Submitting student data:', data);
-            const response = await fetch('http://localhost:3000/students', {
+            const response = await handleApiCall('/students', {
               method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
               body: JSON.stringify(data)
             });
-
-            const result = await response.json();
-            console.log('Server response:', result);
             
-            if (response.ok) {
-              showNotification(result.message || 'Student added successfully!');
-              closeModal('addStudentModal');
-            } else {
-              showNotification(result.message || `Failed to add student: ${result.error || ''}`, 'error');
-            }
+            showNotification(response.message || 'Student added successfully!');
+            closeModal('addStudentModal');
+            loadDashboardStats(); // Refresh the stats
           } catch (error) {
-            console.error('Error:', error);
-            showNotification('Network error. Check console for details.', 'error');
+            // Error is already handled by handleApiCall
           }
         };
       }
@@ -572,28 +581,16 @@
           }
 
           try {
-            console.log('Submitting faculty data:', data);
-            const response = await fetch('http://localhost:3000/faculty', {
+            const response = await handleApiCall('/faculty', {
               method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
               body: JSON.stringify(data)
             });
-
-            const result = await response.json();
-            console.log('Server response:', result);
             
-            if (response.ok) {
-              showNotification(result.message || 'Faculty added successfully!');
-              closeModal('addFacultyModal');
-            } else {
-              showNotification(result.message || `Failed to add faculty: ${result.error || ''}`, 'error');
-            }
+            showNotification(response.message || 'Faculty added successfully!');
+            closeModal('addFacultyModal');
+            loadDashboardStats(); // Refresh the stats
           } catch (error) {
-            console.error('Error:', error);
-            showNotification('Network error. Check console for details.', 'error');
+            // Error is already handled by handleApiCall
           }
         };
       }
@@ -618,31 +615,22 @@
           }
 
           try {
-            console.log('Submitting course data:', data);
-            const response = await fetch('http://localhost:3000/courses', {
+            const response = await handleApiCall('/courses', {
               method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
               body: JSON.stringify(data)
             });
-
-            const result = await response.json();
-            console.log('Server response:', result);
             
-            if (response.ok) {
-              showNotification(result.message || 'Course added successfully!');
-              closeModal('addCourseModal');
-            } else {
-              showNotification(result.message || `Failed to add course: ${result.error || ''}`, 'error');
-            }
+            showNotification(response.message || 'Course added successfully!');
+            closeModal('addCourseModal');
+            loadDashboardStats(); // Refresh the stats
           } catch (error) {
-            console.error('Error:', error);
-            showNotification('Network error. Check console for details.', 'error');
+            // Error is already handled by handleApiCall
           }
         };
       }
+
+      // Load stats when page loads
+      loadDashboardStats();
     });
   </script>
 </body>
