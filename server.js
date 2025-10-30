@@ -30,7 +30,10 @@ const corsOptions = {
             frontendUrl,
             'http://localhost:3000',
             'http://localhost:5000',
-            'http://127.0.0.1:5500'
+            'http://127.0.0.1:5500',
+            'https://your-frontend.netlify.app',  // Add your Netlify URL here
+            /\.netlify\.app$/,  // Allow all Netlify subdomains
+            /\.vercel\.app$/    // Allow all Vercel subdomains
         ];
         
         if (allowedOrigins.indexOf(origin) !== -1) {
