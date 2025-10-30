@@ -30,14 +30,13 @@ const corsOptions = {
             frontendUrl,
             'http://localhost:3000',
             'http://localhost:5000',
-            'http://127.0.0.1:5500'
+            'http://127.0.0.1:5500',
+            'https://your-frontend.netlify.app',  // Add your Netlify URL here
+            /\.netlify\.app$/,  // Allow all Netlify subdomains
+            /\.vercel\.app$/    // Allow all Vercel subdomains
         ];
         
-        // Check if origin matches allowed origins or is a Render domain
-        const isAllowed = allowedOrigins.includes(origin) || 
-                         (origin && origin.includes('.onrender.com'));
-        
-        if (isAllowed) {
+        if (allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
             console.log('Origin not allowed by CORS:', origin);
@@ -117,7 +116,7 @@ const settingsSchema = new mongoose.Schema({
 
 const Settings = mongoose.model("Settings", settingsSchema);
 
-// Student model definition with assignedStaff field
+// Student model definition with password field
 const studentSchema = new mongoose.Schema({
     name: String,
     gender: String,
@@ -145,12 +144,13 @@ const studentSchema = new mongoose.Schema({
     year: String,
     scholarship: String,
     status: String,
+    password: { type: String, default: "" }, // Add password field
     assignedStaff: { type: String, default: "" } // Add this field to track assigned staff
 });
 
 const Student = mongoose.model("Student", studentSchema);
 
-// Faculty model definition
+// Faculty model definition with password field
 const facultySchema = new mongoose.Schema({
     name: String,
     gender: String,
@@ -167,7 +167,8 @@ const facultySchema = new mongoose.Schema({
     grants: String,
     courses: String,
     performance: String,
-    status: String
+    status: String,
+    password: { type: String, default: "" } // Add password field
 });
 
 const Faculty = mongoose.model("Faculty", facultySchema);
@@ -379,37 +380,73 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// CORRECTED LOGIN LOGIC
 app.post('/post', async (req, res) => {
     const { username, password } = req.body;
-    const user = new Users({
-        username,
-        password
-    });
-    await user.save();
-    console.log(user);
-
+    
+    // Admin login
     if (username === "admin" && password === "admin") {
-        res.redirect('/adminlead.html');
-    } else if (username.startsWith("19")) {
-        // Check if student exists in the database
+        return res.redirect('/adminlead.html');
+    }
+    
+    // Student login
+    if (username.startsWith("19")) {
         try {
             const student = await Student.findOne({ admissionno: username });
-            if (student) {
-                // Student exists, redirect to student dashboard with admission number
-                res.redirect(`/student.html?admissionno=${username}`);
-            } else {
-                // Student not found, redirect to index with error
-                res.redirect('/index.html?error=notfound');
+            
+            if (!student) {
+                return res.redirect('/index.html?error=Student not found');
             }
+            
+            // Check if student has a password set
+            if (!student.password) {
+                // Set default password to admission number if not set
+                student.password = username;
+                await student.save();
+            }
+            
+            // Verify password
+            if (student.password !== password) {
+                return res.redirect('/index.html?error=Invalid credentials');
+            }
+            
+            return res.redirect(`/student.html?admissionno=${username}`);
         } catch (err) {
             console.error(err);
-            res.status(500).send("Internal Server Error");
+            return res.redirect('/index.html?error=Internal server error');
         }
-    } else if (username.startsWith("fa")) {
-        res.redirect('/staff.html');
-    } else {
-        res.status(403).send("Unauthorized user");
     }
+    
+    // Faculty login
+    if (username.startsWith("fa")) {
+        try {
+            const faculty = await Faculty.findOne({ id: username });
+            
+            if (!faculty) {
+                return res.redirect('/index.html?error=Faculty not found');
+            }
+            
+            // Check if faculty has a password set
+            if (!faculty.password) {
+                // Set default password to faculty ID if not set
+                faculty.password = username;
+                await faculty.save();
+            }
+            
+            // Verify password
+            if (faculty.password !== password) {
+                return res.redirect('/index.html?error=Invalid credentials');
+            }
+            
+            return res.redirect('/staff.html');
+        } catch (err) {
+            console.error(err);
+            return res.redirect('/index.html?error=Internal server error');
+        }
+    }
+    
+    // If none of the above
+    return res.redirect('/index.html?error=Unauthorized user');
 });
 
 // Add Settings API endpoints
