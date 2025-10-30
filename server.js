@@ -68,10 +68,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // MongoDB Atlas Connection - Use environment variable
-mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://admin:admin@cluster0.kdgkues.mongodb.net/mepco_erp?retryWrites=true&w=majority&appName=Cluster0', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
+mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://admin:admin@cluster0.kdgkues.mongodb.net/mepco_erp?retryWrites=true&w=majority&appName=Cluster0')
 .then(() => {
     console.log('✅ Connected to MongoDB Atlas successfully');
     console.log(`🚀 Server running at http://localhost:${port}/`);
