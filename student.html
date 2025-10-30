@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard - MEPCO ERP</title>
+    <script src="config.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* CSS remains unchanged - keeping your existing styles */
@@ -1150,11 +1151,7 @@
                 try {
                     window.showNotification('Fetching student data...', 'info');
                     
-                    const response = await fetch(`/api/student/${admissionNo}`);
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch student data');
-                    }
-                    const student = await response.json();
+                    const student = await handleApiCall(`/api/student/${admissionNo}`);
                     
                     displayStudentData(student);
                     
@@ -1194,11 +1191,7 @@
                 try {
                     window.showNotification('Fetching attendance data...', 'info');
                     
-                    const response = await fetch(`/api/attendance?date=${date}&period=${encodeURIComponent(period)}`);
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch attendance data');
-                    }
-                    const attendanceData = await response.json();
+                    const attendanceData = await handleApiCall(`/api/attendance?date=${date}&period=${encodeURIComponent(period)}`);
                     
                     displayAttendanceData(attendanceData);
                     
@@ -1220,11 +1213,7 @@
                 try {
                     window.showNotification(`Fetching ${catType} marks...`, 'info');
                     
-                    const response = await fetch(`/api/internal-marks/${admissionNo}?catType=${catType}`);
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch internal marks');
-                    }
-                    const data = await response.json();
+                    const data = await handleApiCall(`/api/internal-marks/${admissionNo}?catType=${catType}`);
                     const marksData = data[catType] || [];
                     
                     displayInternalMarks(marksData, catType);
@@ -1254,11 +1243,7 @@
                 try {
                     window.showNotification('Fetching university marks...', 'info');
                     
-                    const response = await fetch(`/api/university-marks/${admissionNo}`);
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch university marks');
-                    }
-                    const universityMarks = await response.json();
+                    const universityMarks = await handleApiCall(`/api/university-marks/${admissionNo}`);
                     
                     displayUniversityMarks(universityMarks);
                     
@@ -1287,11 +1272,7 @@
                 try {
                     window.showNotification('Fetching documents...', 'info');
                     
-                    const response = await fetch(`/api/documents/${admissionNo}`);
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch documents');
-                    }
-                    const documents = await response.json();
+                    const documents = await handleApiCall(`/api/documents/${admissionNo}`);
                     
                     displayDocuments(documents);
                     
@@ -1315,11 +1296,7 @@
                 try {
                     window.showNotification('Fetching assigned staff information...', 'info');
                     
-                    const response = await fetch(`/api/student/${admissionNo}/assigned-staff`);
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch assigned staff');
-                    }
-                    const staffData = await response.json();
+                    const staffData = await handleApiCall(`/api/student/${admissionNo}/assigned-staff`);
                     
                     displayAssignedStaff(staffData);
                     
@@ -1447,11 +1424,7 @@
             // Update attendance summary
             async function updateAttendanceSummary() {
                 try {
-                    const response = await fetch(`/api/attendance/summary/${admissionNo}`);
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch attendance summary');
-                    }
-                    const summary = await response.json();
+                    const summary = await handleApiCall(`/api/attendance/summary/${admissionNo}`);
                     
                     // Update the summary boxes
                     document.getElementById('totalAbsent').textContent = summary.totalAbsent || 0;
@@ -1662,16 +1635,10 @@
                 try {
                     window.showNotification('Submitting leave application...', 'info');
                     
-                    const response = await fetch('/api/leave/apply', {
+                    const result = await handleApiCall('/api/leave/apply', {
                         method: 'POST',
                         body: formData
                     });
-                    
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(`Server returned ${response.status}: ${errorText}`);
-                    }
-                    const result = await response.json();
                     
                     window.showNotification('Leave application submitted successfully!', 'success');
                     
@@ -1701,11 +1668,7 @@
                 window.showNotification('Opening document...', 'info');
                 
                 // Get document details
-                const response = await fetch(`/api/documents/${docId}`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch document details');
-                }
-                const doc = await response.json();
+                const doc = await handleApiCall(`/api/documents/${docId}`);
                 
                 // Set viewer title
                 document.getElementById('viewerTitle').textContent = doc.name;

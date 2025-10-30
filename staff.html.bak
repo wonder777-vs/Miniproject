@@ -1324,8 +1324,13 @@
         // Helper function for fetch with fallback
         async function fetchWithFallback(url, errorMessage, fallbackValue) {
             try {
-                const response = await handleApiCall(url);
-                return response;
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(errorMessage);
+                }
+                
+                return await response.json();
             } catch (error) {
                 console.warn(`${errorMessage}:`, error);
                 
@@ -1440,7 +1445,10 @@
                 // Try to get student from API
                 let student;
                 try {
-                    student = await handleApiCall(`/api/students/${admissionNo}`);
+                    const response = await fetch(`/api/students/${admissionNo}`);
+                    if (response.ok) {
+                        student = await response.json();
+                    }
                 } catch (err) {
                     console.warn('API call failed, trying local data:', err);
                 }
@@ -1505,7 +1513,10 @@
                 // Try to get student from API first
                 let student;
                 try {
-                    student = await handleApiCall(`/api/students/${admissionNo}`);
+                    const response = await fetch(`/api/students/${admissionNo}`);
+                    if (response.ok) {
+                        student = await response.json();
+                    }
                 } catch (err) {
                     console.warn('API call failed, trying local data:', err);
                 }
@@ -1530,12 +1541,19 @@
                 
                 // Save to server
                 try {
-                    await handleApiCall('/api/staff/students', {
+                    const response = await fetch('/api/staff/students', {
                         method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
                         body: JSON.stringify({
                             admissionNo: admissionNo
                         })
                     });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to save student assignment');
+                    }
                 } catch (err) {
                     console.warn('Failed to save student assignment to server:', err);
                     // Save to localStorage as fallback
@@ -1686,9 +1704,14 @@
                 // Get attendance records for the selected date and period
                 let dateRecords = {};
                 try {
-                    dateRecords = await handleApiCall(`/api/attendance?date=${date}&period=${encodeURIComponent(period)}`);
-                    // Update local attendance records
-                    attendanceRecords[date][period] = dateRecords;
+                    const response = await fetch(`/api/attendance?date=${date}&period=${encodeURIComponent(period)}`);
+                    if (response.ok) {
+                        dateRecords = await response.json();
+                        // Update local attendance records
+                        attendanceRecords[date][period] = dateRecords;
+                    } else {
+                        throw new Error('Server returned ' + response.status);
+                    }
                 } catch (err) {
                     console.warn('API call failed, using local data:', err);
                     // Use local data if API fails
@@ -1762,14 +1785,22 @@
             try {
                 showNotification('Saving attendance...', 'info');
                 
-                await handleApiCall('/api/attendance', {
+                const response = await fetch('/api/attendance', {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify({
                         date,
                         period,
                         records: attendanceRecords[date]?.[period] || {}
                     })
                 });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server returned ${response.status}: ${errorText}`);
+                }
 
                 // Save to localStorage as backup
                 try {
@@ -1901,10 +1932,21 @@
                     try {
                         showNotification('Creating exam...', 'info');
                         
-                        const createdExam = await handleApiCall('/api/exams', {
+                        const response = await fetch('/api/exams', {
                             method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
                             body: JSON.stringify(newExam)
                         });
+
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            throw new Error(`Server returned ${response.status}: ${errorText}`);
+                        }
+                        
+                        // Get the created exam from the response
+                        const createdExam = await response.json();
                         
                         // Update local exams array with the created exam
                         exams.push(createdExam);
@@ -1946,7 +1988,11 @@
         
         async function enterMarks(examId) {
             try {
-                const exam = await handleApiCall(`/api/exams/${examId}`);
+                const response = await fetch(`/api/exams/${examId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch exam details');
+                }
+                const exam = await response.json();
                 
                 if (!exam) {
                     showNotification('Exam not found', 'error');
@@ -2031,10 +2077,21 @@
                     }
                 });
                 
-                const updatedExam = await handleApiCall(`/api/exams/${examId}/marks`, {
+                const response = await fetch(`/api/exams/${examId}/marks`, {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify({ marks: marksData })
                 });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server returned ${response.status}: ${errorText}`);
+                }
+                
+                // Get the updated exam from the response
+                const updatedExam = await response.json();
                 
                 // Update local exam data
                 const examIndex = exams.findIndex(e => e.id === examId);
@@ -2084,7 +2141,11 @@
         
         async function viewMarks(examId) {
             try {
-                const exam = await handleApiCall(`/api/exams/${examId}`);
+                const response = await fetch(`/api/exams/${examId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch exam details');
+                }
+                const exam = await response.json();
                 
                 if (!exam) {
                     showNotification('Exam not found', 'error');
@@ -2159,16 +2220,23 @@
             try {
                 showNotification('Preparing download...', 'info');
                 
-                // Get exam details and marks data in parallel
-                let exam, marksData = {};
+                // Get exam details
+                const examResponse = await fetch(`/api/exams/${examId}`);
+                if (!examResponse.ok) {
+                    throw new Error('Failed to fetch exam details');
+                }
+                const exam = await examResponse.json();
+                
+                if (!exam) {
+                    throw new Error('Exam not found');
+                }
+                
+                // Get marks data
+                let marksData = {};
                 try {
-                    [exam, marksData] = await Promise.all([
-                        handleApiCall(`/api/exams/${examId}`),
-                        handleApiCall(`/api/exams/${examId}/marks`)
-                    ]);
-                    
-                    if (!exam) {
-                        throw new Error('Exam not found');
+                    const marksResponse = await fetch(`/api/exams/${examId}/marks`);
+                    if (marksResponse.ok) {
+                        marksData = await marksResponse.json();
                     }
                 } catch (err) {
                     console.warn('Failed to fetch marks from server, using local data:', err);
@@ -2225,7 +2293,10 @@
                 // Get all leave requests
                 let allLeaveRequests = [];
                 try {
-                    allLeaveRequests = await handleApiCall('/api/leave-requests');
+                    const response = await fetch('/api/leave-requests');
+                    if (response.ok) {
+                        allLeaveRequests = await response.json();
+                    }
                 } catch (err) {
                     console.warn('API call failed:', err);
                     // Try to get from localStorage
@@ -2300,10 +2371,20 @@
             try {
                 showNotification('Processing leave request...', 'info');
                 
-                const updatedRequest = await handleApiCall(`/api/leave-requests/${id}`, {
+                const response = await fetch(`/api/leave-requests/${id}`, {
                     method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify({ status })
                 });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server returned ${response.status}: ${errorText}`);
+                }
+                
+                const updatedRequest = await response.json();
                 
                 // Update local data
                 const requestIndex = leaveRequests.findIndex(req => req.id === id);
@@ -2359,15 +2440,20 @@
             
             // Load existing documents
             try {
-                const allDocuments = await handleApiCall('/api/documents');
-                
-                // Filter documents to only show those associated with assigned students
-                const staffStudentIds = staffStudents.map(s => s.admissionno);
-                uploadedDocuments = allDocuments.filter(doc => 
-                    doc.studentIds && doc.studentIds.some(id => staffStudentIds.includes(id))
-                );
-                
-                displayDocuments();
+                const response = await fetch('/api/documents');
+                if (response.ok) {
+                    const allDocuments = await response.json();
+                    
+                    // Filter documents to only show those associated with assigned students
+                    const staffStudentIds = staffStudents.map(s => s.admissionno);
+                    uploadedDocuments = allDocuments.filter(doc => 
+                        doc.studentIds && doc.studentIds.some(id => staffStudentIds.includes(id))
+                    );
+                    
+                    displayDocuments();
+                } else {
+                    throw new Error('Failed to fetch documents');
+                }
             } catch (error) {
                 console.error('Error loading documents:', error);
                 
@@ -2416,10 +2502,17 @@
                     formData.append('studentIds', JSON.stringify(staffStudentIds));
                     
                     // Upload files to server
-                    const result = await handleApiCall('/api/documents/upload', {
+                    const response = await fetch('/api/documents/upload', {
                         method: 'POST',
                         body: formData
                     });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Server returned ${response.status}: ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
                     
                     // Update local documents array
                     if (result.documents && result.documents.length > 0) {
@@ -2654,9 +2747,13 @@
                     if (!document.isLocal) {
                         // Try to delete from server
                         try {
-                            await handleApiCall(`/api/documents/${docId}`, {
+                            const response = await fetch(`/api/documents/${docId}`, {
                                 method: 'DELETE'
                             });
+                            
+                            if (!response.ok) {
+                                throw new Error('Failed to delete document from server');
+                            }
                         } catch (err) {
                             console.warn('Failed to delete document from server:', err);
                         }
