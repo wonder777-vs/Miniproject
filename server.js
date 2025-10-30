@@ -30,13 +30,14 @@ const corsOptions = {
             frontendUrl,
             'http://localhost:3000',
             'http://localhost:5000',
-            'http://127.0.0.1:5500',
-            'https://your-frontend.netlify.app',  // Add your Netlify URL here
-            /\.netlify\.app$/,  // Allow all Netlify subdomains
-            /\.vercel\.app$/    // Allow all Vercel subdomains
+            'http://127.0.0.1:5500'
         ];
         
-        if (allowedOrigins.indexOf(origin) !== -1) {
+        // Check if origin matches allowed origins or is a Render domain
+        const isAllowed = allowedOrigins.includes(origin) || 
+                         (origin && origin.includes('.onrender.com'));
+        
+        if (isAllowed) {
             callback(null, true);
         } else {
             console.log('Origin not allowed by CORS:', origin);

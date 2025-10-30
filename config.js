@@ -1,7 +1,7 @@
 // API Configuration
 const CONFIG = {
     // Use the deployed URL when in production, localhost for development
-    API_URL: window.location.hostname === 'localhost' 
+    API_URL: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? 'http://localhost:3000'
         : 'https://miniproject-1-fcw7.onrender.com', // Replace with your actual Render URL
 };
