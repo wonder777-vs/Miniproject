@@ -310,7 +310,7 @@
   <!-- Add Student Modal -->
   <div class="modal-bg" id="addStudentModal">
     <div class="modal">
-      <button class="close-btn" onclick="closeModal('addStudentModal')">&times;</button>
+      <button class="close-btn" id="closeStudentModal">&times;</button>
       <h3>Add Student</h3>
       <form id="studentForm">
         <label>Name</label>
@@ -332,8 +332,6 @@
         <input type="text" name="bloodgroup">
         <label>Religion</label>
         <input type="text" name="religion">
-        <label>Caste</label>
-        <input type="text" name="caste">
         <label>Admission Number</label>
         <input type="text" name="admissionno" required>
         <label>Roll Number</label>
@@ -375,7 +373,7 @@
         <label>Address</label>
         <textarea name="address" rows="2"></textarea>
         <div class="modal-actions">
-          <button type="button" class="btn btn-cancel" onclick="closeModal('addStudentModal')">Cancel</button>
+          <button type="button" class="btn btn-cancel" id="cancelStudentModal">Cancel</button>
           <button type="submit" class="btn btn-save"><i class="fas fa-save"></i> Add Student</button>
         </div>
       </form>
@@ -385,7 +383,7 @@
   <!-- Add Faculty Modal -->
   <div class="modal-bg" id="addFacultyModal">
     <div class="modal">
-      <button class="close-btn" onclick="closeModal('addFacultyModal')">&times;</button>
+      <button class="close-btn" id="closeFacultyModal">&times;</button>
       <h3>Add Faculty</h3>
       <form id="facultyForm">
         <label>Full Name</label>
@@ -424,7 +422,7 @@
         <label>Student Performance (Summary)</label>
         <textarea name="performance" rows="2" placeholder="Student results, feedback, achievements"></textarea>
         <div class="modal-actions">
-          <button type="button" class="btn btn-cancel" onclick="closeModal('addFacultyModal')">Cancel</button>
+          <button type="button" class="btn btn-cancel" id="cancelFacultyModal">Cancel</button>
           <button type="submit" class="btn btn-save"><i class="fas fa-save"></i> Add Faculty</button>
         </div>
       </form>
@@ -434,7 +432,7 @@
   <!-- Add Course Modal -->
   <div class="modal-bg" id="addCourseModal">
     <div class="modal">
-      <button class="close-btn" onclick="closeModal('addCourseModal')">&times;</button>
+      <button class="close-btn" id="closeCourseModal">&times;</button>
       <h3>Create Course</h3>
       <form id="courseForm">
         <label>Course ID</label>
@@ -457,7 +455,7 @@
         <label>Assessments & Assignments</label>
         <textarea name="assessments" rows="2" placeholder="Quizzes, exams, projects, etc."></textarea>
         <div class="modal-actions">
-          <button type="button" class="btn btn-cancel" onclick="closeModal('addCourseModal')">Cancel</button>
+          <button type="button" class="btn btn-cancel" id="cancelCourseModal">Cancel</button>
           <button type="submit" class="btn btn-save"><i class="fas fa-save"></i> Add Course</button>
         </div>
       </form>
@@ -469,6 +467,58 @@
 
   <!-- Initialize the forms -->
   <script>
+    // Define API base URL (make sure config.js has this)
+    const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000';
+    
+    // Helper function for API calls
+    async function handleApiCall(endpoint, options = {}) {
+      const url = `${API_BASE_URL}${endpoint}`;
+      
+      const defaultOptions = {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+      
+      if (options.body) {
+        options.body = typeof options.body === 'string' ? options.body : JSON.stringify(options.body);
+      }
+      
+      const config = { ...defaultOptions, ...options };
+      
+      try {
+        const response = await fetch(url, config);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('API call error:', error);
+        showNotification(error.message || 'An error occurred', 'error');
+        throw error;
+      }
+    }
+    
+    // Helper function to show notifications
+    function showNotification(message, type = 'success') {
+      const notification = document.getElementById('notification');
+      
+      // Set notification class based on type
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      
+      // Show notification
+      notification.classList.add('show');
+      
+      // Hide notification after 5 seconds
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 5000);
+    }
+    
     document.addEventListener('DOMContentLoaded', async function() {
       // Get references to all elements
       const elements = {
@@ -516,6 +566,16 @@
       if (elements.createCourseBtn) {
         elements.createCourseBtn.addEventListener('click', () => showModal('addCourseModal'));
       }
+
+      // Close modal buttons
+      document.getElementById('closeStudentModal').addEventListener('click', () => closeModal('addStudentModal'));
+      document.getElementById('cancelStudentModal').addEventListener('click', () => closeModal('addStudentModal'));
+      
+      document.getElementById('closeFacultyModal').addEventListener('click', () => closeModal('addFacultyModal'));
+      document.getElementById('cancelFacultyModal').addEventListener('click', () => closeModal('addFacultyModal'));
+      
+      document.getElementById('closeCourseModal').addEventListener('click', () => closeModal('addCourseModal'));
+      document.getElementById('cancelCourseModal').addEventListener('click', () => closeModal('addCourseModal'));
 
       // Load dashboard statistics
       async function loadDashboardStats() {
