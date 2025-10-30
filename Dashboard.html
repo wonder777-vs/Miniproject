@@ -467,8 +467,8 @@
 
   <!-- Initialize the forms -->
   <script>
-    // Define API base URL (make sure config.js has this)
-    const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000';
+    // Use API URL from config.js
+    const API_BASE_URL = CONFIG.API_URL;
     
     // Helper function for API calls
     async function handleApiCall(endpoint, options = {}) {
