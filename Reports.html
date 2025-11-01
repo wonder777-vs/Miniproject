@@ -464,8 +464,8 @@
     function openReportModal(reportType) {
         currentReportType = reportType;
         elements.modalTitle.textContent = `Generate ${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report`;
-        elements.reportType.value = reportType;
         elements.reportForm.reset();
+        elements.reportType.value = reportType;
         elements.customDateRangeGroup.style.display = 'none';
         elements.reportModal.style.display = 'flex';
       }
@@ -496,18 +496,23 @@
         try {
           showNotification('Generating report...', 'warning');
           
-          const response = await handleApiCall('/api/reports/generate', {
+          // Use fetch directly to handle binary response
+          const response = await fetch(`${CONFIG.API_URL}/api/reports/generate`, {
             method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
             body: JSON.stringify(reportData)
           });
           
-          // Create a download link for the generated report
-          const blob = new Blob([response.data], {
-            type: reportData.format === 'excel' 
-              ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-              : 'application/pdf'
-          });
+          if (!response.ok) {
+            throw new Error('Failed to generate report');
+          }
           
+          // Get the blob from response
+          const blob = await response.blob();
+          
+          // Create a download link for the generated report
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
