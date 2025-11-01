@@ -6,8 +6,9 @@
     <title>Student Dashboard - MEPCO ERP</title>
     <script src="config.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* CSS remains unchanged - keeping your existing styles */
+        /* Your existing CSS remains unchanged */
         :root {
             --primary-color: #4a6bdf;
             --secondary-color: #6c757d;
@@ -155,7 +156,138 @@
             display: block;
         }
 
-        /* Form Styles */
+        /* Attendance Styles - Updated to match screenshot */
+        .attendance-container {
+            max-width: 100%;
+            margin: 20px 0;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            overflow-x: auto;
+            padding: 20px;
+        }
+        
+        .attendance-container h2 {
+            text-align: center;
+            color: #002147;
+            margin-bottom: 20px;
+        }
+        
+        .attendance-main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .attendance-table-container {
+            flex: 2;
+            min-width: 300px;
+        }
+        
+        .attendance-stats-container {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .chart-container {
+            height: 250px;
+            position: relative;
+        }
+        
+        .attendance-container table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+        
+        .attendance-container th {
+            background-color: #0074cc;
+            color: white;
+            padding: 10px;
+        }
+        
+        .attendance-container td {
+            padding: 8px;
+            border: 1px solid #ccc;
+        }
+        
+        .attendance-container .present {
+            background-color: #28a745;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .attendance-container .absent {
+            background-color: #dc3545;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .attendance-container .none {
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .attendance-container .side-box {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background: #f9f9f9;
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .attendance-container .side-box .label {
+            color: #002147;
+            font-weight: bold;
+        }
+        
+        .attendance-container .highlight-red {
+            color: red;
+        }
+        
+        .attendance-container .highlight-green {
+            color: green;
+        }
+        
+        .attendance-container .summary-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        /* Other existing styles remain unchanged */
         .form-group {
             margin-bottom: 20px;
         }
@@ -352,133 +484,10 @@
             color: var(--border-color);
         }
 
-        /* Attendance Styles */
-        .attendance-container {
-            max-width: 100%;
-            margin: 20px 0;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            overflow-x: auto;
-            padding: 20px;
-        }
-        
-        .attendance-container h2 {
-            text-align: center;
-            color: #002147;
-            margin-bottom: 20px;
-        }
-        
-        .attendance-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .attendance-controls .form-group {
-            margin-bottom: 0;
-            flex: 1;
-            min-width: 200px;
-        }
-        
-        .attendance-controls .btn {
-            margin-left: 15px;
-        }
-        
-        .attendance-container table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: center;
-        }
-        
-        .attendance-container th {
-            background-color: #0074cc;
-            color: white;
-            padding: 10px;
-        }
-        
-        .attendance-container td {
-            padding: 8px;
-            border: 1px solid #ccc;
-        }
-        
-        .attendance-container .present {
-            background-color: #28a745;
-            color: white;
-            font-weight: bold;
-        }
-        
-        .attendance-container .absent {
-            background-color: #dc3545;
-            color: white;
-            font-weight: bold;
-        }
-        
-        .attendance-container .none {
-            background-color: #f8f9fa;
-            color: #333;
-        }
-        
-        .attendance-container .side-box {
-            width: 100%;
-            padding: 15px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            background: #f9f9f9;
-            font-size: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .attendance-container .side-box .label {
-            color: #002147;
-            font-weight: bold;
-        }
-        
-        .attendance-container .highlight-red {
-            color: red;
-        }
-        
-        .attendance-container .highlight-green {
-            color: green;
-        }
-        
-        .attendance-container .summary-section {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        
         /* Leave Form Styles */
         .leave-form {
             max-width: 800px;
             margin: 0 auto;
-        }
-        
-        /* Marks Table Styles */
-        .marks-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        
-        .marks-table th, .marks-table td {
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            text-align: center;
-        }
-        
-        .marks-table th {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .marks-table tr:nth-child(even) {
-            background-color: var(--light-color);
         }
 
         /* CAT Tabs Styles */
@@ -657,8 +666,12 @@
                 grid-template-columns: 1fr;
             }
             
-            .attendance-container .summary-section {
+            .attendance-main-content {
                 flex-direction: column;
+            }
+            
+            .stats-summary {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -729,20 +742,58 @@
                             </div>
                         </div>
 
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Period</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="attendanceTableBody">
-                                <tr>
-                                    <td colspan="3" class="empty-state">Loading attendance data...</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="attendance-main-content">
+                            <!-- Left: Attendance Table -->
+                            <div class="attendance-table-container">
+                                <div class="table-responsive">
+                                    <table class="attendance-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>H1</th>
+                                                <th>H2</th>
+                                                <th>H3</th>
+                                                <th>H4</th>
+                                                <th>H5</th>
+                                                <th>H6</th>
+                                                <th>H7</th>
+                                                <th>H8</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="attendanceTableBody">
+                                            <tr>
+                                                <td colspan="9" class="empty-state">Loading attendance data...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Right: Stats and Chart -->
+                            <div class="attendance-stats-container">
+                                <div class="stats-summary">
+                                    <div class="stat-item">
+                                        <div class="stat-value" id="statTotalAbsent">0</div>
+                                        <div class="stat-label">Total Absent</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value" id="statTotalLeave">0</div>
+                                        <div class="stat-label">Total Leave</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value" id="statTotalOD">0</div>
+                                        <div class="stat-label">Total OD</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value" id="statTotalML">0</div>
+                                        <div class="stat-label">Total ML</div>
+                                    </div>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="leaveChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1013,6 +1064,7 @@
     <script>
         // Global variables
         let admissionNo = null;
+        let leaveChartInstance = null;
         
         // Make showNotification globally accessible
         window.showNotification = function(message, type) {
@@ -1038,7 +1090,6 @@
             const attendanceTableBody = document.getElementById('attendanceTableBody');
             const leaveForm = document.getElementById('leaveForm');
             const assignedStaffInfo = document.getElementById('assignedStaffInfo');
-            const loadAttendanceBtn = document.getElementById('loadAttendanceBtn');
             
             // CAT tabs
             const catTabs = document.querySelectorAll('.cat-tab');
@@ -1047,13 +1098,6 @@
             // Extract admission number from URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             admissionNo = urlParams.get('admissionno');
-            
-            // Set today's date as default for attendance
-            const today = new Date().toISOString().split('T')[0];
-            const attendanceDateInput = document.getElementById('attendanceDate');
-            if (attendanceDateInput) {
-                attendanceDateInput.value = today;
-            }
             
             // Tab switching functionality
             tabs.forEach(tab => {
@@ -1157,7 +1201,7 @@
                 } catch (error) {
                     console.error('Error fetching attendance data:', error);
                     window.showNotification('Attendance data not available.', 'warning');
-                    attendanceTableBody.innerHTML = '<tr><td colspan="3" class="empty-state">No attendance data available</td></tr>';
+                    attendanceTableBody.innerHTML = '<tr><td colspan="9" class="empty-state">No attendance data available</td></tr>';
                 }
             }
             
@@ -1331,45 +1375,54 @@
             // Display all attendance data
             function displayAllAttendanceData(attendanceRecords) {
                 // Clear existing table rows
-                attendanceTableBody.innerHTML = '';
+                const tableBody = document.getElementById('attendanceTableBody');
+                tableBody.innerHTML = '';
                 
                 if (!attendanceRecords || attendanceRecords.length === 0) {
-                    attendanceTableBody.innerHTML = '<tr><td colspan="3" class="empty-state">No attendance data available</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="9" class="empty-state">No attendance data available</td></tr>';
                     return;
                 }
                 
-                // Sort by date (newest first)
-                const sortedRecords = attendanceRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+                // Group records by date
+                const groupedByDate = {};
+                const hours = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8'];
                 
-                // Populate with new data
-                sortedRecords.forEach(record => {
+                attendanceRecords.forEach(record => {
+                    if (!groupedByDate[record.date]) {
+                        groupedByDate[record.date] = {};
+                    }
+                    groupedByDate[record.date][record.period] = record.status;
+                });
+                
+                // Get unique dates and sort in descending order
+                const dates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
+                
+                // Create a row for each date
+                dates.forEach(date => {
                     const row = document.createElement('tr');
                     
                     // Date cell
                     const dateCell = document.createElement('td');
-                    dateCell.textContent = record.date;
+                    dateCell.textContent = date;
                     row.appendChild(dateCell);
                     
-                    // Period cell
-                    const periodCell = document.createElement('td');
-                    periodCell.textContent = record.period;
-                    row.appendChild(periodCell);
+                    // For each hour, create a cell
+                    hours.forEach(hour => {
+                        const hourCell = document.createElement('td');
+                        const status = groupedByDate[date][hour];
+                        
+                        if (status === 'P') {
+                            hourCell.innerHTML = '<span class="present">P</span>';
+                        } else if (status === 'A') {
+                            hourCell.innerHTML = '<span class="absent">-</span>';
+                        } else {
+                            hourCell.innerHTML = '<span class="none">-</span>';
+                        }
+                        
+                        row.appendChild(hourCell);
+                    });
                     
-                    // Status cell
-                    const statusCell = document.createElement('td');
-                    if (record.status === 'P') {
-                        statusCell.className = 'present';
-                        statusCell.textContent = 'Present';
-                    } else if (record.status === 'A') {
-                        statusCell.className = 'absent';
-                        statusCell.textContent = 'Absent';
-                    } else {
-                        statusCell.className = 'none';
-                        statusCell.textContent = record.status || '-';
-                    }
-                    row.appendChild(statusCell);
-                    
-                    attendanceTableBody.appendChild(row);
+                    tableBody.appendChild(row);
                 });
                 
                 // Update summary statistics
@@ -1393,9 +1446,69 @@
                     document.getElementById('totalHoursConducted').textContent = summary.totalHoursConducted || 0;
                     document.getElementById('totalHoursAttended').textContent = summary.totalHoursAttended || 0;
                     document.getElementById('attendancePercentage').textContent = summary.attendancePercentage || '0.0%';
+                    
+                    // Update the stat boxes in the right column
+                    document.getElementById('statTotalAbsent').textContent = summary.totalAbsent || 0;
+                    document.getElementById('statTotalLeave').textContent = summary.totalLeave || 0;
+                    document.getElementById('statTotalOD').textContent = summary.totalOD || 0;
+                    document.getElementById('statTotalML').textContent = summary.totalML || 0;
+                    
+                    // Create the chart
+                    createLeaveChart(summary);
                 } catch (error) {
                     console.error('Error updating attendance summary:', error);
                 }
+            }
+            
+            // Create leave statistics chart
+            function createLeaveChart(summary) {
+                const ctx = document.getElementById('leaveChart').getContext('2d');
+                
+                // Destroy previous chart instance if exists
+                if (leaveChartInstance) {
+                    leaveChartInstance.destroy();
+                }
+                
+                // Prepare data for the chart
+                const data = {
+                    labels: ['Present', 'Absent', 'Leave', 'OD', 'ML'],
+                    datasets: [{
+                        data: [
+                            summary.totalHoursAttended || 0,
+                            summary.totalAbsent || 0,
+                            summary.totalLeave || 0,
+                            summary.totalOD || 0,
+                            summary.totalML || 0
+                        ],
+                        backgroundColor: [
+                            '#28a745', // green for present
+                            '#dc3545', // red for absent
+                            '#ffc107', // yellow for leave
+                            '#17a2b8', // blue for OD
+                            '#6f42c1'  // purple for ML
+                        ],
+                        borderWidth: 1
+                    }]
+                };
+                
+                // Create the chart
+                leaveChartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Leave Statistics'
+                            }
+                        }
+                    }
+                });
             }
             
             // Display internal marks
