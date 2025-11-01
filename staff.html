@@ -1756,11 +1756,13 @@
                 
                 // Initialize attendance records for this date and period if not exists
                 if (!attendanceRecords[date]) {
-                    attendanceRecords[date] = {};
+                    attendanceRecords[date] = Object.create(null);
                 }
                 if (!attendanceRecords[date][period]) {
-                    attendanceRecords[date][period] = {};
+                    attendanceRecords[date][period] = Object.create(null);
                 }
+                
+                console.log('📋 Initialized attendance structure for:', date, period);
                 
                 // Get attendance records for the selected date and period
                 let dateRecords = {};
@@ -1840,10 +1842,14 @@
                 attendanceRecords[date][period] = {};
             }
             
+            // Ensure admissionNo is treated as a string key, not array index
+            const key = String(admissionNo);
+            
             // Store the status (P, A, L, O, or empty string)
-            attendanceRecords[date][period][admissionNo] = status;
-            console.log(`✅ Updated attendance: ${admissionNo} -> ${status} for ${date}, ${period}`);
+            attendanceRecords[date][period][key] = status;
+            console.log(`✅ Updated attendance: ${key} -> ${status} for ${date}, ${period}`);
             console.log('📋 Current attendance records for this period:', attendanceRecords[date][period]);
+            console.log('📋 Type check:', Array.isArray(attendanceRecords[date][period]) ? 'ARRAY (ERROR!)' : 'OBJECT (CORRECT)');
         }
         
         async function saveAttendance() {
@@ -1869,25 +1875,38 @@
             try {
                 showNotification('Saving attendance...', 'info');
                 
-                // Ensure records is a plain object, not an array
-                let recordsToSave = attendanceRecords[date]?.[period] || {};
+                // Get records for this date and period
+                let recordsToSave = attendanceRecords[date]?.[period];
                 
-                // If it's an array or not a plain object, convert it
-                if (Array.isArray(recordsToSave) || typeof recordsToSave !== 'object') {
-                    console.warn('Invalid records format detected, resetting to empty object');
+                console.log('Raw records to save:', recordsToSave);
+                console.log('Is Array?', Array.isArray(recordsToSave));
+                
+                // Convert array to object if needed (happens when admission numbers are numeric)
+                if (Array.isArray(recordsToSave)) {
+                    console.warn('⚠️ Records stored as array, converting to object...');
+                    const objRecords = {};
+                    recordsToSave.forEach((value, index) => {
+                        if (value && value !== '' && value !== null && value !== undefined) {
+                            objRecords[String(index)] = value;
+                        }
+                    });
+                    recordsToSave = objRecords;
+                    attendanceRecords[date][period] = objRecords; // Update the stored records
+                } else if (!recordsToSave || typeof recordsToSave !== 'object') {
+                    console.warn('Invalid records format detected, using empty object');
                     recordsToSave = {};
-                    attendanceRecords[date][period] = {};
                 }
                 
                 // Filter out empty/null values
                 const cleanRecords = {};
                 for (const [key, value] of Object.entries(recordsToSave)) {
                     if (value && value !== '' && value !== null && value !== undefined) {
-                        cleanRecords[key] = value;
+                        cleanRecords[String(key)] = String(value); // Ensure both are strings
                     }
                 }
                 
-                console.log('Saving attendance records:', cleanRecords);
+                console.log('✅ Clean attendance records to save:', cleanRecords);
+                console.log('✅ Number of students marked:', Object.keys(cleanRecords).length);
                 
                 await handleApiCall('/api/attendance', {
                     method: 'POST',
