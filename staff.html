@@ -1794,7 +1794,7 @@
                         <td>${student.name}</td>
                         <td>${student.department || 'N/A'}</td>
                         <td>
-                            <select onchange="updateAttendance('${date}', '${period}', '${student.admissionno}', this.value)" style="padding: 5px; border-radius: 4px;">
+                            <select class="attendance-dropdown" data-admission="${student.admissionno}" onchange="updateAttendanceFromDropdown(this)" style="padding: 5px; border-radius: 4px;">
                                 <option value="" ${status === '' ? 'selected' : ''}>-</option>
                                 <option value="P" ${status === 'P' || status === true ? 'selected' : ''}>Present</option>
                                 <option value="A" ${status === 'A' || status === false ? 'selected' : ''}>Absent</option>
@@ -1816,6 +1816,21 @@
             }
         }
         
+        function updateAttendanceFromDropdown(selectElement) {
+            // Get current date and period from the form inputs
+            const date = document.getElementById('attendanceDate').value;
+            const period = document.getElementById('attendancePeriod').value;
+            const admissionNo = selectElement.getAttribute('data-admission');
+            const status = selectElement.value;
+            
+            if (!date || !period) {
+                showNotification('Please select date and period first', 'error');
+                return;
+            }
+            
+            updateAttendance(date, period, admissionNo, status);
+        }
+        
         function updateAttendance(date, period, admissionNo, status) {
             if (!attendanceRecords[date]) {
                 attendanceRecords[date] = {};
@@ -1827,6 +1842,8 @@
             
             // Store the status (P, A, L, O, or empty string)
             attendanceRecords[date][period][admissionNo] = status;
+            console.log(`✅ Updated attendance: ${admissionNo} -> ${status} for ${date}, ${period}`);
+            console.log('📋 Current attendance records for this period:', attendanceRecords[date][period]);
         }
         
         async function saveAttendance() {
