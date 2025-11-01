@@ -663,7 +663,15 @@ app.get('/api/exams', async (req, res) => {
 app.get('/api/exams/:id', async (req, res) => {
     try {
         console.log(`Fetching exam with ID: ${req.params.id}`);
-        const exam = await Exam.findOne({ id: req.params.id });
+        
+        // Try to find by 'id' field first, then by '_id' if it's a valid MongoDB ObjectId
+        let exam = await Exam.findOne({ id: req.params.id });
+        
+        // If not found by 'id' and the param looks like a MongoDB ObjectId, try by _id
+        if (!exam && req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+            exam = await Exam.findById(req.params.id);
+        }
+        
         if (!exam) {
             console.log('Exam not found');
             return res.status(404).json({ error: 'Exam not found' });
@@ -704,11 +712,22 @@ app.post('/api/exams', async (req, res) => {
 app.put('/api/exams/:id', async (req, res) => {
     try {
         console.log(`Updating exam with ID: ${req.params.id}`);
-        const exam = await Exam.findOneAndUpdate(
+        
+        // Try to find by 'id' field first, then by '_id' if it's a valid MongoDB ObjectId
+        let exam = await Exam.findOneAndUpdate(
             { id: req.params.id },
             req.body,
             { new: true }
         );
+        
+        // If not found by 'id' and the param looks like a MongoDB ObjectId, try by _id
+        if (!exam && req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+            exam = await Exam.findByIdAndUpdate(
+                req.params.id,
+                req.body,
+                { new: true }
+            );
+        }
         
         if (!exam) {
             console.log('Exam not found');
@@ -726,7 +745,14 @@ app.put('/api/exams/:id', async (req, res) => {
 app.delete('/api/exams/:id', async (req, res) => {
     try {
         console.log(`Deleting exam with ID: ${req.params.id}`);
-        const exam = await Exam.findOneAndDelete({ id: req.params.id });
+        
+        // Try to find by 'id' field first, then by '_id' if it's a valid MongoDB ObjectId
+        let exam = await Exam.findOneAndDelete({ id: req.params.id });
+        
+        // If not found by 'id' and the param looks like a MongoDB ObjectId, try by _id
+        if (!exam && req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+            exam = await Exam.findByIdAndDelete(req.params.id);
+        }
         
         if (!exam) {
             console.log('Exam not found');

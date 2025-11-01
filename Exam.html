@@ -507,19 +507,20 @@
                 
                 exams.forEach(exam => {
                     const row = document.createElement('tr');
+                    const examId = exam.id || exam._id;
                     
                     row.innerHTML = `
-                        <td>${exam.id}</td>
+                        <td>${examId}</td>
                         <td>${exam.name}</td>
                         <td>${exam.date}</td>
                         <td>${exam.totalMarks}</td>
                         <td>${exam.duration}</td>
                         <td>
                             <div class="actions">
-                                <button class="action-btn edit-btn" title="Edit" data-id="${exam.id}">
+                                <button class="action-btn edit-btn" title="Edit" data-id="${examId}">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="action-btn delete" title="Delete" data-id="${exam.id}">
+                                <button class="action-btn delete" title="Delete" data-id="${examId}">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -608,12 +609,12 @@
                     btn.addEventListener('click', function() {
                         currentAction = 'edit';
                         currentExamId = this.getAttribute('data-id');
-                        const exam = exams.find(e => e.id === currentExamId);
+                        const exam = exams.find(e => (e.id || e._id) === currentExamId);
                         
                         if (exam) {
                             modalTitle.textContent = 'Edit Exam';
                             
-                            document.getElementById('examId').value = exam.id;
+                            document.getElementById('examId').value = exam.id || exam._id;
                             document.getElementById('subject').value = exam.name;
                             document.getElementById('examDate').value = exam.date;
                             document.getElementById('totalMarks').value = exam.totalMarks;
