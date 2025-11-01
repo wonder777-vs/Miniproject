@@ -431,7 +431,7 @@ app.post('/post', async (req, res) => {
                 return res.redirect('/index.html?error=Invalid credentials');
             }
             
-            return res.redirect('/staff.html');
+            return res.redirect(`/staff.html?id=${username}`);
         }
     } catch (err) {
         console.error('Error during faculty login:', err);
@@ -581,12 +581,21 @@ app.get('/api/student/:admissionno/assigned-staff', async (req, res) => {
         }
 
         if (!student.assignedStaff) {
-            return res.status(404).json({ message: "No staff assigned to this student" });
+            // Return 200 with null data instead of 404 - this is a valid case
+            return res.json({ 
+                message: "No staff assigned yet",
+                name: null,
+                department: null 
+            });
         }
 
         const staff = await Faculty.findOne({ id: student.assignedStaff });
         if (!staff) {
-            return res.status(404).json({ message: "Assigned staff not found" });
+            return res.json({ 
+                message: "Assigned staff not found in database",
+                name: null,
+                department: null 
+            });
         }
 
         res.json(staff);
@@ -1080,13 +1089,19 @@ app.get("/api/documents/:admissionno", async (req, res) => {
 // NEW: Document download endpoint
 app.get('/api/documents/download/:id', async (req, res) => {
     try {
+        console.log("Download request for document ID:", req.params.id);
+        
         const document = await Document.findById(req.params.id);
         if (!document) {
+            console.log("Document not found in database");
             return res.status(404).json({ message: "Document not found" });
         }
 
+        console.log("Document found:", document.name, "Path:", document.filePath);
+
         // Check if file exists
         if (!fs.existsSync(document.filePath)) {
+            console.log("File does not exist on server:", document.filePath);
             return res.status(404).json({ message: "File not found on server" });
         }
 
@@ -1097,6 +1112,7 @@ app.get('/api/documents/download/:id', async (req, res) => {
         // Stream the file
         const fileStream = fs.createReadStream(document.filePath);
         fileStream.pipe(res);
+        console.log("File streaming started");
     } catch (err) {
         console.error("Error downloading document:", err);
         res.status(500).json({ message: "❌ Error downloading document", error: err.message });
@@ -1104,8 +1120,11 @@ app.get('/api/documents/download/:id', async (req, res) => {
 });
 
 // Student Dashboard - Leave Application API (FIXED)
-app.post("/api/leave/apply", async (req, res) => {
+app.post("/api/leave/apply", upload.single('attachment'), async (req, res) => {
     try {
+        console.log("Leave application received:", req.body);
+        console.log("File attached:", req.file);
+        
         const { rollNo, reason, days, date } = req.body;
 
         // Check for required fields
@@ -1120,7 +1139,7 @@ app.post("/api/leave/apply", async (req, res) => {
         const leaveRequest = new LeaveRequest({
             rollNo,
             reason,
-            days,
+            days: parseInt(days),
             date
         });
 
@@ -1325,7 +1344,69 @@ app.delete("/api/documents/:id", async (req, res) => {
     }
 });
 
-// NEW: Assign student to staff endpoint
+// NEW: Assign student to staff endpoint (used from staff.html)
+app.post("/api/staff/students", async (req, res) => {
+    try {
+        const { staffId, admissionNo } = req.body;
+        
+        console.log("Assigning student to staff:", { staffId, admissionNo });
+        
+        // Check if staff exists
+        const staff = await Faculty.findOne({ id: staffId });
+        if (!staff) {
+            return res.status(404).json({ message: "Staff not found" });
+        }
+        
+        // Check if student exists
+        const student = await Student.findOne({ admissionno: admissionNo });
+        if (!student) {
+            return res.status(404).json({ message: "Student not found" });
+        }
+        
+        // Update student with assigned staff
+        student.assignedStaff = staffId;
+        await student.save();
+        
+        console.log(`Student ${admissionNo} assigned to staff ${staffId}`);
+        res.json({ message: "✅ Student assigned to staff successfully!" });
+    } catch (err) {
+        console.error("Error assigning student to staff:", err);
+        res.status(500).json({ message: "❌ Error assigning student to staff", error: err.message });
+    }
+});
+
+// Get staff info by ID
+app.get("/api/staff/:id/info", async (req, res) => {
+    try {
+        const staff = await Faculty.findOne({ id: req.params.id });
+        if (!staff) {
+            return res.status(404).json({ message: "Staff not found" });
+        }
+        res.json(staff);
+    } catch (err) {
+        console.error("Error fetching staff info:", err);
+        res.status(500).json({ message: "❌ Error fetching staff info", error: err.message });
+    }
+});
+
+// Get students assigned to a specific staff member
+app.get("/api/staff/:id/students", async (req, res) => {
+    try {
+        const staffId = req.params.id;
+        console.log("Fetching students for staff:", staffId);
+        
+        // Find all students assigned to this staff
+        const students = await Student.find({ assignedStaff: staffId });
+        console.log(`Found ${students.length} students assigned to staff ${staffId}`);
+        
+        res.json(students);
+    } catch (err) {
+        console.error("Error fetching staff students:", err);
+        res.status(500).json({ message: "❌ Error fetching staff students", error: err.message });
+    }
+});
+
+// Legacy endpoint - kept for backward compatibility
 app.post("/api/staff/assign-student", async (req, res) => {
     try {
         const { staffId, admissionNo } = req.body;

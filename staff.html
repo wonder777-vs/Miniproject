@@ -1212,6 +1212,21 @@
         // Initialize the app
         window.onload = async () => {
             try {
+                // Get staffId from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const staffId = urlParams.get('id');
+                
+                if (!staffId) {
+                    showNotification('No staff ID found. Please login again.', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
+                    return;
+                }
+                
+                // Store staffId globally
+                window.staffId = staffId;
+                
                 // Show loading state
                 showNotification('Loading dashboard...', 'info');
                 
@@ -1222,8 +1237,8 @@
                     fetchWithFallback('/api/attendance', 'Failed to fetch attendance', {}),
                     fetchWithFallback('/api/leave-requests', 'Failed to fetch leave requests', []),
                     fetchWithFallback('/api/documents', 'Failed to fetch documents', []),
-                    fetchWithFallback('/api/staff/students', 'Failed to fetch staff students', []),
-                    fetchWithFallback('/api/staff/info', 'Failed to fetch staff info', {name: 'Staff Member'})
+                    fetchWithFallback(`/api/staff/${staffId}/students`, 'Failed to fetch staff students', []),
+                    fetchWithFallback(`/api/staff/${staffId}/info`, 'Failed to fetch staff info', {name: 'Staff Member'})
                 ]);
 
                 // Process results
@@ -1533,7 +1548,8 @@
                     await handleApiCall('/api/staff/students', {
                         method: 'POST',
                         body: JSON.stringify({
-                            admissionNo: admissionNo
+                            admissionNo: admissionNo,
+                            staffId: window.staffId
                         })
                     });
                 } catch (err) {

@@ -10,12 +10,19 @@ const CONFIG = {
 async function handleApiCall(endpoint, options = {}) {
     try {
         const url = `${CONFIG.API_URL}${endpoint}`;
+        
+        // Prepare headers
+        const headers = { ...options.headers };
+        
+        // Only add Content-Type if body is not FormData
+        // (FormData needs to set its own Content-Type with boundary)
+        if (options.body && !(options.body instanceof FormData)) {
+            headers['Content-Type'] = 'application/json';
+        }
+        
         const response = await fetch(url, {
             ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
+            headers
         });
 
         if (!response.ok) {

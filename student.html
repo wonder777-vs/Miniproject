@@ -1294,16 +1294,10 @@
             // Fetch assigned staff information
             async function fetchAssignedStaff(admissionNo) {
                 try {
-                    window.showNotification('Fetching assigned staff information...', 'info');
-                    
                     const staffData = await handleApiCall(`/api/student/${admissionNo}/assigned-staff`);
-                    
                     displayAssignedStaff(staffData);
-                    
-                    window.showNotification('Staff information loaded successfully!', 'success');
                 } catch (error) {
                     console.error('Error fetching assigned staff:', error);
-                    window.showNotification('Staff information not available.', 'warning');
                     assignedStaffInfo.innerHTML = '<p class="alert alert-warning">No staff assigned to you. Please contact the administrator.</p>';
                 }
             }
