@@ -1892,7 +1892,8 @@
                     console.warn('⚠️ Records stored as array, converting to object...');
                     const objRecords = {};
                     recordsToSave.forEach((value, index) => {
-                        if (value && value !== '' && value !== null && value !== undefined) {
+                        // Only accept string values that are valid attendance statuses
+                        if (typeof value === 'string' && value !== '' && ['P', 'A', 'L', 'O'].includes(value)) {
                             objRecords['student_' + String(index)] = value;
                         }
                     });
@@ -1905,11 +1906,16 @@
                 
                 // Filter out empty/null values and remove 'student_' prefix
                 const cleanRecords = {};
+                const validStatuses = ['P', 'A', 'L', 'O'];
                 for (const [key, value] of Object.entries(recordsToSave)) {
-                    if (value && value !== '' && value !== null && value !== undefined) {
+                    // Only include valid attendance status values
+                    if (typeof value === 'string' && validStatuses.includes(value)) {
                         // Remove 'student_' prefix if it exists
                         const cleanKey = key.startsWith('student_') ? key.substring(8) : key;
-                        cleanRecords[cleanKey] = String(value);
+                        // Only include if cleanKey is a valid admission number (not '0' or other invalid keys)
+                        if (cleanKey && cleanKey !== '0' && !isNaN(cleanKey)) {
+                            cleanRecords[cleanKey] = value;
+                        }
                     }
                 }
                 
