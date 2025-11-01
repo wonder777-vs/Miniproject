@@ -701,6 +701,46 @@ app.post('/api/exams', async (req, res) => {
     }
 });
 
+app.put('/api/exams/:id', async (req, res) => {
+    try {
+        console.log(`Updating exam with ID: ${req.params.id}`);
+        const exam = await Exam.findOneAndUpdate(
+            { id: req.params.id },
+            req.body,
+            { new: true }
+        );
+        
+        if (!exam) {
+            console.log('Exam not found');
+            return res.status(404).json({ error: 'Exam not found' });
+        }
+        
+        console.log('Exam updated successfully');
+        res.json(exam);
+    } catch (error) {
+        console.error('Error updating exam:', error);
+        res.status(500).json({ error: 'Failed to update exam' });
+    }
+});
+
+app.delete('/api/exams/:id', async (req, res) => {
+    try {
+        console.log(`Deleting exam with ID: ${req.params.id}`);
+        const exam = await Exam.findOneAndDelete({ id: req.params.id });
+        
+        if (!exam) {
+            console.log('Exam not found');
+            return res.status(404).json({ error: 'Exam not found' });
+        }
+        
+        console.log('Exam deleted successfully');
+        res.json({ message: 'Exam deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting exam:', error);
+        res.status(500).json({ error: 'Failed to delete exam' });
+    }
+});
+
 app.get('/api/exams/:id/marks', async (req, res) => {
     try {
         console.log(`Fetching marks for exam ID: ${req.params.id}`);

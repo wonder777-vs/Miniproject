@@ -416,9 +416,14 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
+    // Global variables
+    let elements = {};
+    let currentReportType = '';
+    let selectedFormat = 'excel';
+
     document.addEventListener('DOMContentLoaded', function() {
       // DOM Elements
-      const elements = {
+      elements = {
         reportModal: document.getElementById('reportModal'),
         closeModal: document.getElementById('closeModal'),
         cancelBtn: document.getElementById('cancelBtn'),
@@ -432,10 +437,6 @@
         endDate: document.getElementById('endDate'),
         chartContainer: document.getElementById('chartContainer')
       };
-
-      // State variables
-      let currentReportType = '';
-      let selectedFormat = 'excel';
 
       // Event Listeners
       elements.closeModal.addEventListener('click', closeModalHandler);
@@ -457,9 +458,10 @@
           selectedFormat = this.getAttribute('data-format');
         });
       });
+    });
 
-      // Functions
-      function openReportModal(reportType) {
+    // Global Functions (accessible from inline onclick)
+    function openReportModal(reportType) {
         currentReportType = reportType;
         elements.modalTitle.textContent = `Generate ${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report`;
         elements.reportType.value = reportType;
@@ -522,18 +524,18 @@
         }
       }
 
-      async function viewEnrollmentReport() {
-        try {
-          showNotification('Loading enrollment data...', 'warning');
-          
-          const enrollmentData = await handleApiCall('/api/reports/enrollment-by-department');
-          
-          // Show chart container
-          elements.chartContainer.style.display = 'block';
-          elements.chartContainer.innerHTML = '<canvas id="enrollmentChart"></canvas>';
-          
-          // Create chart
-          const ctx = document.getElementById('enrollmentChart').getContext('2d');
+    async function viewEnrollmentReport() {
+      try {
+        showNotification('Loading enrollment data...', 'warning');
+        
+        const enrollmentData = await handleApiCall('/api/reports/enrollment-by-department');
+        
+        // Show chart container
+        elements.chartContainer.style.display = 'block';
+        elements.chartContainer.innerHTML = '<canvas id="enrollmentChart"></canvas>';
+        
+        // Create chart
+        const ctx = document.getElementById('enrollmentChart').getContext('2d');
           new Chart(ctx, {
             type: 'pie',
             data: {
@@ -573,25 +575,25 @@
               }
             }
           });
-          
-          showNotification('Enrollment report loaded successfully!', 'success');
-        } catch (error) {
-          // Error is already handled by handleApiCall
-        }
+        
+        showNotification('Enrollment report loaded successfully!', 'success');
+      } catch (error) {
+        // Error is already handled by handleApiCall
       }
+    }
 
-      async function viewFeeCollectionReport() {
-        try {
-          showNotification('Loading fee collection data...', 'warning');
-          
-          const feeData = await handleApiCall('/api/reports/fee-collection');
-          
-          // Show chart container
-          elements.chartContainer.style.display = 'block';
-          elements.chartContainer.innerHTML = '<canvas id="feeChart"></canvas>';
-          
-          // Create chart
-          const ctx = document.getElementById('feeChart').getContext('2d');
+    async function viewFeeCollectionReport() {
+      try {
+        showNotification('Loading fee collection data...', 'warning');
+        
+        const feeData = await handleApiCall('/api/reports/fee-collection');
+        
+        // Show chart container
+        elements.chartContainer.style.display = 'block';
+        elements.chartContainer.innerHTML = '<canvas id="feeChart"></canvas>';
+        
+        // Create chart
+        const ctx = document.getElementById('feeChart').getContext('2d');
           new Chart(ctx, {
             type: 'bar',
             data: {
@@ -636,24 +638,23 @@
               }
             }
           });
-          
-          showNotification('Fee collection report loaded successfully!', 'success');
-        } catch (error) {
-          // Error is already handled by handleApiCall
-        }
-      }
-
-      // Show notification function
-      function showNotification(message, type = 'success') {
-        const notification = document.getElementById('notification');
-        notification.textContent = message;
-        notification.className = `notification ${type} show`;
         
-        setTimeout(() => {
-          notification.classList.remove('show');
-        }, 3000);
+        showNotification('Fee collection report loaded successfully!', 'success');
+      } catch (error) {
+        // Error is already handled by handleApiCall
       }
-    });
+    }
+
+    // Show notification function
+    function showNotification(message, type = 'success') {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.className = `notification ${type} show`;
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 3000);
+    }
   </script>
 </body>
 </html>

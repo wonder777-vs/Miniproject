@@ -393,9 +393,18 @@
   <div class="notification" id="notification"></div>
 
   <script>
+    // Global variables
+    let elements = {};
+    let students = [];
+    let filteredStudents = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    let currentAction = 'create';
+    let currentStudentId = null;
+
     document.addEventListener('DOMContentLoaded', function() {
       // DOM Elements
-      const elements = {
+      elements = {
         addStudentBtn: document.getElementById('addStudentBtn'),
         studentModal: document.getElementById('studentModal'),
         closeModal: document.getElementById('closeModal'),
@@ -411,14 +420,6 @@
         pagination: document.getElementById('pagination')
       };
 
-      // State variables
-      let students = [];
-      let filteredStudents = [];
-      let currentPage = 1;
-      const itemsPerPage = 10;
-      let currentAction = 'create';
-      let currentStudentId = null;
-
       // Event Listeners
       elements.addStudentBtn.addEventListener('click', openAddModal);
       elements.closeModal.addEventListener('click', closeModalHandler);
@@ -432,8 +433,12 @@
         }
       });
 
-      // Functions
-      function openAddModal() {
+      // Load students on page load
+      loadStudents();
+    });
+
+    // Global Functions (accessible from inline onclick)
+    function openAddModal() {
         currentAction = 'create';
         elements.modalTitle.textContent = 'Add Student';
         elements.studentForm.reset();
@@ -644,20 +649,16 @@
         elements.pagination.appendChild(nextBtn);
       }
 
-      // Show notification function
-      function showNotification(message, type = 'success') {
-        const notification = document.getElementById('notification');
-        notification.textContent = message;
-        notification.className = `notification ${type} show`;
-        
-        setTimeout(() => {
-          notification.classList.remove('show');
-        }, 3000);
-      }
-
-      // Load students on page load
-      loadStudents();
-    });
+    // Show notification function
+    function showNotification(message, type = 'success') {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.className = `notification ${type} show`;
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 3000);
+    }
   </script>
 </body>
 </html>

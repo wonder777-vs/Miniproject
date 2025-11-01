@@ -449,9 +449,18 @@
   <div class="notification" id="notification"></div>
 
   <script>
+    // Global variables
+    let elements = {};
+    let fees = [];
+    let filteredFees = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    let currentAction = 'create';
+    let currentFeeId = null;
+
     document.addEventListener('DOMContentLoaded', function() {
       // DOM Elements
-      const elements = {
+      elements = {
         addFeeBtn: document.getElementById('addFeeBtn'),
         feeModal: document.getElementById('feeModal'),
         closeModal: document.getElementById('closeModal'),
@@ -471,14 +480,6 @@
         overdueFees: document.getElementById('overdueFees')
       };
 
-      // State variables
-      let fees = [];
-      let filteredFees = [];
-      let currentPage = 1;
-      const itemsPerPage = 10;
-      let currentAction = 'create';
-      let currentFeeId = null;
-
       // Event Listeners
       elements.addFeeBtn.addEventListener('click', openAddModal);
       elements.closeModal.addEventListener('click', closeModalHandler);
@@ -492,8 +493,12 @@
         }
       });
 
-      // Functions
-      function openAddModal() {
+      // Load fees on page load
+      loadFees();
+    });
+
+    // Global Functions (accessible from inline onclick)
+    function openAddModal() {
         currentAction = 'create';
         elements.modalTitle.textContent = 'Add Fee Record';
         elements.feeForm.reset();
@@ -730,20 +735,16 @@
         elements.pagination.appendChild(nextBtn);
       }
 
-      // Show notification function
-      function showNotification(message, type = 'success') {
-        const notification = document.getElementById('notification');
-        notification.textContent = message;
-        notification.className = `notification ${type} show`;
-        
-        setTimeout(() => {
-          notification.classList.remove('show');
-        }, 3000);
-      }
-
-      // Load fees on page load
-      loadFees();
-    });
+    // Show notification function
+    function showNotification(message, type = 'success') {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.className = `notification ${type} show`;
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 3000);
+    }
   </script>
 </body>
 </html>

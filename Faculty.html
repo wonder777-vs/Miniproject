@@ -384,9 +384,18 @@
   <div class="notification" id="notification"></div>
 
   <script>
+    // Global variables
+    let elements = {};
+    let faculty = [];
+    let filteredFaculty = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    let currentAction = 'create';
+    let currentFacultyId = null;
+
     document.addEventListener('DOMContentLoaded', function() {
       // DOM Elements
-      const elements = {
+      elements = {
         addFacultyBtn: document.getElementById('addFacultyBtn'),
         facultyModal: document.getElementById('facultyModal'),
         closeModal: document.getElementById('closeModal'),
@@ -402,14 +411,6 @@
         pagination: document.getElementById('pagination')
       };
 
-      // State variables
-      let faculty = [];
-      let filteredFaculty = [];
-      let currentPage = 1;
-      const itemsPerPage = 10;
-      let currentAction = 'create';
-      let currentFacultyId = null;
-
       // Event Listeners
       elements.addFacultyBtn.addEventListener('click', openAddModal);
       elements.closeModal.addEventListener('click', closeModalHandler);
@@ -423,8 +424,12 @@
         }
       });
 
-      // Functions
-      function openAddModal() {
+      // Load faculty on page load
+      loadFaculty();
+    });
+
+    // Global Functions (accessible from inline onclick)
+    function openAddModal() {
         currentAction = 'create';
         elements.modalTitle.textContent = 'Add Faculty';
         elements.facultyForm.reset();
@@ -632,20 +637,16 @@
         elements.pagination.appendChild(nextBtn);
       }
 
-      // Show notification function
-      function showNotification(message, type = 'success') {
-        const notification = document.getElementById('notification');
-        notification.textContent = message;
-        notification.className = `notification ${type} show`;
-        
-        setTimeout(() => {
-          notification.classList.remove('show');
-        }, 3000);
-      }
-
-      // Load faculty on page load
-      loadFaculty();
-    });
+    // Show notification function
+    function showNotification(message, type = 'success') {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.className = `notification ${type} show`;
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 3000);
+    }
   </script>
 </body>
 </html>
