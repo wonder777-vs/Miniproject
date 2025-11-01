@@ -764,11 +764,7 @@
                                 <div><span class="label">Total Absent</span> : <span class="highlight-red" id="totalAbsent">0</span></div>
                                 <div><span class="label">Total Leave</span> : <span id="totalLeave">0</span></div>
                                 <div><span class="label">Total OD</span> : <span id="totalOD">0</span></div>
-                                <div><span class="label">Total ML</span> : <span id="totalML">0</span></div>
-                                <div><span class="label">Total Project ODs</span> : <span id="totalProjectOD">0</span></div>
-                                <div><span class="label">Total Suspends</span> : <span id="totalSuspend">0</span></div>
                                 <div><span class="label">Attendance Fine (Rs.)</span> : <span class="highlight-red" id="attendanceFine">0</span></div>
-                                <div><span class="label">Other Fine (Rs.)</span> : <span id="otherFine">0</span></div>
                             </div>
 
                             <div class="side-box">
@@ -819,10 +815,6 @@
                                     <div class="stat-item">
                                         <div class="stat-value" id="statTotalOD">0</div>
                                         <div class="stat-label">Total OD</div>
-                                    </div>
-                                    <div class="stat-item">
-                                        <div class="stat-value" id="statTotalML">0</div>
-                                        <div class="stat-label">Total ML</div>
                                     </div>
                                 </div>
                                 <div class="chart-container">
@@ -1496,11 +1488,7 @@
                     document.getElementById('totalAbsent').textContent = summary.totalAbsent || 0;
                     document.getElementById('totalLeave').textContent = summary.totalLeave || 0;
                     document.getElementById('totalOD').textContent = summary.totalOD || 0;
-                    document.getElementById('totalML').textContent = summary.totalML || 0;
-                    document.getElementById('totalProjectOD').textContent = summary.totalProjectOD || 0;
-                    document.getElementById('totalSuspend').textContent = summary.totalSuspend || 0;
                     document.getElementById('attendanceFine').textContent = summary.attendanceFine || 0;
-                    document.getElementById('otherFine').textContent = summary.otherFine || 0;
                     document.getElementById('totalHoursConducted').textContent = summary.totalHoursConducted || 0;
                     document.getElementById('totalHoursAttended').textContent = summary.totalHoursAttended || 0;
                     document.getElementById('attendancePercentage').textContent = summary.attendancePercentage || '0.0%';
@@ -1509,7 +1497,6 @@
                     document.getElementById('statTotalAbsent').textContent = summary.totalAbsent || 0;
                     document.getElementById('statTotalLeave').textContent = summary.totalLeave || 0;
                     document.getElementById('statTotalOD').textContent = summary.totalOD || 0;
-                    document.getElementById('statTotalML').textContent = summary.totalML || 0;
                     
                     // Create the chart
                     createLeaveChart(summary);
@@ -1529,21 +1516,19 @@
                 
                 // Prepare data for the chart
                 const data = {
-                    labels: ['Present', 'Absent', 'Leave', 'OD', 'ML'],
+                    labels: ['Present', 'Absent', 'Leave', 'OD'],
                     datasets: [{
                         data: [
                             summary.totalHoursAttended || 0,
                             summary.totalAbsent || 0,
                             summary.totalLeave || 0,
-                            summary.totalOD || 0,
-                            summary.totalML || 0
+                            summary.totalOD || 0
                         ],
                         backgroundColor: [
                             '#28a745', // green for present
                             '#dc3545', // red for absent
-                            '#ffc107', // yellow for leave
-                            '#17a2b8', // blue for OD
-                            '#6f42c1'  // purple for ML
+                            '#e91e63', // pink for leave
+                            '#ff9800'  // orange for OD
                         ],
                         borderWidth: 1
                     }]

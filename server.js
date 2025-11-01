@@ -671,6 +671,65 @@ app.get('/api/attendance/student/:admissionNo', async (req, res) => {
     }
 });
 
+// Get attendance summary for a student
+app.get('/api/attendance/summary/:admissionNo', async (req, res) => {
+    try {
+        const admissionNo = req.params.admissionNo;
+        console.log(`Calculating attendance summary for student: ${admissionNo}`);
+        
+        // Get all attendance records where this student is marked
+        const attendanceRecords = await Attendance.find({});
+        
+        let totalPresent = 0;
+        let totalAbsent = 0;
+        let totalLeave = 0;
+        let totalOD = 0;
+        let totalConducted = 0;
+        
+        // Calculate attendance statistics
+        attendanceRecords.forEach(record => {
+            const status = record.records && record.records.get(admissionNo);
+            if (status) {
+                totalConducted++;
+                if (status === 'P' || status === true) {
+                    totalPresent++;
+                } else if (status === 'A' || status === false) {
+                    totalAbsent++;
+                } else if (status === 'L') {
+                    totalLeave++;
+                } else if (status === 'O') {
+                    totalOD++;
+                }
+            }
+        });
+        
+        // Calculate attendance percentage
+        const attendancePercentage = totalConducted > 0 
+            ? ((totalPresent / totalConducted) * 100).toFixed(2) + '%'
+            : '0.0%';
+        
+        // Calculate fine: Rs. 5 per absent
+        const attendanceFine = totalAbsent * 5;
+        
+        const summary = {
+            totalAbsent,
+            totalLeave,
+            totalOD,
+            totalHoursConducted: totalConducted,
+            totalHoursAttended: totalPresent,
+            attendancePercentage,
+            attendanceFine,
+            otherFine: 0
+        };
+        
+        console.log(`Summary for ${admissionNo}:`, summary);
+        res.json(summary);
+    } catch (error) {
+        console.error('Error calculating attendance summary:', error);
+        res.status(500).json({ error: 'Failed to calculate attendance summary' });
+    }
+});
+
 app.post('/api/attendance', async (req, res) => {
     try {
         const { date, period, records, staffId } = req.body;
