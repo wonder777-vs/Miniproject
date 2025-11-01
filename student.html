@@ -243,17 +243,53 @@
             background-color: #28a745;
             color: white;
             font-weight: bold;
+            padding: 5px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            min-width: 30px;
+            text-align: center;
         }
         
         .attendance-container .absent {
             background-color: #dc3545;
             color: white;
             font-weight: bold;
+            padding: 5px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .attendance-container .leave {
+            background-color: #e91e63;
+            color: white;
+            font-weight: bold;
+            padding: 5px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .attendance-container .onduty {
+            background-color: #ff9800;
+            color: white;
+            font-weight: bold;
+            padding: 5px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            min-width: 30px;
+            text-align: center;
         }
         
         .attendance-container .none {
             background-color: #f8f9fa;
-            color: #333;
+            color: #999;
+            padding: 5px 8px;
+            display: inline-block;
+            min-width: 30px;
+            text-align: center;
         }
         
         .attendance-container .side-box {
@@ -1113,7 +1149,7 @@
                     
                     // Load tab-specific content if needed
                     if (tabId === 'attendance' && admissionNo) {
-                        loadAttendance();
+                        loadAllAttendance(admissionNo);
                     } else if (tabId === 'internal' && admissionNo) {
                         // Load the first CAT tab by default
                         loadInternalMarks(admissionNo, 'CAT1');
@@ -1195,9 +1231,12 @@
                     // Fetch all attendance records for this student
                     const attendanceData = await handleApiCall(`/api/attendance/student/${admissionNo}`);
                     
+                    console.log('Fetched attendance data:', attendanceData);
+                    console.log('Number of attendance records:', attendanceData.length);
+                    
                     displayAllAttendanceData(attendanceData);
                     
-                    window.showNotification('Attendance data loaded successfully!', 'success');
+                    window.showNotification(`Attendance data loaded successfully! (${attendanceData.length} records)`, 'success');
                 } catch (error) {
                     console.error('Error fetching attendance data:', error);
                     window.showNotification('Attendance data not available.', 'warning');
@@ -1383,6 +1422,18 @@
                     return;
                 }
                 
+                // Map time periods to hour labels
+                const periodToHourMap = {
+                    '9.00 to 9.50': 'H1',
+                    '9.50 to 10.40': 'H2',
+                    '11.00 to 11.50': 'H3',
+                    '11.50 to 12.40': 'H4',
+                    '1.30 to 2.15': 'H5',
+                    '2.15 to 3.00': 'H6',
+                    '3.15 to 4.00': 'H7',
+                    '4.00 to 4.45': 'H8'
+                };
+                
                 // Group records by date
                 const groupedByDate = {};
                 const hours = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8'];
@@ -1391,11 +1442,16 @@
                     if (!groupedByDate[record.date]) {
                         groupedByDate[record.date] = {};
                     }
-                    groupedByDate[record.date][record.period] = record.status;
+                    // Convert period to hour label
+                    const hourLabel = periodToHourMap[record.period] || record.period;
+                    groupedByDate[record.date][hourLabel] = record.status;
                 });
                 
                 // Get unique dates and sort in descending order
                 const dates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
+                
+                console.log('Grouped attendance by date:', groupedByDate);
+                console.log('Dates with attendance:', dates);
                 
                 // Create a row for each date
                 dates.forEach(date => {
@@ -1406,23 +1462,25 @@
                     dateCell.textContent = date;
                     row.appendChild(dateCell);
                     
-                    // For each hour, create a cell
-                    hours.forEach(hour => {
-                        const hourCell = document.createElement('td');
-                        const status = groupedByDate[date][hour];
-                        
-                        if (status === 'P') {
-                            hourCell.innerHTML = '<span class="present">P</span>';
-                        } else if (status === 'A') {
-                            hourCell.innerHTML = '<span class="absent">-</span>';
-                        } else {
-                            hourCell.innerHTML = '<span class="none">-</span>';
-                        }
-                        
-                        row.appendChild(hourCell);
-                    });
+                // For each hour, create a cell
+                hours.forEach(hour => {
+                    const hourCell = document.createElement('td');
+                    const status = groupedByDate[date][hour];
                     
-                    tableBody.appendChild(row);
+                    if (status === 'P') {
+                        hourCell.innerHTML = '<span class="present">P</span>';
+                    } else if (status === 'A') {
+                        hourCell.innerHTML = '<span class="absent">A</span>';
+                    } else if (status === 'L') {
+                        hourCell.innerHTML = '<span class="leave">L</span>';
+                    } else if (status === 'O') {
+                        hourCell.innerHTML = '<span class="onduty">O</span>';
+                    } else {
+                        hourCell.innerHTML = '<span class="none">-</span>';
+                    }
+                    
+                    row.appendChild(hourCell);
+                });                    tableBody.appendChild(row);
                 });
                 
                 // Update summary statistics

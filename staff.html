@@ -1262,6 +1262,7 @@
                 // Try to load cached data first
                 const cachedStudents = getFromLocalStorage('students');
                 const cachedExams = getFromLocalStorage('exams');
+                const cachedAttendance = getFromLocalStorage('attendanceRecords');
                 const cachedLeaveRequests = getFromLocalStorage('leaveRequests');
                 const cachedDocuments = getFromLocalStorage('uploadedDocuments');
                 const cachedStaffStudents = getFromLocalStorage('staffStudents');
@@ -1271,6 +1272,15 @@
                 if (cachedLeaveRequests) leaveRequests = cachedLeaveRequests;
                 if (cachedDocuments) uploadedDocuments = cachedDocuments;
                 if (cachedStaffStudents) staffStudents = cachedStaffStudents;
+                
+                // Validate cached attendance structure
+                if (cachedAttendance && typeof cachedAttendance === 'object' && !Array.isArray(cachedAttendance)) {
+                    attendanceRecords = cachedAttendance;
+                } else {
+                    console.warn('Invalid cached attendance format, clearing...');
+                    attendanceRecords = {};
+                    localStorage.removeItem(`staff_${staffId}_attendanceRecords`);
+                }
                 
                 // Show loading state
                 showNotification('Loading dashboard...', 'info');
@@ -1306,12 +1316,20 @@
                 }
 
                 if (attendanceRes.status === 'fulfilled') {
-                    attendanceRecords = attendanceRes.value;
-                    saveToLocalStorage('attendanceRecords', attendanceRecords);
+                    let fetchedAttendance = attendanceRes.value;
+                    // Ensure it's a valid object structure
+                    if (typeof fetchedAttendance === 'object' && !Array.isArray(fetchedAttendance) && fetchedAttendance !== null) {
+                        attendanceRecords = fetchedAttendance;
+                        saveToLocalStorage('attendanceRecords', attendanceRecords);
+                    } else {
+                        console.warn('Invalid attendance format from API, using empty object');
+                        attendanceRecords = {};
+                    }
                 } else {
                     console.error('Error loading attendance:', attendanceRes.reason);
                     apiErrors.push('attendance');
                     showNotification('Failed to load attendance data', 'warning');
+                    attendanceRecords = {};  // Ensure it's an empty object
                 }
 
                 if (leaveRes.status === 'fulfilled') {
@@ -1766,18 +1784,23 @@
 
                 staffStudents.forEach(student => {
                     const row = document.createElement('tr');
-                    // Use the fetched attendance records if available, otherwise default to false
-                    const isPresent = dateRecords[student.admissionno] !== undefined ? 
-                                     dateRecords[student.admissionno] : 
-                                     (attendanceRecords[date][period][student.admissionno] || false);
+                    // Use the fetched attendance records if available, otherwise default to empty
+                    const status = dateRecords[student.admissionno] !== undefined ? 
+                                   dateRecords[student.admissionno] : 
+                                   (attendanceRecords[date]?.[period]?.[student.admissionno] || '');
                     
                     row.innerHTML = `
                         <td>${student.admissionno}</td>
                         <td>${student.name}</td>
                         <td>${student.department || 'N/A'}</td>
                         <td>
-                            <input type="checkbox" ${isPresent ? 'checked' : ''} 
-                                   onchange="updateAttendance('${date}', '${period}', '${student.admissionno}', this.checked)" />
+                            <select onchange="updateAttendance('${date}', '${period}', '${student.admissionno}', this.value)" style="padding: 5px; border-radius: 4px;">
+                                <option value="" ${status === '' ? 'selected' : ''}>-</option>
+                                <option value="P" ${status === 'P' || status === true ? 'selected' : ''}>Present</option>
+                                <option value="A" ${status === 'A' || status === false ? 'selected' : ''}>Absent</option>
+                                <option value="L" ${status === 'L' ? 'selected' : ''}>Leave</option>
+                                <option value="O" ${status === 'O' ? 'selected' : ''}>On Duty</option>
+                            </select>
                         </td>
                     `;
                     attendanceList.appendChild(row);
@@ -1793,7 +1816,7 @@
             }
         }
         
-        function updateAttendance(date, period, admissionNo, isPresent) {
+        function updateAttendance(date, period, admissionNo, status) {
             if (!attendanceRecords[date]) {
                 attendanceRecords[date] = {};
             }
@@ -1802,7 +1825,8 @@
                 attendanceRecords[date][period] = {};
             }
             
-            attendanceRecords[date][period][admissionNo] = isPresent;
+            // Store the status (P, A, L, O, or empty string)
+            attendanceRecords[date][period][admissionNo] = status;
         }
         
         async function saveAttendance() {
@@ -1820,15 +1844,41 @@
                 return;
             }
             
+            if (!window.staffId) {
+                showNotification('Staff ID not found. Please login again.', 'error');
+                return;
+            }
+            
             try {
                 showNotification('Saving attendance...', 'info');
+                
+                // Ensure records is a plain object, not an array
+                let recordsToSave = attendanceRecords[date]?.[period] || {};
+                
+                // If it's an array or not a plain object, convert it
+                if (Array.isArray(recordsToSave) || typeof recordsToSave !== 'object') {
+                    console.warn('Invalid records format detected, resetting to empty object');
+                    recordsToSave = {};
+                    attendanceRecords[date][period] = {};
+                }
+                
+                // Filter out empty/null values
+                const cleanRecords = {};
+                for (const [key, value] of Object.entries(recordsToSave)) {
+                    if (value && value !== '' && value !== null && value !== undefined) {
+                        cleanRecords[key] = value;
+                    }
+                }
+                
+                console.log('Saving attendance records:', cleanRecords);
                 
                 await handleApiCall('/api/attendance', {
                     method: 'POST',
                     body: JSON.stringify({
                         date,
                         period,
-                        records: attendanceRecords[date]?.[period] || {}
+                        records: cleanRecords,
+                        staffId: window.staffId
                     })
                 });
 

@@ -217,7 +217,7 @@ const attendanceSchema = new mongoose.Schema({
     },
     records: {
         type: Map,
-        of: Boolean,
+        of: String,  // Changed from Boolean to String to support P, A, L, O status codes
         required: true
     },
     staffId: {
@@ -652,11 +652,13 @@ app.get('/api/attendance/student/:admissionNo', async (req, res) => {
         // Extract attendance for this specific student
         const studentAttendance = [];
         attendanceRecords.forEach(record => {
-            if (record.records && record.records.get(admissionNo)) {
+            const status = record.records && record.records.get(admissionNo);
+            // Include record if status exists (P, A, L, O) or if it's explicitly false (for backward compatibility)
+            if (status !== undefined && status !== null && status !== '') {
                 studentAttendance.push({
                     date: record.date,
                     period: record.period,
-                    status: record.records.get(admissionNo)
+                    status: status === true ? 'P' : status === false ? 'A' : status  // Convert old boolean values
                 });
             }
         });
