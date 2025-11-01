@@ -390,15 +390,11 @@ app.post('/post', async (req, res) => {
         return res.redirect('/adminlead.html');
     }
     
-    // Student login
-    if (username.startsWith("19")) {
-        try {
-            const student = await Student.findOne({ admissionno: username });
-            
-            if (!student) {
-                return res.redirect('/index.html?error=Student not found');
-            }
-            
+    // Try Student login - check if username exists as admission number
+    try {
+        const student = await Student.findOne({ admissionno: username });
+        
+        if (student) {
             // Check if student has a password set
             if (!student.password) {
                 // Set default password to admission number if not set
@@ -412,21 +408,17 @@ app.post('/post', async (req, res) => {
             }
             
             return res.redirect(`/student.html?admissionno=${username}`);
-        } catch (err) {
-            console.error(err);
-            return res.redirect('/index.html?error=Internal server error');
         }
+    } catch (err) {
+        console.error('Error during student login:', err);
+        return res.redirect('/index.html?error=Internal server error');
     }
     
-    // Faculty login
-    if (username.startsWith("fa")) {
-        try {
-            const faculty = await Faculty.findOne({ id: username });
-            
-            if (!faculty) {
-                return res.redirect('/index.html?error=Faculty not found');
-            }
-            
+    // Try Faculty login - check if username exists as faculty ID
+    try {
+        const faculty = await Faculty.findOne({ id: username });
+        
+        if (faculty) {
             // Check if faculty has a password set
             if (!faculty.password) {
                 // Set default password to faculty ID if not set
@@ -440,14 +432,14 @@ app.post('/post', async (req, res) => {
             }
             
             return res.redirect('/staff.html');
-        } catch (err) {
-            console.error(err);
-            return res.redirect('/index.html?error=Internal server error');
         }
+    } catch (err) {
+        console.error('Error during faculty login:', err);
+        return res.redirect('/index.html?error=Internal server error');
     }
     
-    // If none of the above
-    return res.redirect('/index.html?error=Unauthorized user');
+    // If username not found in students or faculty
+    return res.redirect('/index.html?error=User not found');
 });
 
 // Add Settings API endpoints
