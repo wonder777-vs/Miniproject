@@ -709,31 +709,6 @@
                 <div class="tab-content" id="attendance">
                     <div class="attendance-container">
                         <h2>📅 Attendance Report</h2>
-                        
-                        <div class="attendance-controls">
-                            <div class="form-group">
-                                <label class="form-label" for="attendanceDate">Select Date</label>
-                                <input type="date" id="attendanceDate" class="form-control" />
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="attendancePeriod">Select Period</label>
-                                <select id="attendancePeriod" class="form-control">
-                                    <option value="">Select Period</option>
-                                    <option value="9.00 to 9.50">9.00 to 9.50</option>
-                                    <option value="9.50 to 10.40">9.50 to 10.40</option>
-                                    <option value="10.40 to 11.00">10.40 to 11.00 (Break)</option>
-                                    <option value="11.00 to 11.50">11.00 to 11.50</option>
-                                    <option value="11.50 to 12.40">11.50 to 12.40</option>
-                                    <option value="12.40 to 1.30">12.40 to 1.30 (Lunch Break)</option>
-                                    <option value="1.30 to 2.15">1.30 to 2.15</option>
-                                    <option value="2.15 to 3.00">2.15 to 3.00</option>
-                                    <option value="3.00 to 3.15">3.00 to 3.15 (Break)</option>
-                                    <option value="3.15 to 4.00">3.15 to 4.00</option>
-                                    <option value="4.00 to 4.45">4.00 to 4.45</option>
-                                </select>
-                            </div>
-                            <button class="btn btn-primary" id="loadAttendanceBtn">View Attendance</button>
-                        </div>
 
                         <div class="summary-section">
                             <div class="side-box">
@@ -764,7 +739,7 @@
                             </thead>
                             <tbody id="attendanceTableBody">
                                 <tr>
-                                    <td colspan="3" class="empty-state">Select date and period to view attendance</td>
+                                    <td colspan="3" class="empty-state">No attendance records available</td>
                                 </tr>
                             </tbody>
                         </table>
