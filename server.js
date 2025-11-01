@@ -640,6 +640,35 @@ app.get('/api/attendance', async (req, res) => {
     }
 });
 
+// Get all attendance records for a specific student
+app.get('/api/attendance/student/:admissionNo', async (req, res) => {
+    try {
+        const admissionNo = req.params.admissionNo;
+        console.log(`Fetching all attendance for student: ${admissionNo}`);
+        
+        // Get all attendance records where this student is marked
+        const attendanceRecords = await Attendance.find({});
+        
+        // Extract attendance for this specific student
+        const studentAttendance = [];
+        attendanceRecords.forEach(record => {
+            if (record.records && record.records.get(admissionNo)) {
+                studentAttendance.push({
+                    date: record.date,
+                    period: record.period,
+                    status: record.records.get(admissionNo)
+                });
+            }
+        });
+        
+        console.log(`Found ${studentAttendance.length} attendance records for student ${admissionNo}`);
+        res.json(studentAttendance);
+    } catch (error) {
+        console.error('Error fetching student attendance:', error);
+        res.status(500).json({ error: 'Failed to fetch student attendance' });
+    }
+});
+
 app.post('/api/attendance', async (req, res) => {
     try {
         const { date, period, records, staffId } = req.body;
