@@ -146,7 +146,7 @@ const studentSchema = new mongoose.Schema({
     scholarship: String,
     status: String,
     password: { type: String, default: "" }, // Add password field
-    assignedStaff: { type: String, default: "" } // Add this field to track assigned staff
+    assignedStaff: { type: [String], default: [] } // Array to support multiple staff assignments
 });
 
 const Student = mongoose.model("Student", studentSchema);
@@ -530,6 +530,19 @@ app.get("/students", async (req, res) => {
     }
 });
 
+// API endpoint to get all students (for staff/admin pages)
+app.get("/api/students", async (req, res) => {
+    try {
+        console.log("Fetching all students from API...");
+        const students = await Student.find();
+        console.log(`Found ${students.length} students`);
+        res.json(students);
+    } catch (err) {
+        console.error("Error fetching students:", err);
+        res.status(500).json({ message: "❌ Failed to fetch students", error: err.message });
+    }
+});
+
 // Staff API endpoints
 app.get('/api/staff/students', async (req, res) => {
     try {
@@ -572,7 +585,7 @@ app.get('/api/students/:admissionNo', async (req, res) => {
     }
 });
 
-// NEW: Get assigned staff for a student
+// NEW: Get assigned staff for a student (returns array of all assigned staff)
 app.get('/api/student/:admissionno/assigned-staff', async (req, res) => {
     try {
         const student = await Student.findOne({ admissionno: req.params.admissionno });
@@ -580,25 +593,30 @@ app.get('/api/student/:admissionno/assigned-staff', async (req, res) => {
             return res.status(404).json({ message: "Student not found" });
         }
 
-        if (!student.assignedStaff) {
-            // Return 200 with null data instead of 404 - this is a valid case
+        if (!student.assignedStaff || student.assignedStaff.length === 0) {
+            // Return 200 with empty array - this is a valid case
             return res.json({ 
                 message: "No staff assigned yet",
-                name: null,
-                department: null 
+                staff: []
             });
         }
 
-        const staff = await Faculty.findOne({ id: student.assignedStaff });
-        if (!staff) {
+        // Get all assigned staff members
+        const staffMembers = await Faculty.find({ id: { $in: student.assignedStaff } });
+        
+        if (staffMembers.length === 0) {
             return res.json({ 
                 message: "Assigned staff not found in database",
-                name: null,
-                department: null 
+                staff: []
             });
         }
 
-        res.json(staff);
+        // For backward compatibility, return the first staff member in old format
+        // but also include all staff in a 'staff' array
+        res.json({
+            ...staffMembers[0].toObject(),
+            staff: staffMembers
+        });
     } catch (err) {
         console.error("Error fetching assigned staff:", err);
         res.status(500).json({ message: "❌ Error fetching assigned staff", error: err.message });
@@ -1363,8 +1381,13 @@ app.post("/api/staff/students", async (req, res) => {
             return res.status(404).json({ message: "Student not found" });
         }
         
-        // Update student with assigned staff
-        student.assignedStaff = staffId;
+        // Check if staff is already assigned to this student
+        if (student.assignedStaff.includes(staffId)) {
+            return res.json({ message: "Student is already assigned to this staff", alreadyAssigned: true });
+        }
+        
+        // Add staff to student's assignedStaff array
+        student.assignedStaff.push(staffId);
         await student.save();
         
         console.log(`Student ${admissionNo} assigned to staff ${staffId}`);
@@ -1395,14 +1418,40 @@ app.get("/api/staff/:id/students", async (req, res) => {
         const staffId = req.params.id;
         console.log("Fetching students for staff:", staffId);
         
-        // Find all students assigned to this staff
-        const students = await Student.find({ assignedStaff: staffId });
+        // Find all students where this staff ID is in the assignedStaff array
+        const students = await Student.find({ assignedStaff: { $in: [staffId] } });
         console.log(`Found ${students.length} students assigned to staff ${staffId}`);
         
         res.json(students);
     } catch (err) {
         console.error("Error fetching staff students:", err);
         res.status(500).json({ message: "❌ Error fetching staff students", error: err.message });
+    }
+});
+
+// Remove student from staff's list
+app.delete("/api/staff/students/:admissionNo", async (req, res) => {
+    try {
+        const { admissionNo } = req.params;
+        const { staffId } = req.query;
+        
+        console.log("Removing student from staff:", { staffId, admissionNo });
+        
+        // Check if student exists
+        const student = await Student.findOne({ admissionno: admissionNo });
+        if (!student) {
+            return res.status(404).json({ message: "Student not found" });
+        }
+        
+        // Remove staff from student's assignedStaff array
+        student.assignedStaff = student.assignedStaff.filter(id => id !== staffId);
+        await student.save();
+        
+        console.log(`Staff ${staffId} removed from student ${admissionNo}`);
+        res.json({ message: "✅ Student removed from staff list successfully!" });
+    } catch (err) {
+        console.error("Error removing student from staff:", err);
+        res.status(500).json({ message: "❌ Error removing student from staff", error: err.message });
     }
 });
 
@@ -1423,8 +1472,13 @@ app.post("/api/staff/assign-student", async (req, res) => {
             return res.status(404).json({ message: "Student not found" });
         }
         
-        // Update student with assigned staff
-        student.assignedStaff = staffId;
+        // Check if staff is already assigned
+        if (student.assignedStaff.includes(staffId)) {
+            return res.json({ message: "Student is already assigned to this staff", alreadyAssigned: true });
+        }
+        
+        // Add staff to student's assignedStaff array
+        student.assignedStaff.push(staffId);
         await student.save();
         
         res.json({ message: "✅ Student assigned to staff successfully!" });

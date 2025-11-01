@@ -1209,6 +1209,38 @@
             `
         };
         
+        // LocalStorage Helper Functions for State Persistence
+        function saveToLocalStorage(key, data) {
+            try {
+                const storageKey = `staff_${window.staffId}_${key}`;
+                localStorage.setItem(storageKey, JSON.stringify(data));
+                console.log(`Saved ${key} to localStorage`);
+            } catch (e) {
+                console.warn(`Failed to save ${key} to localStorage:`, e);
+            }
+        }
+        
+        function getFromLocalStorage(key) {
+            try {
+                const storageKey = `staff_${window.staffId}_${key}`;
+                const data = localStorage.getItem(storageKey);
+                return data ? JSON.parse(data) : null;
+            } catch (e) {
+                console.warn(`Failed to get ${key} from localStorage:`, e);
+                return null;
+            }
+        }
+        
+        function clearLocalStorage(key) {
+            try {
+                const storageKey = `staff_${window.staffId}_${key}`;
+                localStorage.removeItem(storageKey);
+                console.log(`Cleared ${key} from localStorage`);
+            } catch (e) {
+                console.warn(`Failed to clear ${key} from localStorage:`, e);
+            }
+        }
+        
         // Initialize the app
         window.onload = async () => {
             try {
@@ -1227,6 +1259,19 @@
                 // Store staffId globally
                 window.staffId = staffId;
                 
+                // Try to load cached data first
+                const cachedStudents = getFromLocalStorage('students');
+                const cachedExams = getFromLocalStorage('exams');
+                const cachedLeaveRequests = getFromLocalStorage('leaveRequests');
+                const cachedDocuments = getFromLocalStorage('uploadedDocuments');
+                const cachedStaffStudents = getFromLocalStorage('staffStudents');
+                
+                if (cachedStudents) students = cachedStudents;
+                if (cachedExams) exams = cachedExams;
+                if (cachedLeaveRequests) leaveRequests = cachedLeaveRequests;
+                if (cachedDocuments) uploadedDocuments = cachedDocuments;
+                if (cachedStaffStudents) staffStudents = cachedStaffStudents;
+                
                 // Show loading state
                 showNotification('Loading dashboard...', 'info');
                 
@@ -1241,9 +1286,10 @@
                     fetchWithFallback(`/api/staff/${staffId}/info`, 'Failed to fetch staff info', {name: 'Staff Member'})
                 ]);
 
-                // Process results
+                // Process results and persist to localStorage
                 if (studentsRes.status === 'fulfilled') {
                     students = studentsRes.value;
+                    saveToLocalStorage('students', students);
                 } else {
                     console.error('Error loading students:', studentsRes.reason);
                     apiErrors.push('students');
@@ -1252,6 +1298,7 @@
 
                 if (examsRes.status === 'fulfilled') {
                     exams = examsRes.value;
+                    saveToLocalStorage('exams', exams);
                 } else {
                     console.error('Error loading exams:', examsRes.reason);
                     apiErrors.push('exams');
@@ -1260,6 +1307,7 @@
 
                 if (attendanceRes.status === 'fulfilled') {
                     attendanceRecords = attendanceRes.value;
+                    saveToLocalStorage('attendanceRecords', attendanceRecords);
                 } else {
                     console.error('Error loading attendance:', attendanceRes.reason);
                     apiErrors.push('attendance');
@@ -1268,6 +1316,7 @@
 
                 if (leaveRes.status === 'fulfilled') {
                     leaveRequests = leaveRes.value;
+                    saveToLocalStorage('leaveRequests', leaveRequests);
                 } else {
                     console.error('Error loading leave requests:', leaveRes.reason);
                     apiErrors.push('leave requests');
@@ -1276,6 +1325,7 @@
 
                 if (documentsRes.status === 'fulfilled') {
                     uploadedDocuments = documentsRes.value;
+                    saveToLocalStorage('uploadedDocuments', uploadedDocuments);
                 } else {
                     console.error('Error loading documents:', documentsRes.reason);
                     apiErrors.push('documents');
@@ -1284,6 +1334,7 @@
 
                 if (staffStudentsRes.status === 'fulfilled') {
                     staffStudents = staffStudentsRes.value;
+                    saveToLocalStorage('staffStudents', staffStudents);
                 } else {
                     console.error('Error loading staff students:', staffStudentsRes.reason);
                     apiErrors.push('staff students');
@@ -1554,13 +1605,10 @@
                     });
                 } catch (err) {
                     console.warn('Failed to save student assignment to server:', err);
-                    // Save to localStorage as fallback
-                    try {
-                        localStorage.setItem('staffStudents', JSON.stringify(staffStudents));
-                    } catch (e) {
-                        console.warn('Failed to save to localStorage:', e);
-                    }
                 }
+                
+                // Persist to localStorage (always, not just on error)
+                saveToLocalStorage('staffStudents', staffStudents);
                 
                 // Update UI
                 updateAssignedStudentsList();
@@ -1589,7 +1637,7 @@
                 
                 // Save to server
                 try {
-                    const response = await fetch(`/api/staff/students/${admissionNo}`, {
+                    const response = await fetch(`${CONFIG.API_URL}/api/staff/students/${admissionNo}?staffId=${window.staffId}`, {
                         method: 'DELETE'
                     });
                     
@@ -1598,13 +1646,10 @@
                     }
                 } catch (err) {
                     console.warn('Failed to remove student assignment from server:', err);
-                    // Update localStorage as fallback
-                    try {
-                        localStorage.setItem('staffStudents', JSON.stringify(staffStudents));
-                    } catch (e) {
-                        console.warn('Failed to save to localStorage:', e);
-                    }
                 }
+                
+                // Persist to localStorage (always, not just on error)
+                saveToLocalStorage('staffStudents', staffStudents);
                 
                 // Update UI
                 updateAssignedStudentsList();
@@ -2285,6 +2330,9 @@
                     const student = studentMap[request.rollNo];
                     if (!student) return;
                     
+                    // Use _id (MongoDB ID) or id field
+                    const requestId = request._id || request.id;
+                    
                     const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${request.rollNo}</td>
@@ -2296,8 +2344,8 @@
                     <td>
                         ${request.status === 'pending' ? 
                             `<div class="action-buttons">
-                                <button class="btn btn-success" onclick="processLeave(${request.id}, 'approved')">Approve</button>
-                                <button class="btn btn-danger" onclick="processLeave(${request.id}, 'rejected')">Reject</button>
+                                <button class="btn btn-success" onclick="processLeave('${requestId}', 'approved')">Approve</button>
+                                <button class="btn btn-danger" onclick="processLeave('${requestId}', 'rejected')">Reject</button>
                             </div>` : 
                             'Processed'}
                     </td>
@@ -2321,21 +2369,24 @@
                     body: JSON.stringify({ status })
                 });
                 
-                // Update local data
-                const requestIndex = leaveRequests.findIndex(req => req.id === id);
+                // Update local data - find by both _id and id
+                const requestIndex = leaveRequests.findIndex(req => 
+                    (req._id && req._id.toString() === id.toString()) || 
+                    (req.id && req.id.toString() === id.toString())
+                );
+                
                 if (requestIndex !== -1) {
                     leaveRequests[requestIndex] = updatedRequest;
-                    
-                    // Save to localStorage as backup
-                    try {
-                        localStorage.setItem('leaveRequests', JSON.stringify(leaveRequests));
-                    } catch (e) {
-                        console.warn('Failed to save leave requests to localStorage:', e);
-                    }
+                } else {
+                    // If not found, refresh the list
+                    await loadLeaveRequests();
                 }
                 
+                // Persist to localStorage
+                saveToLocalStorage('leaveRequests', leaveRequests);
+                
                 await displayLeaveRequests();
-                showNotification(`Leave request ${status} for student ${updatedRequest.rollNo}`, 'success');
+                showNotification(`Leave request ${status}!`, 'success');
             } catch (error) {
                 console.error('Error processing leave request:', error);
                 
@@ -2441,12 +2492,8 @@
                     if (result.documents && result.documents.length > 0) {
                         uploadedDocuments = [...uploadedDocuments, ...result.documents];
                         
-                        // Save to localStorage as backup
-                        try {
-                            localStorage.setItem('uploadedDocuments', JSON.stringify(uploadedDocuments));
-                        } catch (e) {
-                            console.warn('Failed to save documents to localStorage:', e);
-                        }
+                        // Persist to localStorage
+                        saveToLocalStorage('uploadedDocuments', uploadedDocuments);
                         
                         displayDocuments();
                         showNotification(`${files.length} file(s) uploaded successfully!`, 'success');
@@ -2468,15 +2515,10 @@
                     // Add to uploaded documents
                     uploadedDocuments = [...uploadedDocuments, ...newDocuments];
                     
-                    // Save to localStorage
-                    try {
-                        localStorage.setItem('uploadedDocuments', JSON.stringify(uploadedDocuments));
-                        displayDocuments();
-                        showNotification(`${files.length} file(s) saved locally. Will sync when server is available.`, 'warning');
-                    } catch (e) {
-                        console.warn('Failed to save documents to localStorage:', e);
-                        showNotification('Failed to upload files: ' + error.message, 'error');
-                    }
+                    // Persist to localStorage
+                    saveToLocalStorage('uploadedDocuments', uploadedDocuments);
+                    displayDocuments();
+                    showNotification(`${files.length} file(s) saved locally. Will sync when server is available.`, 'warning');
                 }
                 
                 // Reset the input
@@ -2681,12 +2723,8 @@
                     // Remove from local array
                     uploadedDocuments = uploadedDocuments.filter(doc => doc.id !== docId);
                     
-                    // Save to localStorage
-                    try {
-                        localStorage.setItem('uploadedDocuments', JSON.stringify(uploadedDocuments));
-                    } catch (e) {
-                        console.warn('Failed to save documents to localStorage:', e);
-                    }
+                    // Persist to localStorage
+                    saveToLocalStorage('uploadedDocuments', uploadedDocuments);
                     
                     // Refresh the display
                     displayDocuments();

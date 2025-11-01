@@ -1274,11 +1274,11 @@
                     
                     const documents = await handleApiCall(`/api/documents/${admissionNo}`);
                     
-                    displayDocuments(documents);
+                    // Await displayDocuments since it's now async
+                    await displayDocuments(documents);
                     
-                    // Hide loading and show content
+                    // Hide loading
                     document.getElementById('documentsLoading').style.display = 'none';
-                    document.getElementById('documentsContent').style.display = 'block';
                     
                     window.showNotification('Documents loaded successfully!', 'success');
                 } catch (error) {
@@ -1535,7 +1535,7 @@
             }
             
             // Display documents
-            function displayDocuments(documents) {
+            async function displayDocuments(documents) {
                 // Clear existing document list
                 const documentList = document.getElementById('documentList');
                 documentList.innerHTML = '';
@@ -1546,8 +1546,41 @@
                     return;
                 }
                 
-                // Populate with new data
-                documents.forEach(doc => {
+                // Filter out documents that don't exist (verify with API)
+                const validDocuments = [];
+                for (const doc of documents) {
+                    try {
+                        const docId = doc._id || doc.id;
+                        // Try to fetch document details to verify it exists
+                        await fetch(`${CONFIG.API_URL}/api/documents/download/${docId}`, { method: 'HEAD' })
+                            .then(response => {
+                                if (response.ok) {
+                                    validDocuments.push(doc);
+                                } else {
+                                    console.warn(`Document ${docId} not found, skipping`);
+                                }
+                            })
+                            .catch(() => {
+                                console.warn(`Document ${docId} verification failed, skipping`);
+                            });
+                    } catch (error) {
+                        console.warn('Error verifying document:', error);
+                    }
+                }
+                
+                // Show empty state if no valid documents
+                if (validDocuments.length === 0) {
+                    document.getElementById('documentsContent').style.display = 'none';
+                    document.getElementById('documentsEmpty').style.display = 'block';
+                    return;
+                }
+                
+                // Show documents content
+                document.getElementById('documentsContent').style.display = 'block';
+                document.getElementById('documentsEmpty').style.display = 'none';
+                
+                // Populate with valid documents only
+                validDocuments.forEach(doc => {
                     const documentCard = document.createElement('div');
                     documentCard.className = 'document-card';
                     
@@ -1555,7 +1588,7 @@
                     let iconClass = 'fa-file';
                     if (doc.type === 'pdf') {
                         iconClass = 'fa-file-pdf';
-                    } else if (doc.type === 'ppt') {
+                    } else if (doc.type === 'ppt' || doc.type === 'pptx') {
                         iconClass = 'fa-file-powerpoint';
                     } else if (doc.type === 'doc' || doc.type === 'docx') {
                         iconClass = 'fa-file-word';
@@ -1567,7 +1600,7 @@
                     documentCard.innerHTML = `
                         <h4><i class="fas ${iconClass}"></i> ${doc.name}</h4>
                         <p>${doc.type.toUpperCase()} • ${doc.size}</p>
-                        <p><strong>Uploaded by:</strong> ${doc.uploadedBy}</p>
+                        <p><strong>Uploaded by:</strong> ${doc.uploadedBy || 'Staff'}</p>
                         <p><strong>Date:</strong> ${doc.date}</p>
                         <div class="document-actions">
                             <button class="btn btn-primary" onclick="viewDocument('${docId}')">
@@ -1675,7 +1708,7 @@
                 if (doc.type === 'pdf') {
                     // Display PDF in iframe
                     const iframe = document.createElement('iframe');
-                    iframe.src = `/api/documents/download/${docId}`; // Changed to download endpoint
+                    iframe.src = `${CONFIG.API_URL}/api/documents/download/${docId}`;
                     viewerContent.appendChild(iframe);
                 } else if (['ppt', 'pptx'].includes(doc.type)) {
                     // For PPT files, show a message and download option
@@ -1714,7 +1747,7 @@
         window.downloadDocument = async function(docId) {
             try {
                 window.showNotification('Preparing download...', 'info');
-                window.location.href = `/api/documents/download/${docId}`;
+                window.location.href = `${CONFIG.API_URL}/api/documents/download/${docId}`;
             } catch (error) {
                 console.error('Error downloading document:', error);
                 window.showNotification('Failed to download document', 'error');
