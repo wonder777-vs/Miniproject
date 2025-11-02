@@ -2006,6 +2006,10 @@
                     <div class="card-body">
                         <form id="createExamForm">
                             <div class="form-group">
+                                <label class="form-label" for="examName">Exam Name</label>
+                                <input type="text" id="examName" class="form-control" value="${catType}" required />
+                            </div>
+                            <div class="form-group">
                                 <label class="form-label" for="examSubject">Subject</label>
                                 <input type="text" id="examSubject" class="form-control" placeholder="Enter subject name" required />
                             </div>
@@ -2038,12 +2042,13 @@
                 createExamForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
                     
+                    const name = document.getElementById('examName').value;
                     const subject = document.getElementById('examSubject').value;
                     const date = document.getElementById('examDate').value;
                     const totalMarks = document.getElementById('examTotalMarks').value;
                     const duration = document.getElementById('examDuration').value;
                     
-                    if (!subject || !date || !totalMarks || !duration) {
+                    if (!name || !subject || !date || !totalMarks || !duration) {
                         showNotification('Please fill all fields', 'error');
                         return;
                     }
@@ -2051,7 +2056,7 @@
                     const examId = 'exam_' + Date.now();
                     const newExam = {
                         id: examId,
-                        name: catType,
+                        name,
                         subject,
                         date,
                         totalMarks: parseInt(totalMarks),
@@ -2186,21 +2191,31 @@
                 const marksData = {};
                 staffStudents.forEach(student => {
                     const marksInput = document.getElementById(`marks-${student.admissionno}`);
-                    if (marksInput) {
-                        const marks = marksInput.value === '' ? '' : parseInt(marksInput.value);
-                        marksData[student.admissionno] = marks;
+                    if (marksInput && marksInput.value !== '') {
+                        const marks = parseInt(marksInput.value);
+                        if (!isNaN(marks)) {
+                            marksData[student.admissionno] = marks;
+                        }
                     }
                 });
                 
-                const updatedExam = await handleApiCall(`/api/exams/${examId}/marks`, {
+                // Save marks to the marks collection
+                await handleApiCall(`/api/exams/${examId}/marks`, {
                     method: 'POST',
                     body: JSON.stringify({ marks: marksData })
                 });
                 
-                // Update local exam data
+                // Also update the exam's marks field
                 const examIndex = exams.findIndex(e => e.id === examId);
                 if (examIndex !== -1) {
-                    exams[examIndex] = updatedExam;
+                    // Update the exam's marks field with the saved data
+                    exams[examIndex].marks = marksData;
+                    
+                    // Update the exam on the server
+                    await handleApiCall(`/api/exams/${examId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ marks: marksData })
+                    });
                     
                     // Save to localStorage as backup
                     try {
@@ -2213,7 +2228,9 @@
                 showNotification('Marks saved successfully', 'success');
                 
                 // Refresh the marks display
-                await loadPage('marks');
+                setTimeout(() => {
+                    loadPage('marks');
+                }, 1000);
             } catch (error) {
                 console.error('Error saving marks:', error);
                 
@@ -2225,9 +2242,11 @@
                         const marksData = {};
                         staffStudents.forEach(student => {
                             const marksInput = document.getElementById(`marks-${student.admissionno}`);
-                            if (marksInput) {
-                                const marks = marksInput.value === '' ? '' : parseInt(marksInput.value);
-                                marksData[student.admissionno] = marks;
+                            if (marksInput && marksInput.value !== '') {
+                                const marks = parseInt(marksInput.value);
+                                if (!isNaN(marks)) {
+                                    marksData[student.admissionno] = marks;
+                                }
                             }
                         });
                         
