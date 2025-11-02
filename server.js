@@ -233,10 +233,12 @@ const attendanceSchema = new mongoose.Schema({
 const Attendance = mongoose.model("Attendance", attendanceSchema);
 
 // Marks model
+// Use a string examId so we can support both custom exam IDs (e.g. "exam_1234")
+// and ObjectId strings without causing Mongoose cast errors when frontend
+// uses the exam's custom `id` field instead of the MongoDB _id.
 const marksSchema = new mongoose.Schema({
     examId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Exam',
+        type: String,
         required: true
     },
     marks: {
@@ -891,13 +893,29 @@ app.get('/api/exams/:id/marks', async (req, res) => {
 app.post('/api/exams/:id/marks', async (req, res) => {
     try {
         console.log(`Saving marks for exam ID: ${req.params.id}`);
-        const marks = new Marks({
-            examId: req.params.id,
-            ...req.body
+        // Expect request payload to be { marks: { admissionNo: score, ... } }
+        const incoming = req.body && req.body.marks ? req.body.marks : req.body;
+
+        if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) {
+            return res.status(400).json({ error: 'Invalid marks payload. Expected an object mapping admissionNo -> score' });
+        }
+
+        // Normalize values to numbers where possible
+        const normalized = {};
+        Object.keys(incoming).forEach(key => {
+            const val = incoming[key];
+            const num = Number(val);
+            normalized[key] = Number.isNaN(num) ? val : num;
         });
-        await marks.save();
+
+        const marksDoc = new Marks({
+            examId: req.params.id,
+            marks: normalized
+        });
+
+        await marksDoc.save();
         console.log('Marks saved successfully');
-        res.status(201).json(marks);
+        res.status(201).json(marksDoc);
     } catch (error) {
         console.error('Error saving marks:', error);
         res.status(500).json({ error: 'Failed to save marks' });
