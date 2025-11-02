@@ -874,6 +874,43 @@
             </div>
         </div>
     </div>
+
+    <!-- Staff Profile Modal -->
+    <div id="staffProfileModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeStaffProfile()">&times;</span>
+            <h3>Staff Profile</h3>
+            <div id="staffProfileContent">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeChangePasswordModal()">&times;</span>
+            <h3>Change Password</h3>
+            <div>
+                <div class="form-group">
+                    <label class="form-label" for="oldPassword">Current Password</label>
+                    <input type="password" id="oldPassword" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="confirmPassword">Confirm New Password</label>
+                    <input type="password" id="confirmPassword" class="form-control" />
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="closeChangePasswordModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="submitChangePassword()">Update Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <script>
         // Initialize data structures
@@ -889,12 +926,19 @@
         const pages = {
             dashboard: `
                 <div class="page-header">
-                    <h1 class="page-title">Staff Dashboard</h1>
-                    <div class="user-info">
-                        <span id="staffName">Staff Member</span>
-                        <div class="user-avatar" id="staffAvatar">S</div>
+                        <h1 class="page-title">Staff Dashboard</h1>
+                        <div class="user-info" style="position: relative;">
+                            <button id="staffDropdownToggle" class="btn btn-secondary" onclick="toggleStaffDropdown()" style="display:flex;align-items:center;gap:8px;">
+                                <div class="user-avatar" id="staffAvatar">S</div>
+                                <span id="staffName">Staff Member</span>
+                                <i class="fas fa-caret-down" style="margin-left:8px;color:#fff"></i>
+                            </button>
+                            <div id="staffDropdownMenu" style="position:absolute;right:0;top:100%;background:white;border:1px solid var(--border-color);box-shadow:0 4px 8px rgba(0,0,0,0.1);display:none;border-radius:6px;overflow:hidden;z-index:1000;">
+                                <a href="#" onclick="openStaffProfile();return false;" style="display:block;padding:10px 16px;color:var(--dark-color);text-decoration:none;">Profile</a>
+                                <a href="#" onclick="openChangePasswordModal();return false;" style="display:block;padding:10px 16px;color:var(--dark-color);text-decoration:none;">Change Password</a>
+                            </div>
+                        </div>
                     </div>
-                </div>
                 
                 <div id="apiErrorPanel" style="display: none;" class="error-panel">
                     <h3><i class="fas fa-exclamation-triangle"></i> Connection Issues</h3>
@@ -2926,6 +2970,109 @@
             const errorPanel = document.getElementById('apiErrorPanel');
             if (errorPanel) {
                 errorPanel.style.display = 'none';
+            }
+        }
+
+        // Staff dropdown and modals
+        function toggleStaffDropdown() {
+            const menu = document.getElementById('staffDropdownMenu');
+            if (!menu) return;
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(e) {
+            const toggle = document.getElementById('staffDropdownToggle');
+            const menu = document.getElementById('staffDropdownMenu');
+            if (!toggle || !menu) return;
+            if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+        async function openStaffProfile() {
+            try {
+                const modal = document.getElementById('staffProfileModal');
+                const content = document.getElementById('staffProfileContent');
+                if (!modal || !content) return;
+                content.innerHTML = '<div class="spinner"></div>';
+                modal.style.display = 'block';
+
+                const info = await handleApiCall(`/api/staff/${window.staffId}/info`);
+                content.innerHTML = `
+                    <div class="profile-header">
+                        <div class="profile-avatar"><i class="fas fa-user"></i></div>
+                        <div class="profile-info">
+                            <h2>${info.name || 'N/A'}</h2>
+                            <p><strong>ID:</strong> ${info.id || ''}</p>
+                            <p><strong>Department:</strong> ${info.department || 'N/A'}</p>
+                            <p><strong>Email:</strong> ${info.email || 'N/A'}</p>
+                            <p><strong>Phone:</strong> ${info.phone || 'N/A'}</p>
+                        </div>
+                    </div>
+                    <div class="data-grid">
+                        <div class="data-card"><h4>Designation</h4><p>${info.designation || 'N/A'}</p></div>
+                        <div class="data-card"><h4>Education</h4><p>${info.education || 'N/A'}</p></div>
+                        <div class="data-card"><h4>Experience</h4><p>${info.experience || 'N/A'}</p></div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading staff profile:', error);
+                showNotification('Failed to load profile', 'error');
+            }
+        }
+
+        function closeStaffProfile() {
+            const modal = document.getElementById('staffProfileModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function openChangePasswordModal() {
+            const modal = document.getElementById('changePasswordModal');
+            if (modal) modal.style.display = 'block';
+            // Hide dropdown
+            const menu = document.getElementById('staffDropdownMenu'); if (menu) menu.style.display = 'none';
+        }
+
+        function closeChangePasswordModal() {
+            const modal = document.getElementById('changePasswordModal');
+            if (modal) modal.style.display = 'none';
+            // Clear inputs
+            const oldP = document.getElementById('oldPassword');
+            const newP = document.getElementById('newPassword');
+            const confP = document.getElementById('confirmPassword');
+            if (oldP) oldP.value = '';
+            if (newP) newP.value = '';
+            if (confP) confP.value = '';
+        }
+
+        async function submitChangePassword() {
+            try {
+                const oldP = document.getElementById('oldPassword').value;
+                const newP = document.getElementById('newPassword').value;
+                const confP = document.getElementById('confirmPassword').value;
+
+                if (!oldP || !newP || !confP) {
+                    showNotification('Please fill all password fields', 'error');
+                    return;
+                }
+                if (newP !== confP) {
+                    showNotification('New password and confirm password do not match', 'error');
+                    return;
+                }
+
+                showNotification('Updating password...', 'info');
+
+                await handleApiCall(`/api/staff/${window.staffId}/change-password`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ oldPassword: oldP, newPassword: newP })
+                });
+
+                showNotification('Password updated successfully. Please login with your new password.', 'success');
+                closeChangePasswordModal();
+            } catch (err) {
+                console.error('Error changing password:', err);
+                showNotification('Failed to change password: ' + (err.message || err), 'error');
             }
         }
     </script>

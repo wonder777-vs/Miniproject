@@ -77,6 +77,66 @@
             color: white;
         }
 
+        .user-dropdown {
+            position: relative;
+        }
+
+        .user-dropdown-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .user-dropdown-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: white;
+            min-width: 200px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            margin-top: 8px;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .user-dropdown-menu.show {
+            display: block;
+        }
+
+        .user-dropdown-menu a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            color: var(--dark-color);
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .user-dropdown-menu a:hover {
+            background-color: #f8f9fa;
+        }
+
+        .user-dropdown-menu a i {
+            width: 20px;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
         .user-avatar {
             width: 40px;
             height: 40px;
@@ -323,6 +383,84 @@
             margin-bottom: 20px;
         }
 
+        /* Marks Table Styling */
+        .marks-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .marks-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .marks-table thead th {
+            color: white;
+            font-weight: 600;
+            padding: 15px;
+            text-align: left;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+        }
+
+        .marks-table tbody tr {
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.2s ease;
+        }
+
+        .marks-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .marks-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .marks-table tbody td {
+            padding: 15px;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+
+        .marks-table tbody td:first-child {
+            font-weight: 500;
+            color: #343a40;
+        }
+
+        .marks-table tbody td:nth-child(2),
+        .marks-table tbody td:nth-child(3) {
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .marks-table tbody td:nth-child(4) {
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        /* Empty state for marks */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #dee2e6;
+            margin-bottom: 15px;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            margin: 0;
+        }
+
         /* Other existing styles remain unchanged */
         .form-group {
             margin-bottom: 20px;
@@ -405,6 +543,59 @@
             justify-content: flex-end;
             gap: 15px;
             margin-top: 30px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--dark-color);
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
         }
 
         /* Profile Styles */
@@ -720,15 +911,54 @@
                 <span>Education ERP Student Dashboard</span>
             </div>
             <div class="user-info">
-                <span id="studentName">Student</span>
+                <div class="user-dropdown">
+                    <button class="user-dropdown-btn" onclick="toggleStudentDropdown()">
+                        <span id="studentName">Student</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="user-dropdown-menu" id="studentDropdownMenu">
+                        <a href="#" onclick="openChangePasswordModal(); return false;">
+                            <i class="fas fa-key"></i> Change Password
+                        </a>
+                        <a href="#" onclick="logout(); return false;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
                 <div class="user-avatar" id="userAvatar">S</div>
-                <button class="btn btn-danger" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i>
-                    Logout
-                </button>
             </div>
         </div>
     </header>
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Change Password</h2>
+                <span class="close" onclick="closeChangePasswordModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    <div class="form-group">
+                        <label class="form-label" for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="confirmPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" class="form-control" required />
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Update Password</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeChangePasswordModal()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
         <div class="page-header">
@@ -835,7 +1065,7 @@
                                 <div class="cat-tab active" data-cat="CAT1">CAT 1</div>
                                 <div class="cat-tab" data-cat="CAT2">CAT 2</div>
                                 <div class="cat-tab" data-cat="CAT3">CAT 3</div>
-                                <div class="cat-tab" data-cat="Special">Special Test</div>
+                                <div class="cat-tab" data-cat="Special Test">Special Test</div>
                                 <div class="cat-tab" data-cat="Model">Model Exam</div>
                             </div>
                             
@@ -908,9 +1138,9 @@
                                 </div>
                             </div>
                             
-                            <div id="Special" class="cat-content">
-                                <div id="Special-loading" class="spinner"></div>
-                                <div id="Special-content" style="display: none;">
+                            <div id="Special Test" class="cat-content">
+                                <div id="Special Test-loading" class="spinner"></div>
+                                <div id="Special Test-content" style="display: none;">
                                     <table class="marks-table">
                                         <thead>
                                             <tr>
@@ -920,12 +1150,12 @@
                                                 <th>Percentage</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="Special-table-body">
+                                        <tbody id="Special Test-table-body">
                                             <!-- Dynamic content will be inserted here -->
                                         </tbody>
                                     </table>
                                 </div>
-                                <div id="Special-empty" class="empty-state" style="display: none;">
+                                <div id="Special Test-empty" class="empty-state" style="display: none;">
                                     <i class="fas fa-chart-line"></i>
                                     <p>No Special Test marks available</p>
                                 </div>
@@ -1246,7 +1476,8 @@
                 try {
                     window.showNotification(`Fetching ${catType} marks...`, 'info');
                     
-                    const data = await handleApiCall(`/api/internal-marks/${admissionNo}?catType=${catType}`);
+                    // Use the new student-specific exams endpoint
+                    const data = await handleApiCall(`/api/exams/student/${admissionNo}`);
                     const marksData = data[catType] || [];
                     
                     displayInternalMarks(marksData, catType);
@@ -1869,6 +2100,90 @@
                 console.error('Error downloading document:', error);
                 window.showNotification('Failed to download document', 'error');
             }
+        }
+
+        // Dropdown functions
+        window.toggleStudentDropdown = function() {
+            const menu = document.getElementById('studentDropdownMenu');
+            menu.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(event) {
+            if (!event.target.matches('.user-dropdown-btn') && !event.target.closest('.user-dropdown-btn')) {
+                const dropdowns = document.getElementsByClassName('user-dropdown-menu');
+                for (let i = 0; i < dropdowns.length; i++) {
+                    const openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        });
+
+        // Change password modal functions
+        window.openChangePasswordModal = function() {
+            document.getElementById('changePasswordModal').style.display = 'block';
+            document.getElementById('studentDropdownMenu').classList.remove('show');
+        }
+
+        window.closeChangePasswordModal = function() {
+            document.getElementById('changePasswordModal').style.display = 'none';
+            document.getElementById('changePasswordForm').reset();
+        }
+
+        // Change password form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const changePasswordForm = document.getElementById('changePasswordForm');
+            if (changePasswordForm) {
+                changePasswordForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const currentPassword = document.getElementById('currentPassword').value;
+                    const newPassword = document.getElementById('newPassword').value;
+                    const confirmPassword = document.getElementById('confirmPassword').value;
+                    
+                    if (!currentPassword || !newPassword || !confirmPassword) {
+                        window.showNotification('Please fill all fields', 'error');
+                        return;
+                    }
+                    
+                    if (newPassword !== confirmPassword) {
+                        window.showNotification('New passwords do not match', 'error');
+                        return;
+                    }
+                    
+                    if (newPassword.length < 6) {
+                        window.showNotification('Password must be at least 6 characters long', 'error');
+                        return;
+                    }
+                    
+                    try {
+                        window.showNotification('Updating password...', 'info');
+                        
+                        const response = await handleApiCall(`/api/students/${admissionNo}/change-password`, {
+                            method: 'PATCH',
+                            body: JSON.stringify({
+                                currentPassword,
+                                newPassword
+                            })
+                        });
+                        
+                        window.showNotification('Password updated successfully! Please login again.', 'success');
+                        
+                        setTimeout(() => {
+                            window.location.href = '/index.html';
+                        }, 2000);
+                    } catch (error) {
+                        console.error('Error changing password:', error);
+                        window.showNotification(error.message || 'Failed to change password', 'error');
+                    }
+                });
+            }
+        });
+
+        window.logout = function() {
+            window.location.href = '/index.html';
         }
     </script>
 </body>

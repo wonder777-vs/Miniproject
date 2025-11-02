@@ -771,6 +771,64 @@ app.get('/api/exams', async (req, res) => {
     }
 });
 
+// Get exams/marks for a specific student (for internal marks display)
+app.get('/api/exams/student/:admissionNo', async (req, res) => {
+    try {
+        const admissionNo = req.params.admissionNo;
+        console.log(`Fetching exams for student: ${admissionNo}`);
+        
+        // Get all exams
+        const exams = await Exam.find({});
+        
+        // Filter and transform to get student-specific marks grouped by exam type
+        const studentMarks = {
+            CAT1: [],
+            CAT2: [],
+            CAT3: [],
+            'Special Test': [],
+            Model: [],
+            Assignment: []
+        };
+        
+        exams.forEach(exam => {
+            // Check if this exam has marks for the student
+            if (exam.marks && exam.marks.get(admissionNo) !== undefined) {
+                const marksObtained = exam.marks.get(admissionNo);
+                const percentage = exam.totalMarks ? ((marksObtained / exam.totalMarks) * 100).toFixed(1) : 0;
+                
+                const markData = {
+                    subject: exam.subject,
+                    marks: marksObtained,
+                    maxMarks: exam.totalMarks,
+                    percentage: percentage,
+                    date: exam.date,
+                    examId: exam.id
+                };
+                
+                // Categorize by exam name (CAT1, CAT2, etc.)
+                const examType = exam.name.toUpperCase();
+                if (studentMarks[examType]) {
+                    studentMarks[examType].push(markData);
+                } else if (examType.includes('CAT')) {
+                    // Handle variations like "Cat 1", "CAT-1", etc.
+                    if (examType.includes('1')) studentMarks.CAT1.push(markData);
+                    else if (examType.includes('2')) studentMarks.CAT2.push(markData);
+                    else if (examType.includes('3')) studentMarks.CAT3.push(markData);
+                } else {
+                    // Default to Special Test if not recognized
+                    studentMarks['Special Test'].push(markData);
+                }
+            }
+        });
+        
+        console.log(`Found marks for student ${admissionNo}:`, Object.keys(studentMarks).map(k => `${k}: ${studentMarks[k].length}`).join(', '));
+        res.json(studentMarks);
+    } catch (error) {
+        console.error('Error fetching student exam marks:', error);
+        res.status(500).json({ error: 'Failed to fetch student marks' });
+    }
+});
+
 app.get('/api/exams/:id', async (req, res) => {
     try {
         console.log(`Fetching exam with ID: ${req.params.id}`);
@@ -1823,4 +1881,111 @@ function formatFileSize(bytes) {
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
+});
+
+// New: Get exams/marks for a specific student (grouped by exam name/type)
+app.get('/api/exams/student/:admissionno', async (req, res) => {
+    try {
+        const admissionNo = req.params.admissionno;
+
+        // Fetch all exams
+        const exams = await Exam.find({});
+
+        // Group marks by exam.name (used as exam type like CAT1/CAT2)
+        const grouped = {};
+
+        exams.forEach(exam => {
+            // exam.marks may be a Map or plain object
+            let studentMark;
+            if (exam.marks instanceof Map) {
+                studentMark = exam.marks.get(admissionNo);
+            } else if (exam.marks && typeof exam.marks === 'object') {
+                studentMark = exam.marks[admissionNo];
+            }
+
+            if (studentMark !== undefined && studentMark !== null && studentMark !== '') {
+                const examType = exam.name || 'Other';
+                if (!grouped[examType]) grouped[examType] = [];
+
+                grouped[examType].push({
+                    examId: exam.id || exam._id,
+                    subject: exam.subject,
+                    marks: typeof studentMark === 'number' ? studentMark : Number(studentMark) || 0,
+                    maxMarks: exam.totalMarks || null,
+                    date: exam.date || null
+                });
+            }
+        });
+
+        res.json(grouped);
+    } catch (err) {
+        console.error('Error fetching student exam marks:', err);
+        res.status(500).json({ error: 'Failed to fetch exam marks for student' });
+    }
+});
+
+// Change password for staff (verify old password)
+app.patch('/api/staff/:id/change-password', async (req, res) => {
+    try {
+        const staffId = req.params.id;
+        const { oldPassword, newPassword } = req.body;
+
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({ error: 'Old and new passwords are required' });
+        }
+
+        const staff = await Faculty.findOne({ id: staffId });
+        if (!staff) return res.status(404).json({ error: 'Staff not found' });
+
+        // Simple plaintext comparison (passwords are stored as plain text in this app)
+        if ((staff.password || '') !== oldPassword) {
+            return res.status(400).json({ error: 'Old password is incorrect' });
+        }
+
+        // Basic validation for new password length
+        if (typeof newPassword !== 'string' || newPassword.length < 4) {
+            return res.status(400).json({ error: 'New password must be at least 4 characters' });
+        }
+
+        staff.password = newPassword;
+        await staff.save();
+
+        res.json({ message: 'Password updated successfully' });
+    } catch (err) {
+        console.error('Error changing staff password:', err);
+        res.status(500).json({ error: 'Failed to change password' });
+    }
+});
+
+// Student change password endpoint
+app.patch('/api/students/:admissionno/change-password', async (req, res) => {
+    try {
+        const admissionNo = req.params.admissionno;
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ error: 'Current and new passwords are required' });
+        }
+
+        const student = await Student.findOne({ admissionno: admissionNo });
+        if (!student) return res.status(404).json({ error: 'Student not found' });
+
+        // Simple plaintext comparison (passwords are stored as plain text in this app)
+        if ((student.password || student.admissionno) !== currentPassword) {
+            return res.status(400).json({ error: 'Current password is incorrect' });
+        }
+
+        // Basic validation for new password length
+        if (typeof newPassword !== 'string' || newPassword.length < 4) {
+            return res.status(400).json({ error: 'New password must be at least 4 characters' });
+        }
+
+        student.password = newPassword;
+        await student.save();
+
+        res.json({ message: 'Password updated successfully' });
+    } catch (err) {
+        console.error('Error changing student password:', err);
+        res.status(500).json({ error: 'Failed to change password' });
+    }
 });
