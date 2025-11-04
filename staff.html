@@ -1574,7 +1574,7 @@
                 // Store staffId globally
                 window.staffId = staffId;
                 
-                // Try to load cached data first
+                // Try to load cached data first (will be replaced by fresh API data if available)
                 const cachedStudents = getFromLocalStorage('students');
                 const cachedExams = getFromLocalStorage('exams');
                 const cachedAttendance = getFromLocalStorage('attendanceRecords');
@@ -1582,8 +1582,12 @@
                 const cachedDocuments = getFromLocalStorage('uploadedDocuments');
                 const cachedStaffStudents = getFromLocalStorage('staffStudents');
                 
+                // Show cached data immediately for better UX (will be replaced by fresh data)
                 if (cachedStudents) students = cachedStudents;
-                if (cachedExams) exams = cachedExams;
+                if (cachedExams) {
+                    console.log('Loading cached exams:', cachedExams.length);
+                    exams = cachedExams;
+                }
                 if (cachedLeaveRequests) leaveRequests = cachedLeaveRequests;
                 if (cachedDocuments) uploadedDocuments = cachedDocuments;
                 if (cachedStaffStudents) staffStudents = cachedStaffStudents;
@@ -1622,12 +1626,23 @@
                 }
 
                 if (examsRes.status === 'fulfilled') {
-                    exams = examsRes.value;
-                    saveToLocalStorage('exams', exams);
+                    const freshExams = examsRes.value;
+                    console.log('Fresh exams from API:', freshExams.length);
+                    // Always prioritize database data over cached data
+                    if (freshExams && Array.isArray(freshExams)) {
+                        exams = freshExams;
+                        saveToLocalStorage('exams', exams);
+                        console.log('Exams loaded and cached:', exams.length);
+                    } else {
+                        console.warn('Invalid exams data from API, keeping cached data');
+                    }
                 } else {
                     console.error('Error loading exams:', examsRes.reason);
                     apiErrors.push('exams');
-                    showNotification('Failed to load exams data', 'warning');
+                    // Keep cached data if API fails
+                    if (!exams || exams.length === 0) {
+                        showNotification('Failed to load exams data from server, using cached data', 'warning');
+                    }
                 }
 
                 if (attendanceRes.status === 'fulfilled') {
@@ -2282,13 +2297,18 @@
         
         // Exam Management Functions
         function displayExamsByCAT() {
+            console.log('Displaying exams by CAT, total exams:', exams.length);
             const catTypes = ['CAT1', 'CAT2', 'CAT3', 'Special', 'Model', 'Assignment'];
             
             catTypes.forEach(cat => {
                 const catExams = exams.filter(exam => exam.name === cat);
+                console.log(`${cat} exams:`, catExams.length);
                 const container = document.getElementById(`${cat}-exams`);
                 
-                if (!container) return;
+                if (!container) {
+                    console.warn(`Container for ${cat} not found`);
+                    return;
+                }
                 
                 container.innerHTML = '';
                 
@@ -2399,14 +2419,12 @@
                         });
                         
                         // Update local exams array with the created exam
+                        console.log('Exam created successfully, adding to local array');
                         exams.push(createdExam);
                         
-                        // Save to localStorage as backup
-                        try {
-                            localStorage.setItem('exams', JSON.stringify(exams));
-                        } catch (e) {
-                            console.warn('Failed to save exams to localStorage:', e);
-                        }
+                        // Save to localStorage as backup using proper key
+                        saveToLocalStorage('exams', exams);
+                        console.log('Total exams after creation:', exams.length);
                         
                         showNotification('Exam created successfully', 'success');
                         
@@ -2418,12 +2436,10 @@
                         console.error('Error creating exam:', error);
                         
                         // Still add to local data and proceed
+                        console.log('Adding exam locally due to API failure');
                         exams.push(newExam);
-                        try {
-                            localStorage.setItem('exams', JSON.stringify(exams));
-                        } catch (e) {
-                            console.warn('Failed to save exams to localStorage:', e);
-                        }
+                        saveToLocalStorage('exams', exams);
+                        console.log('Total exams after local creation:', exams.length);
                         
                         showNotification('Exam created locally. Will sync when server is available.', 'warning');
                         
@@ -2543,12 +2559,8 @@
                         body: JSON.stringify({ marks: marksData })
                     });
                     
-                    // Save to localStorage as backup
-                    try {
-                        localStorage.setItem('exams', JSON.stringify(exams));
-                    } catch (e) {
-                        console.warn('Failed to save exams to localStorage:', e);
-                    }
+                    // Save to localStorage as backup using proper key
+                    saveToLocalStorage('exams', exams);
                 }
                 
                 showNotification('Marks saved successfully', 'success');
@@ -2577,7 +2589,7 @@
                         });
                         
                         exams[examIndex].marks = marksData;
-                        localStorage.setItem('exams', JSON.stringify(exams));
+                        saveToLocalStorage('exams', exams);
                         
                         showNotification('Marks saved locally. Will sync when server is available.', 'warning');
                     }
