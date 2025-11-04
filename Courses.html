@@ -403,7 +403,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       // DOM Elements
       elements = {
-        addCourseBtn: document.getElementById('addCourseBtn'),
+        // addCourseBtn: document.getElementById('addCourseBtn'), // Removed Add button
         courseModal: document.getElementById('courseModal'),
         closeModal: document.getElementById('closeModal'),
         cancelBtn: document.getElementById('cancelBtn'),
@@ -427,7 +427,7 @@
       };
 
       // Event Listeners
-      elements.addCourseBtn.addEventListener('click', openAddModal);
+      // elements.addCourseBtn.addEventListener('click', openAddModal); // Removed Add button
       elements.closeModal.addEventListener('click', closeModalHandler);
       elements.cancelBtn.addEventListener('click', closeModalHandler);
       elements.saveBtn.addEventListener('click', saveCourse);
