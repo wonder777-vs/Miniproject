@@ -486,36 +486,45 @@
             // Fetch exams from backend
             async function fetchExams() {
                 try {
+                    console.log('Fetching exams from API...');
                     showNotification("Loading exams...", "warning");
                     exams = await handleApiCall('/api/exams');
+                    console.log('Exams received:', exams);
+                    console.log('Number of exams:', exams ? exams.length : 0);
                     renderTable();
                     showNotification("Exams loaded successfully!", "success");
                 } catch (error) {
-                    // Error is already handled by handleApiCall
+                    console.error('Error fetching exams:', error);
+                    showNotification("Failed to load exams", "danger");
+                    emptyState.style.display = 'block';
                 }
             }
             
             // Render exam table
             function renderTable() {
+                console.log('Rendering table with exams:', exams);
                 examTableBody.innerHTML = '';
                 
-                if (exams.length === 0) {
+                if (!exams || exams.length === 0) {
+                    console.log('No exams to display, showing empty state');
                     emptyState.style.display = 'block';
                     return;
                 }
                 
+                console.log('Displaying', exams.length, 'exams');
                 emptyState.style.display = 'none';
                 
-                exams.forEach(exam => {
+                exams.forEach((exam, index) => {
+                    console.log(`Rendering exam ${index}:`, exam);
                     const row = document.createElement('tr');
                     const examId = exam.id || exam._id;
                     
                     row.innerHTML = `
                         <td>${examId}</td>
-                        <td>${exam.name}</td>
-                        <td>${exam.date}</td>
-                        <td>${exam.totalMarks}</td>
-                        <td>${exam.duration}</td>
+                        <td>${exam.name || 'N/A'}</td>
+                        <td>${exam.date || 'N/A'}</td>
+                        <td>${exam.totalMarks || 0}</td>
+                        <td>${exam.duration || 0}</td>
                         <td>
                             <div class="actions">
                                 <button class="action-btn edit-btn" title="Edit" data-id="${examId}">
@@ -530,6 +539,7 @@
                     examTableBody.appendChild(row);
                 });
                 
+                console.log('Table rendered, attaching event listeners');
                 attachEventListeners();
             }
             
