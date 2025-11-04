@@ -717,6 +717,170 @@
             margin: 0 auto;
         }
 
+        /* Discussion/Chat Styles */
+        .discussion-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .discussion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 0;
+        }
+
+        .discussion-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .staff-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .chat-container {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            height: 500px;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .empty-chat {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+        }
+
+        .empty-chat i {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            animation: messageSlide 0.3s ease;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.sent {
+            justify-content: flex-end;
+        }
+
+        .message.received {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .message.sent .message-bubble {
+            background-color: var(--primary-color);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.received .message-bubble {
+            background-color: white;
+            color: var(--dark-color);
+            border: 1px solid var(--border-color);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        .message.sent .message-time {
+            text-align: right;
+        }
+
+        .message.received .message-time {
+            text-align: left;
+        }
+
+        .message-sender {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            opacity: 0.8;
+        }
+
+        .chat-input-container {
+            padding: 15px 20px;
+            background-color: white;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            resize: none;
+            font-family: inherit;
+            font-size: 0.95rem;
+            max-height: 120px;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .send-btn {
+            padding: 12px 24px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         /* CAT Tabs Styles */
         .cat-tabs {
             display: flex;
@@ -974,6 +1138,7 @@
                     <div class="tab" data-tab="university">University Marks</div>
                     <div class="tab" data-tab="documents">Documents</div>
                     <div class="tab" data-tab="leave">Apply Leave</div>
+                    <div class="tab" data-tab="discussion">Discussion</div>
                 </div>
 
                 <div class="tab-content active" id="profile">
@@ -1294,6 +1459,39 @@
                                     <button type="submit" class="btn btn-primary">Submit Application</button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="discussion">
+                    <div class="discussion-container">
+                        <div class="discussion-header">
+                            <h3><i class="fas fa-comments"></i> Discussion with Faculty</h3>
+                            <div id="discussionStaffInfo" class="staff-badge">
+                                <i class="fas fa-user-tie"></i>
+                                <span id="discussionStaffName">Loading...</span>
+                            </div>
+                        </div>
+                        
+                        <div class="chat-container">
+                            <div class="chat-messages" id="chatMessages">
+                                <div class="empty-chat">
+                                    <i class="fas fa-comment-dots"></i>
+                                    <p>No messages yet. Start a conversation!</p>
+                                </div>
+                            </div>
+                            
+                            <div class="chat-input-container">
+                                <textarea 
+                                    id="messageInput" 
+                                    class="chat-input" 
+                                    placeholder="Type your message here..."
+                                    rows="2"
+                                ></textarea>
+                                <button class="btn btn-primary send-btn" onclick="sendMessage()">
+                                    <i class="fas fa-paper-plane"></i> Send
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2185,6 +2383,157 @@
         window.logout = function() {
             window.location.href = '/index.html';
         }
+
+        // Discussion/Chat functions
+        let currentStaffId = null;
+        let messagePollingInterval = null;
+
+        async function loadDiscussion() {
+            try {
+                // Get assigned staff
+                const response = await handleApiCall(`/api/student/${admissionNo}/assigned-staff`);
+                
+                if (response && response.staff && response.staff.length > 0) {
+                    // Use the first assigned staff
+                    currentStaffId = response.staff[0].id;
+                    const staffName = response.staff[0].name;
+                    
+                    document.getElementById('discussionStaffName').textContent = staffName;
+                    
+                    // Load messages
+                    await loadMessages();
+                    
+                    // Start polling for new messages
+                    if (messagePollingInterval) clearInterval(messagePollingInterval);
+                    messagePollingInterval = setInterval(loadMessages, 5000); // Poll every 5 seconds
+                } else {
+                    document.getElementById('chatMessages').innerHTML = `
+                        <div class="empty-chat">
+                            <i class="fas fa-user-times"></i>
+                            <p>No faculty assigned yet. Please contact administration.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading discussion:', error);
+                window.showNotification('Failed to load discussion', 'error');
+            }
+        }
+
+        async function loadMessages() {
+            if (!currentStaffId) return;
+            
+            try {
+                const messages = await handleApiCall(
+                    `/api/messages?studentId=${admissionNo}&staffId=${currentStaffId}`
+                );
+                
+                const chatMessages = document.getElementById('chatMessages');
+                
+                if (messages.length === 0) {
+                    chatMessages.innerHTML = `
+                        <div class="empty-chat">
+                            <i class="fas fa-comment-dots"></i>
+                            <p>No messages yet. Start a conversation!</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                chatMessages.innerHTML = messages.map(msg => {
+                    const isStudent = msg.senderType === 'student';
+                    const messageClass = isStudent ? 'sent' : 'received';
+                    const time = new Date(msg.timestamp).toLocaleString();
+                    
+                    return `
+                        <div class="message ${messageClass}">
+                            <div class="message-bubble">
+                                ${!isStudent ? `<div class="message-sender">Faculty</div>` : ''}
+                                <div class="message-text">${msg.message}</div>
+                                <div class="message-time">${time}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Mark messages as read
+                await handleApiCall('/api/messages/read', {
+                    method: 'PATCH',
+                    body: JSON.stringify({
+                        studentId: admissionNo,
+                        staffId: currentStaffId,
+                        readBy: 'student'
+                    })
+                });
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        window.sendMessage = async function() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) {
+                window.showNotification('Please type a message', 'warning');
+                return;
+            }
+            
+            if (!currentStaffId) {
+                window.showNotification('No faculty assigned', 'error');
+                return;
+            }
+            
+            try {
+                await handleApiCall('/api/messages', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        studentId: admissionNo,
+                        staffId: currentStaffId,
+                        senderId: admissionNo,
+                        senderType: 'student',
+                        message
+                    })
+                });
+                
+                input.value = '';
+                await loadMessages();
+            } catch (error) {
+                console.error('Error sending message:', error);
+                window.showNotification('Failed to send message', 'error');
+            }
+        }
+
+        // Allow Enter key to send message (Shift+Enter for new line)
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                messageInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        window.sendMessage();
+                    }
+                });
+            }
+            
+            // Load discussion when discussion tab is clicked
+            const discussionTab = document.querySelector('[data-tab="discussion"]');
+            if (discussionTab) {
+                discussionTab.addEventListener('click', function() {
+                    loadDiscussion();
+                });
+            }
+        });
+
+        // Clear polling interval when leaving page
+        window.addEventListener('beforeunload', function() {
+            if (messagePollingInterval) {
+                clearInterval(messagePollingInterval);
+            }
+        });
     </script>
 </body>
 </html>

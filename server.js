@@ -378,6 +378,19 @@ const documentSchema = new mongoose.Schema({
 
 const Document = mongoose.model("Document", documentSchema);
 
+// Discussion Message Schema
+const messageSchema = new mongoose.Schema({
+    studentId: { type: String, required: true },
+    staffId: { type: String, required: true },
+    senderId: { type: String, required: true }, // Can be studentId or staffId
+    senderType: { type: String, required: true, enum: ['student', 'staff'] },
+    message: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now },
+    read: { type: Boolean, default: false }
+});
+
+const Message = mongoose.model("Message", messageSchema);
+
 // Now define routes after models are defined
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
@@ -1525,6 +1538,94 @@ app.delete("/api/documents/:id", async (req, res) => {
     } catch (err) {
         console.error("Error deleting document:", err);
         res.status(500).json({ message: "❌ Error deleting document", error: err.message });
+    }
+});
+
+// Discussion/Message APIs
+// Get messages between student and staff
+app.get("/api/messages", async (req, res) => {
+    try {
+        const { studentId, staffId } = req.query;
+        
+        if (!studentId || !staffId) {
+            return res.status(400).json({ message: "Student ID and Staff ID are required" });
+        }
+        
+        const messages = await Message.find({
+            studentId,
+            staffId
+        }).sort({ timestamp: 1 });
+        
+        res.json(messages);
+    } catch (err) {
+        console.error("Error fetching messages:", err);
+        res.status(500).json({ message: "❌ Error fetching messages", error: err.message });
+    }
+});
+
+// Send a message
+app.post("/api/messages", async (req, res) => {
+    try {
+        const { studentId, staffId, senderId, senderType, message } = req.body;
+        
+        if (!studentId || !staffId || !senderId || !senderType || !message) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+        
+        const newMessage = new Message({
+            studentId,
+            staffId,
+            senderId,
+            senderType,
+            message
+        });
+        
+        await newMessage.save();
+        res.status(201).json(newMessage);
+    } catch (err) {
+        console.error("Error sending message:", err);
+        res.status(500).json({ message: "❌ Error sending message", error: err.message });
+    }
+});
+
+// Mark messages as read
+app.patch("/api/messages/read", async (req, res) => {
+    try {
+        const { studentId, staffId, readBy } = req.body;
+        
+        await Message.updateMany(
+            {
+                studentId,
+                staffId,
+                senderType: { $ne: readBy },
+                read: false
+            },
+            { $set: { read: true } }
+        );
+        
+        res.json({ message: "Messages marked as read" });
+    } catch (err) {
+        console.error("Error marking messages as read:", err);
+        res.status(500).json({ message: "❌ Error marking messages as read", error: err.message });
+    }
+});
+
+// Get unread message count
+app.get("/api/messages/unread", async (req, res) => {
+    try {
+        const { studentId, staffId, userType } = req.query;
+        
+        const count = await Message.countDocuments({
+            studentId,
+            staffId,
+            senderType: { $ne: userType },
+            read: false
+        });
+        
+        res.json({ count });
+    } catch (err) {
+        console.error("Error getting unread count:", err);
+        res.status(500).json({ message: "❌ Error getting unread count", error: err.message });
     }
 });
 

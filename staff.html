@@ -463,6 +463,164 @@
             margin: 0 auto;
         }
 
+        /* Discussion Layout Styles */
+        .discussion-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            height: 600px;
+        }
+
+        .student-list-panel {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: white;
+        }
+
+        .student-list-panel h3 {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin: 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1rem;
+        }
+
+        .student-chat-list {
+            overflow-y: auto;
+            height: calc(100% - 54px);
+        }
+
+        .student-chat-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .student-chat-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .student-chat-item.active {
+            background-color: #e3f2fd;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .student-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .student-chat-info {
+            flex: 1;
+        }
+
+        .student-chat-info .name {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 2px;
+        }
+
+        .student-chat-info .admission {
+            font-size: 0.85rem;
+            color: var(--secondary-color);
+        }
+
+        .unread-badge {
+            background-color: var(--danger-color);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .chat-panel {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .empty-chat-state {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+        }
+
+        .empty-chat-state i {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h4 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .chat-messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .chat-input-area {
+            padding: 15px 20px;
+            background-color: white;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .chat-input-area textarea {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            resize: none;
+            font-family: inherit;
+            font-size: 0.95rem;
+            max-height: 120px;
+        }
+
+        .chat-input-area textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
         .upload-section {
             background-color: #f8f9fa;
             border-radius: 8px;
@@ -850,6 +1008,7 @@
         <a href="#" onclick="loadPage('marks', event)"><i class="fas fa-chart-line"></i> <span>Internal Marks</span></a>
         <a href="#" onclick="loadPage('leave', event)"><i class="fas fa-calendar-alt"></i> <span>Leave Requests</span></a>
         <a href="#" onclick="loadPage('documents', event)"><i class="fas fa-file-upload"></i> <span>Document Upload</span></a>
+        <a href="#" onclick="loadPage('discussion', event)"><i class="fas fa-comments"></i> <span>Discussion</span></a>
         <a href="#" onclick="loadPage('logout', event)"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
     </div>
     
@@ -920,6 +1079,7 @@
         let leaveRequests = [];
         let uploadedDocuments = [];
         let staffStudents = []; // Students assigned to this staff
+        let staffInfo = null; // Current staff member info
         let apiErrors = []; // Track API errors
         
         // Page templates
@@ -1250,6 +1410,31 @@
                         </div>
                     </div>
                 </div>
+            `,
+            discussion: `
+                <div class="page-header">
+                    <h1 class="page-title">Discussion with Students</h1>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <div class="discussion-layout">
+                            <div class="student-list-panel">
+                                <h3><i class="fas fa-users"></i> Your Students</h3>
+                                <div id="studentChatList" class="student-chat-list">
+                                    <div class="spinner"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="chat-panel">
+                                <div id="chatArea" class="empty-chat-state">
+                                    <i class="fas fa-comments"></i>
+                                    <p>Select a student to start chatting</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             `
         };
         
@@ -1405,11 +1590,20 @@
 
                 if (staffInfoRes.status === 'fulfilled') {
                     const staffInfo = staffInfoRes.value;
+                    window.staffInfo = staffInfo; // Store globally for later use
                     const staffNameEl = document.getElementById('staffName');
                     const staffAvatarEl = document.getElementById('staffAvatar');
                     
-                    if (staffNameEl) staffNameEl.textContent = staffInfo.name;
-                    if (staffAvatarEl) staffAvatarEl.textContent = staffInfo.name.charAt(0).toUpperCase();
+                    console.log('Staff info loaded:', staffInfo);
+                    
+                    if (staffInfo && staffInfo.name) {
+                        if (staffNameEl) staffNameEl.textContent = staffInfo.name;
+                        if (staffAvatarEl) staffAvatarEl.textContent = staffInfo.name.charAt(0).toUpperCase();
+                    } else {
+                        console.warn('Staff info missing name field:', staffInfo);
+                        if (staffNameEl) staffNameEl.textContent = 'Staff Member';
+                        if (staffAvatarEl) staffAvatarEl.textContent = 'S';
+                    }
                 } else {
                     console.error('Error loading staff info:', staffInfoRes.reason);
                     apiErrors.push('staff info');
@@ -1502,6 +1696,8 @@
                 displayLeaveRequests();
             } else if (page === 'documents') {
                 initDocumentUploadPage();
+            } else if (page === 'discussion') {
+                initDiscussionPage();
             }
         }
         
@@ -3075,6 +3271,190 @@
                 showNotification('Failed to change password: ' + (err.message || err), 'error');
             }
         }
+
+        // Discussion Page Functions
+        let currentStudentId = null;
+        let discussionPollingInterval = null;
+
+        async function initDiscussionPage() {
+            try {
+                // Load student list
+                const studentListEl = document.getElementById('studentChatList');
+                
+                if (!staffStudents || staffStudents.length === 0) {
+                    studentListEl.innerHTML = `
+                        <div style="padding: 20px; text-align: center; color: #999;">
+                            <p>No students assigned yet.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                studentListEl.innerHTML = staffStudents.map(student => `
+                    <div class="student-chat-item" onclick="selectStudent('${student.admissionno}', '${student.name}')">
+                        <div class="student-avatar">${student.name.charAt(0).toUpperCase()}</div>
+                        <div class="student-chat-info">
+                            <div class="name">${student.name}</div>
+                            <div class="admission">${student.admissionno}</div>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error initializing discussion page:', error);
+                showNotification('Failed to load discussion page', 'error');
+            }
+        }
+
+        async function selectStudent(studentId, studentName) {
+            try {
+                currentStudentId = studentId;
+                
+                // Update active state
+                document.querySelectorAll('.student-chat-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                event.currentTarget.classList.add('active');
+                
+                // Load chat area
+                const chatArea = document.getElementById('chatArea');
+                chatArea.innerHTML = `
+                    <div class="chat-header">
+                        <h4><i class="fas fa-user"></i> ${studentName} (${studentId})</h4>
+                    </div>
+                    <div class="chat-messages-container" id="staffChatMessages">
+                        <div style="text-align: center; padding: 20px;">
+                            <i class="fas fa-spinner fa-spin"></i> Loading messages...
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <textarea id="staffMessageInput" placeholder="Type your message..." rows="2"></textarea>
+                        <button class="btn btn-primary" onclick="sendStaffMessage()">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                    </div>
+                `;
+                
+                // Load messages
+                await loadStaffMessages();
+                
+                // Start polling
+                if (discussionPollingInterval) clearInterval(discussionPollingInterval);
+                discussionPollingInterval = setInterval(loadStaffMessages, 5000);
+                
+                // Add Enter key listener
+                const input = document.getElementById('staffMessageInput');
+                if (input) {
+                    input.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            sendStaffMessage();
+                        }
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error selecting student:', error);
+                showNotification('Failed to load chat', 'error');
+            }
+        }
+
+        async function loadStaffMessages() {
+            if (!currentStudentId) return;
+            
+            try {
+                const messages = await handleApiCall(
+                    `/api/messages?studentId=${currentStudentId}&staffId=${window.staffId}`
+                );
+                
+                const chatMessages = document.getElementById('staffChatMessages');
+                if (!chatMessages) return;
+                
+                if (messages.length === 0) {
+                    chatMessages.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #999;">
+                            <i class="fas fa-comment-dots" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                            <p>No messages yet. Start the conversation!</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                chatMessages.innerHTML = messages.map(msg => {
+                    const isStaff = msg.senderType === 'staff';
+                    const messageClass = isStaff ? 'sent' : 'received';
+                    const time = new Date(msg.timestamp).toLocaleString();
+                    
+                    return `
+                        <div class="message ${messageClass}">
+                            <div class="message-bubble">
+                                ${!isStaff ? `<div class="message-sender">Student</div>` : ''}
+                                <div class="message-text">${msg.message}</div>
+                                <div class="message-time">${time}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Mark messages as read
+                await handleApiCall('/api/messages/read', {
+                    method: 'PATCH',
+                    body: JSON.stringify({
+                        studentId: currentStudentId,
+                        staffId: window.staffId,
+                        readBy: 'staff'
+                    })
+                });
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        async function sendStaffMessage() {
+            const input = document.getElementById('staffMessageInput');
+            if (!input) return;
+            
+            const message = input.value.trim();
+            
+            if (!message) {
+                showNotification('Please type a message', 'warning');
+                return;
+            }
+            
+            if (!currentStudentId) {
+                showNotification('No student selected', 'error');
+                return;
+            }
+            
+            try {
+                await handleApiCall('/api/messages', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        studentId: currentStudentId,
+                        staffId: window.staffId,
+                        senderId: window.staffId,
+                        senderType: 'staff',
+                        message
+                    })
+                });
+                
+                input.value = '';
+                await loadStaffMessages();
+            } catch (error) {
+                console.error('Error sending message:', error);
+                showNotification('Failed to send message', 'error');
+            }
+        }
+
+        // Clear polling when leaving page
+        window.addEventListener('beforeunload', function() {
+            if (discussionPollingInterval) {
+                clearInterval(discussionPollingInterval);
+            }
+        });
     </script>
 </body>
 </html>
