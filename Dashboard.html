@@ -520,6 +520,12 @@
     }
     
     document.addEventListener('DOMContentLoaded', async function() {
+      // Prevent browser back button navigation
+      window.history.pushState(null, "", window.location.href);
+      window.onpopstate = function() {
+        window.history.pushState(null, "", window.location.href);
+      };
+
       // Get references to all elements
       const elements = {
         addStudentBtn: document.getElementById('addStudentBtn'),
