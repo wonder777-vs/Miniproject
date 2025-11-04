@@ -1537,12 +1537,6 @@
         };
         
         document.addEventListener('DOMContentLoaded', function() {
-            // Prevent browser back button navigation
-            window.history.pushState(null, "", window.location.href);
-            window.onpopstate = function() {
-                window.history.pushState(null, "", window.location.href);
-            };
-
             // Get DOM elements
             const tabs = document.querySelectorAll('.tab');
             const tabContents = document.querySelectorAll('.tab-content');

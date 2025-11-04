@@ -402,11 +402,7 @@ app.post('/post', async (req, res) => {
     
     // Admin login
     if (username === "admin" && password === "admin") {
-        return res.json({ 
-            success: true, 
-            role: 'admin',
-            message: 'Login successful'
-        });
+        return res.redirect('/adminlead.html');
     }
     
     // Try Student login - check if username exists as admission number
@@ -423,25 +419,14 @@ app.post('/post', async (req, res) => {
             
             // Verify password
             if (student.password !== password) {
-                return res.json({ 
-                    success: false, 
-                    message: 'Invalid password. Please check your credentials.'
-                });
+                return res.redirect('/index.html?error=Invalid credentials');
             }
             
-            return res.json({ 
-                success: true, 
-                role: 'student',
-                admissionNo: username,
-                message: 'Login successful'
-            });
+            return res.redirect(`/student.html?admissionno=${username}`);
         }
     } catch (err) {
         console.error('Error during student login:', err);
-        return res.status(500).json({ 
-            success: false, 
-            message: 'Internal server error. Please try again.'
-        });
+        return res.redirect('/index.html?error=Internal server error');
     }
     
     // Try Faculty login - check if username exists as faculty ID
@@ -458,32 +443,18 @@ app.post('/post', async (req, res) => {
             
             // Verify password
             if (faculty.password !== password) {
-                return res.json({ 
-                    success: false, 
-                    message: 'Invalid password. Please check your credentials.'
-                });
+                return res.redirect('/index.html?error=Invalid credentials');
             }
             
-            return res.json({ 
-                success: true, 
-                role: 'staff',
-                id: username,
-                message: 'Login successful'
-            });
+            return res.redirect(`/staff.html?id=${username}`);
         }
     } catch (err) {
         console.error('Error during faculty login:', err);
-        return res.status(500).json({ 
-            success: false, 
-            message: 'Internal server error. Please try again.'
-        });
+        return res.redirect('/index.html?error=Internal server error');
     }
     
     // If username not found in students or faculty
-    return res.json({ 
-        success: false, 
-        message: 'User not found. Please check your username.'
-    });
+    return res.redirect('/index.html?error=User not found');
 });
 
 // Add Settings API endpoints

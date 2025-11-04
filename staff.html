@@ -1558,12 +1558,6 @@
         
         // Initialize the app
         window.onload = async () => {
-            // Prevent browser back button navigation
-            window.history.pushState(null, "", window.location.href);
-            window.onpopstate = function() {
-                window.history.pushState(null, "", window.location.href);
-            };
-
             try {
                 // Get staffId from URL
                 const urlParams = new URLSearchParams(window.location.search);
