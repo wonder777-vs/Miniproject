@@ -26,7 +26,19 @@ async function handleApiCall(endpoint, options = {}) {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            let errorMessage = `HTTP error! status: ${response.status}`;
+            try {
+                const errorData = await response.json();
+                if (errorData.error) {
+                    errorMessage += ` - ${errorData.error}`;
+                }
+                if (errorData.details) {
+                    console.error('Error details:', errorData.details);
+                }
+            } catch (e) {
+                // Could not parse error response as JSON
+            }
+            throw new Error(errorMessage);
         }
 
         return await response.json();

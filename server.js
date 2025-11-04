@@ -73,8 +73,26 @@ const upload = multer({ storage: storage });
 
 // MongoDB Atlas Connection - Use environment variable
 mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://admin:admin@cluster0.kdgkues.mongodb.net/mepco_erp?retryWrites=true&w=majority&appName=Cluster0')
-.then(() => {
+.then(async () => {
     console.log('✅ Connected to MongoDB Atlas successfully');
+    
+    // Drop old examId index if it exists (from old schema)
+    try {
+        const db = mongoose.connection.db;
+        const collections = await db.listCollections({ name: 'exams' }).toArray();
+        if (collections.length > 0) {
+            const indexes = await db.collection('exams').indexes();
+            const hasOldIndex = indexes.some(idx => idx.name === 'examId_1');
+            if (hasOldIndex) {
+                console.log('Dropping old examId_1 index...');
+                await db.collection('exams').dropIndex('examId_1');
+                console.log('✅ Old examId index dropped successfully');
+            }
+        }
+    } catch (err) {
+        console.log('Note: Could not drop old index (may not exist):', err.message);
+    }
+    
     console.log(`🚀 Server running at http://localhost:${port}/`);
     console.log(`🌐 Frontend URL: ${frontendUrl}`);
 })
@@ -871,8 +889,28 @@ app.post('/api/exams', async (req, res) => {
         
         // Validate required fields
         const { id, name, subject, date, totalMarks, duration } = req.body;
+        console.log('Validation check:', { id, name, subject, date, totalMarks, duration });
+        
         if (!id || !name || !subject || !date || !totalMarks || !duration) {
-            return res.status(400).json({ error: 'Missing required fields' });
+            console.log('Missing fields detected:', {
+                hasId: !!id,
+                hasName: !!name,
+                hasSubject: !!subject,
+                hasDate: !!date,
+                hasTotalMarks: !!totalMarks,
+                hasDuration: !!duration
+            });
+            return res.status(400).json({ 
+                error: 'Missing required fields',
+                details: {
+                    hasId: !!id,
+                    hasName: !!name,
+                    hasSubject: !!subject,
+                    hasDate: !!date,
+                    hasTotalMarks: !!totalMarks,
+                    hasDuration: !!duration
+                }
+            });
         }
         
         const exam = new Exam(req.body);
