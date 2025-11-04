@@ -466,29 +466,35 @@
         /* Discussion Layout Styles */
         .discussion-layout {
             display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 20px;
+            grid-template-columns: 320px 1fr;
+            gap: 0;
             height: 600px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
         }
 
         .student-list-panel {
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-right: 1px solid var(--border-color);
             overflow: hidden;
             background-color: white;
+            display: flex;
+            flex-direction: column;
         }
 
         .student-list-panel h3 {
-            background-color: #f8f9fa;
-            padding: 15px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 15px 20px;
             margin: 0;
-            border-bottom: 1px solid var(--border-color);
             font-size: 1rem;
+            flex-shrink: 0;
         }
 
         .student-chat-list {
             overflow-y: auto;
-            height: calc(100% - 54px);
+            flex: 1;
+            background-color: #f8f9fa;
         }
 
         .student-chat-item {
@@ -552,8 +558,6 @@
         }
 
         .chat-panel {
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
             overflow: hidden;
             background-color: white;
             display: flex;
@@ -567,21 +571,23 @@
             align-items: center;
             justify-content: center;
             color: #999;
+            background-color: #f8f9fa;
         }
 
         .empty-chat-state i {
             font-size: 3rem;
             margin-bottom: 10px;
+            color: #ccc;
         }
 
         .chat-header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             padding: 15px 20px;
-            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .chat-header h4 {
@@ -596,6 +602,78 @@
             background-color: #f8f9fa;
         }
 
+        /* Message styles (matching student.html) */
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            animation: messageSlide 0.3s ease;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.sent {
+            justify-content: flex-end;
+        }
+
+        .message.received {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .message.sent .message-bubble {
+            background-color: var(--primary-color);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.received .message-bubble {
+            background-color: white;
+            color: var(--dark-color);
+            border: 1px solid var(--border-color);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        .message.sent .message-time {
+            text-align: right;
+        }
+
+        .message.received .message-time {
+            text-align: left;
+        }
+
+        .message-sender {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            opacity: 0.8;
+        }
+
+        .message-text {
+            line-height: 1.5;
+        }
+
         .chat-input-area {
             padding: 15px 20px;
             background-color: white;
@@ -603,6 +681,7 @@
             display: flex;
             gap: 10px;
             align-items: flex-end;
+            flex-shrink: 0;
         }
 
         .chat-input-area textarea {
@@ -614,11 +693,18 @@
             font-family: inherit;
             font-size: 0.95rem;
             max-height: 120px;
+            transition: border-color 0.3s;
         }
 
         .chat-input-area textarea:focus {
             outline: none;
             border-color: var(--primary-color);
+        }
+
+        .chat-input-area .btn {
+            padding: 12px 24px;
+            border-radius: 20px;
+            white-space: nowrap;
         }
 
         .upload-section {
@@ -1421,13 +1507,13 @@
                         <div class="discussion-layout">
                             <div class="student-list-panel">
                                 <h3><i class="fas fa-users"></i> Your Students</h3>
-                                <div id="studentChatList" class="student-chat-list">
+                                <div class="student-chat-list" id="studentChatList">
                                     <div class="spinner"></div>
                                 </div>
                             </div>
                             
-                            <div class="chat-panel">
-                                <div id="chatArea" class="empty-chat-state">
+                            <div class="chat-panel" id="chatArea">
+                                <div class="empty-chat-state">
                                     <i class="fas fa-comments"></i>
                                     <p>Select a student to start chatting</p>
                                 </div>
