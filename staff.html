@@ -1452,6 +1452,7 @@
                                     <th>Roll No</th>
                                     <th>Name</th>
                                     <th>Reason</th>
+                                    <th>Leave Type</th>
                                     <th>Days</th>
                                     <th>Date</th>
                                     <th>Status</th>
@@ -1553,6 +1554,32 @@
                 console.log(`Cleared ${key} from localStorage`);
             } catch (e) {
                 console.warn(`Failed to clear ${key} from localStorage:`, e);
+            }
+        }
+        
+        // Update staff name display in UI (make it explicitly global)
+        window.updateStaffNameDisplay = function() {
+            const staffNameEl = document.getElementById('staffName');
+            const staffAvatarEl = document.getElementById('staffAvatar');
+            
+            if (window.staffInfo && window.staffInfo.name) {
+                if (staffNameEl) {
+                    staffNameEl.textContent = window.staffInfo.name;
+                    console.log('Updated staff name to:', window.staffInfo.name);
+                }
+                if (staffAvatarEl) {
+                    staffAvatarEl.textContent = window.staffInfo.name.charAt(0).toUpperCase();
+                }
+            } else if (staffInfo && staffInfo.name) {
+                if (staffNameEl) {
+                    staffNameEl.textContent = staffInfo.name;
+                    console.log('Updated staff name to:', staffInfo.name);
+                }
+                if (staffAvatarEl) {
+                    staffAvatarEl.textContent = staffInfo.name.charAt(0).toUpperCase();
+                }
+            } else {
+                console.warn('Staff info not available for display update');
             }
         }
         
@@ -1690,29 +1717,45 @@
                 }
 
                 if (staffInfoRes.status === 'fulfilled') {
-                    const staffInfo = staffInfoRes.value;
-                    window.staffInfo = staffInfo; // Store globally for later use
-                    const staffNameEl = document.getElementById('staffName');
-                    const staffAvatarEl = document.getElementById('staffAvatar');
+                    const fetchedStaffInfo = staffInfoRes.value;
+                    window.staffInfo = fetchedStaffInfo; // Store globally for later use
+                    staffInfo = fetchedStaffInfo; // Also update the local variable
                     
-                    console.log('Staff info loaded:', staffInfo);
+                    console.log('Staff info loaded:', fetchedStaffInfo);
+                    console.log('Staff name:', fetchedStaffInfo?.name);
                     
-                    if (staffInfo && staffInfo.name) {
-                        if (staffNameEl) staffNameEl.textContent = staffInfo.name;
-                        if (staffAvatarEl) staffAvatarEl.textContent = staffInfo.name.charAt(0).toUpperCase();
-                    } else {
-                        console.warn('Staff info missing name field:', staffInfo);
-                        if (staffNameEl) staffNameEl.textContent = 'Staff Member';
-                        if (staffAvatarEl) staffAvatarEl.textContent = 'S';
-                    }
+                    // Wait a moment for DOM to be ready, then update
+                    setTimeout(() => {
+                        const staffNameEl = document.getElementById('staffName');
+                        const staffAvatarEl = document.getElementById('staffAvatar');
+                        
+                        console.log('Updating staff name element:', staffNameEl);
+                        
+                        if (fetchedStaffInfo && fetchedStaffInfo.name) {
+                            if (staffNameEl) {
+                                staffNameEl.textContent = fetchedStaffInfo.name;
+                                console.log('Staff name set to:', fetchedStaffInfo.name);
+                            }
+                            if (staffAvatarEl) {
+                                staffAvatarEl.textContent = fetchedStaffInfo.name.charAt(0).toUpperCase();
+                            }
+                        } else {
+                            console.warn('Staff info missing name field:', fetchedStaffInfo);
+                            if (staffNameEl) staffNameEl.textContent = 'Staff Member';
+                            if (staffAvatarEl) staffAvatarEl.textContent = 'S';
+                        }
+                    }, 100);
                 } else {
                     console.error('Error loading staff info:', staffInfoRes.reason);
                     apiErrors.push('staff info');
-                    const staffNameEl = document.getElementById('staffName');
-                    const staffAvatarEl = document.getElementById('staffAvatar');
                     
-                    if (staffNameEl) staffNameEl.textContent = 'Staff Member';
-                    if (staffAvatarEl) staffAvatarEl.textContent = 'S';
+                    setTimeout(() => {
+                        const staffNameEl = document.getElementById('staffName');
+                        const staffAvatarEl = document.getElementById('staffAvatar');
+                        
+                        if (staffNameEl) staffNameEl.textContent = 'Staff Member';
+                        if (staffAvatarEl) staffAvatarEl.textContent = 'S';
+                    }, 100);
                     showNotification('Using default staff info', 'warning');
                 }
 
@@ -1779,6 +1822,11 @@
             document.getElementById('mainContent').innerHTML = pages[page];
             document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
             if (evt) evt.currentTarget.classList.add('active');
+            
+            // Update staff name after page loads (since it's in the page template)
+            if (window.updateStaffNameDisplay) {
+                window.updateStaffNameDisplay();
+            }
             
             // Update dashboard counts
             if (page === 'dashboard') {
@@ -2791,17 +2839,21 @@
                     const requestId = request._id || request.id;
                     
                     const row = document.createElement('tr');
+                    const leaveTypeDisplay = request.leaveType || 'Full Day';
+                    const halfDayInfo = request.halfDayPeriod ? ` (${request.halfDayPeriod})` : '';
+                    
                 row.innerHTML = `
                     <td>${request.rollNo}</td>
                     <td>${student.name}</td>
                     <td>${request.reason}</td>
+                    <td>${leaveTypeDisplay}${halfDayInfo}</td>
                     <td>${request.days}</td>
                     <td>${request.date}</td>
                     <td class="status-${request.status}">${request.status.charAt(0).toUpperCase() + request.status.slice(1)}</td>
                     <td>
                         ${request.status === 'pending' ? 
                             `<div class="action-buttons">
-                                <button class="btn btn-success" onclick="processLeave('${requestId}', 'approved')">Approve</button>
+                                <button class="btn btn-success" onclick="approveLeave('${requestId}', '${request.rollNo}', '${request.date}', '${leaveTypeDisplay}')">Approve</button>
                                 <button class="btn btn-danger" onclick="processLeave('${requestId}', 'rejected')">Reject</button>
                             </div>` : 
                             'Processed'}
@@ -2815,6 +2867,81 @@
                 leaveEmpty.style.display = 'block';
                 showNotification('Failed to display leave requests: ' + error.message, 'error');
             }
+        }
+        
+        async function approveLeave(id, rollNo, date, leaveType) {
+            // If it's a half day leave, ask staff to specify which half
+            let halfDayPeriod = '';
+            if (leaveType === 'Half Day') {
+                const choice = prompt('Which half?\n1. First Half (Periods 1-4)\n2. Second Half (Periods 5-8)\n\nEnter 1 or 2:');
+                if (choice === '1') {
+                    halfDayPeriod = 'First Half';
+                } else if (choice === '2') {
+                    halfDayPeriod = 'Second Half';
+                } else {
+                    showNotification('Invalid selection. Please try again.', 'error');
+                    return;
+                }
+            }
+            
+            try {
+                showNotification('Approving leave request...', 'info');
+                
+                // Update leave request status
+                const updatedRequest = await handleApiCall(`/api/leave-requests/${id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ 
+                        status: 'approved',
+                        halfDayPeriod: halfDayPeriod 
+                    })
+                });
+                
+                // Apply attendance for the leave
+                await applyLeaveAttendance(rollNo, date, leaveType, halfDayPeriod);
+                
+                // Update local data
+                const requestIndex = leaveRequests.findIndex(req => 
+                    (req._id && req._id.toString() === id.toString()) || 
+                    (req.id && req.id.toString() === id.toString())
+                );
+                
+                if (requestIndex !== -1) {
+                    leaveRequests[requestIndex] = updatedRequest;
+                }
+                
+                // Persist to localStorage
+                saveToLocalStorage('leaveRequests', leaveRequests);
+                
+                // Refresh the display
+                await displayLeaveRequests();
+                showNotification('Leave request approved and attendance updated!', 'success');
+            } catch (error) {
+                console.error('Error approving leave:', error);
+                showNotification('Failed to approve leave: ' + error.message, 'error');
+            }
+        }
+        
+        async function applyLeaveAttendance(rollNo, date, leaveType, halfDayPeriod) {
+            const periods = leaveType === 'Full Day' 
+                ? [1, 2, 3, 4, 5, 6, 7, 8] 
+                : halfDayPeriod === 'First Half' 
+                    ? [1, 2, 3, 4] 
+                    : [5, 6, 7, 8];
+            
+            const attendancePromises = periods.map(period => {
+                return handleApiCall('/api/attendance', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        date: date,
+                        period: period.toString(),
+                        subject: 'Leave',
+                        staff: window.staffId,
+                        [rollNo]: 'Leave'
+                    })
+                });
+            });
+            
+            await Promise.all(attendancePromises);
         }
         
         async function processLeave(id, status) {
@@ -2834,14 +2961,12 @@
                 
                 if (requestIndex !== -1) {
                     leaveRequests[requestIndex] = updatedRequest;
-                } else {
-                    // If not found, refresh the list
-                    await loadLeaveRequests();
                 }
                 
                 // Persist to localStorage
                 saveToLocalStorage('leaveRequests', leaveRequests);
                 
+                // Refresh the display (this will reload from API if needed)
                 await displayLeaveRequests();
                 showNotification(`Leave request ${status}!`, 'success');
             } catch (error) {

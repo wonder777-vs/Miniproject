@@ -1428,11 +1428,21 @@
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label" for="leaveDuration">Duration</label>
-                                        <select class="form-control" id="leaveDuration" required>
+                                        <select class="form-control" id="leaveDuration" required onchange="toggleHalfDayPeriod()">
                                             <option value="">Select Duration</option>
                                             <option value="halfday">Half Day</option>
                                             <option value="fullday">Full Day</option>
                                             <option value="multiple">Multiple Days</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row" id="halfDayPeriodRow" style="display: none;">
+                                    <div class="form-group">
+                                        <label class="form-label" for="halfDayPeriod">Half Day Period</label>
+                                        <select class="form-control" id="halfDayPeriod">
+                                            <option value="">Select Period</option>
+                                            <option value="First Half">First Half (Periods 1-4)</option>
+                                            <option value="Second Half">Second Half (Periods 5-8)</option>
                                         </select>
                                     </div>
                                 </div>
@@ -2187,6 +2197,13 @@
                 const toDate = document.getElementById('toDate').value;
                 const reason = document.getElementById('reason').value;
                 const attachment = document.getElementById('attachment').files[0];
+                const halfDayPeriod = document.getElementById('halfDayPeriod').value;
+                
+                // Validate half day period if half day is selected
+                if (leaveDuration === 'halfday' && !halfDayPeriod) {
+                    window.showNotification('Please select half day period (First Half or Second Half)', 'error');
+                    return;
+                }
                 
                 // Calculate number of days
                 const start = new Date(fromDate);
@@ -2194,12 +2211,17 @@
                 const timeDiff = Math.abs(end.getTime() - start.getTime());
                 const days = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // +1 to include both start and end
                 
+                // Determine leave type for backend
+                const backendLeaveType = leaveDuration === 'fullday' || leaveDuration === 'multiple' ? 'Full Day' : 'Half Day';
+                
                 // Create form data
                 const formData = new FormData();
                 formData.append('rollNo', admissionNo); // Using admissionNo as rollNo
                 formData.append('reason', reason);
                 formData.append('days', days);
                 formData.append('date', fromDate); // Using fromDate as the date
+                formData.append('leaveType', backendLeaveType);
+                formData.append('halfDayPeriod', halfDayPeriod || '');
                 
                 if (attachment) {
                     formData.append('attachment', attachment);
@@ -2504,6 +2526,22 @@
             } catch (error) {
                 console.error('Error sending message:', error);
                 window.showNotification('Failed to send message', 'error');
+            }
+        }
+
+        // Toggle half day period field visibility
+        window.toggleHalfDayPeriod = function() {
+            const leaveDuration = document.getElementById('leaveDuration').value;
+            const halfDayPeriodRow = document.getElementById('halfDayPeriodRow');
+            const halfDayPeriod = document.getElementById('halfDayPeriod');
+            
+            if (leaveDuration === 'halfday') {
+                halfDayPeriodRow.style.display = 'flex';
+                halfDayPeriod.required = true;
+            } else {
+                halfDayPeriodRow.style.display = 'none';
+                halfDayPeriod.required = false;
+                halfDayPeriod.value = '';
             }
         }
 

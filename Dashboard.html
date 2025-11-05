@@ -364,8 +364,6 @@
           <option>Hostel</option>
           <option>Day Scholar</option>
         </select>
-        <label>Course</label>
-        <input type="text" name="course" required>
         <label>Year</label>
         <input type="text" name="year" required>
         <label>Scholarship</label>
@@ -615,6 +613,22 @@
           }
 
           try {
+            // Check if admission number already exists
+            const existingStudents = await handleApiCall('/students');
+            const isDuplicate = existingStudents.some(s => s.admissionno === data.admissionno);
+            
+            if (isDuplicate) {
+              showNotification('Admission Number already exists! Please use a unique ID.', 'error');
+              // Highlight the admission number field
+              const admissionField = elements.studentForm.querySelector('[name="admissionno"]');
+              if (admissionField) {
+                admissionField.style.borderColor = 'red';
+                admissionField.focus();
+                setTimeout(() => { admissionField.style.borderColor = ''; }, 3000);
+              }
+              return;
+            }
+            
             const response = await handleApiCall('/students', {
               method: 'POST',
               body: JSON.stringify(data)
@@ -641,6 +655,22 @@
           }
 
           try {
+            // Check if faculty ID already exists
+            const existingFaculty = await handleApiCall('/faculty');
+            const isDuplicate = existingFaculty.some(f => f.id === data.id);
+            
+            if (isDuplicate) {
+              showNotification('Faculty ID already exists! Please use a unique ID.', 'error');
+              // Highlight the ID field
+              const idField = elements.facultyForm.querySelector('[name="id"]');
+              if (idField) {
+                idField.style.borderColor = 'red';
+                idField.focus();
+                setTimeout(() => { idField.style.borderColor = ''; }, 3000);
+              }
+              return;
+            }
+            
             const response = await handleApiCall('/faculty', {
               method: 'POST',
               body: JSON.stringify(data)
@@ -675,6 +705,22 @@
           }
 
           try {
+            // Check if course ID already exists
+            const existingCourses = await handleApiCall('/courses');
+            const isDuplicate = existingCourses.some(c => c.id === data.id);
+            
+            if (isDuplicate) {
+              showNotification('Course ID already exists! Please use a unique ID.', 'error');
+              // Highlight the ID field
+              const idField = elements.courseForm.querySelector('[name="id"]');
+              if (idField) {
+                idField.style.borderColor = 'red';
+                idField.focus();
+                setTimeout(() => { idField.style.borderColor = ''; }, 3000);
+              }
+              return;
+            }
+            
             const response = await handleApiCall('/courses', {
               method: 'POST',
               body: JSON.stringify(data)

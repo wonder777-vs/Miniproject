@@ -297,7 +297,6 @@
             <th>Admission No</th>
             <th>Name</th>
             <th>Department</th>
-            <th>Course</th>
             <th>Year</th>
             <th>Email</th>
             <th>Phone</th>
@@ -370,10 +369,6 @@
             <input type="text" class="form-control" id="department" name="department" required>
           </div>
           <div class="form-group">
-            <label class="form-label" for="course">Course</label>
-            <input type="text" class="form-control" id="course" name="course" required>
-          </div>
-          <div class="form-group">
             <label class="form-label" for="year">Year</label>
             <input type="text" class="form-control" id="year" name="year" required>
           </div>
@@ -425,7 +420,6 @@
         admissionno: document.getElementById('admissionno'),
         rollno: document.getElementById('rollno'),
         department: document.getElementById('department'),
-        course: document.getElementById('course'),
         year: document.getElementById('year')
       };
 
@@ -470,7 +464,6 @@
           elements.admissionno.value = student.admissionno;
           elements.rollno.value = student.rollno;
           elements.department.value = student.department;
-          elements.course.value = student.course;
           elements.year.value = student.year;
           
           elements.studentModal.style.display = 'flex';
@@ -493,6 +486,18 @@
         
         try {
           if (currentAction === 'create') {
+            // Check if admission number already exists
+            const isDuplicate = students.some(s => s.admissionno === studentData.admissionno);
+            
+            if (isDuplicate) {
+              showNotification('Admission Number already exists! Please use a unique ID.', 'error');
+              // Highlight the admission number field
+              elements.admissionno.style.borderColor = 'red';
+              elements.admissionno.focus();
+              setTimeout(() => { elements.admissionno.style.borderColor = ''; }, 3000);
+              return;
+            }
+            
             const response = await handleApiCall('/students', {
               method: 'POST',
               body: JSON.stringify(studentData)
@@ -591,7 +596,6 @@
             <td>${student.admissionno}</td>
             <td>${student.name}</td>
             <td>${student.department}</td>
-            <td>${student.course}</td>
             <td>${student.year}</td>
             <td>${student.email}</td>
             <td>${student.phone}</td>

@@ -480,6 +480,18 @@
         
         try {
           if (currentAction === 'create') {
+            // Check if faculty ID already exists
+            const isDuplicate = faculty.some(f => f.id === facultyData.id);
+            
+            if (isDuplicate) {
+              showNotification('Faculty ID already exists! Please use a unique ID.', 'error');
+              // Highlight the ID field
+              elements.id.style.borderColor = 'red';
+              elements.id.focus();
+              setTimeout(() => { elements.id.style.borderColor = ''; }, 3000);
+              return;
+            }
+            
             const response = await handleApiCall('/faculty', {
               method: 'POST',
               body: JSON.stringify(facultyData)

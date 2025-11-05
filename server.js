@@ -290,6 +290,16 @@ const leaveRequestSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    leaveType: {
+        type: String,
+        enum: ['Full Day', 'Half Day'],
+        default: 'Full Day'
+    },
+    halfDayPeriod: {
+        type: String,
+        enum: ['First Half', 'Second Half', ''],
+        default: ''
+    },
     status: {
         type: String,
         enum: ['pending', 'approved', 'rejected'],
