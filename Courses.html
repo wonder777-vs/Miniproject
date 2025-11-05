@@ -282,6 +282,16 @@
       background-color: #fff3cd;
       color: #856404;
     }
+    .enrollment-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+    }
   </style>
 </head>
 <body>
@@ -318,6 +328,7 @@
             <th>Credits</th>
             <th>Duration</th>
             <th>Status</th>
+            <th>Enrolled Students</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -608,6 +619,8 @@
         paginatedCourses.forEach(course => {
           const row = document.createElement('tr');
           
+          const enrollmentCount = course.enrolledStudents ? course.enrolledStudents.length : 0;
+          
           row.innerHTML = `
             <td>${course.id}</td>
             <td>${course.name}</td>
@@ -615,6 +628,7 @@
             <td>${course.credits}</td>
             <td>${course.duration}</td>
             <td><span class="status-badge ${getStatusBadgeClass(course.status)}">${course.status}</span></td>
+            <td><span class="enrollment-badge">${enrollmentCount} Student${enrollmentCount !== 1 ? 's' : ''}</span></td>
             <td>
               <div class="action-buttons">
                 <button class="action-btn btn-success" onclick="openEditModal('${course._id || course.id}')">

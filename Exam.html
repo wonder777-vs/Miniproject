@@ -387,10 +387,6 @@
     <div class="container">
         <div class="page-header">
             <h3 class="page-title">Exams Management</h3>
-            <button class="btn btn-primary" id="scheduleExamBtn">
-                <i class="fas fa-plus"></i>
-                Schedule Exam
-            </button>
         </div>
 
         <div class="card">
@@ -470,7 +466,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Get DOM elements
-            const scheduleExamBtn = document.getElementById('scheduleExamBtn');
             const examModal = document.getElementById('examModal');
             const closeModal = document.getElementById('closeModal');
             const cancelBtn = document.getElementById('cancelBtn');
@@ -543,14 +538,6 @@
                 console.log('Table rendered, attaching event listeners');
                 attachEventListeners();
             }
-            
-            // Open schedule exam modal
-            scheduleExamBtn.addEventListener('click', function() {
-                currentAction = 'create';
-                modalTitle.textContent = 'Schedule New Exam';
-                examForm.reset();
-                examModal.style.display = 'flex';
-            });
             
             // Close modals
             closeModal.addEventListener('click', function() {

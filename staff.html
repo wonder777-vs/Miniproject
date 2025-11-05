@@ -2970,7 +2970,7 @@
             const attendancePromises = periods.map(period => {
                 // Create records object with the student's rollNo as key
                 const records = {};
-                records[rollNo] = 'Leave';
+                records[rollNo] = 'L';  // Use 'L' instead of 'Leave' for consistency
                 
                 return handleApiCall('/api/attendance', {
                     method: 'POST',

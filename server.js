@@ -200,7 +200,11 @@ const CourseSchema = new mongoose.Schema({
     credits: Number,
     duration: String,
     status: String,
-    assessments: String
+    assessments: String,
+    enrolledStudents: {
+        type: [String],
+        default: []
+    }
 });
 
 const Course = mongoose.model("Course", CourseSchema);
@@ -1185,6 +1189,61 @@ app.get("/courses", async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "❌ Error fetching courses", error: err.message });
+    }
+});
+
+// GET all courses (API endpoint for student portal)
+app.get("/api/courses", async (req, res) => {
+    try {
+        console.log('Fetching all courses for student portal');
+        const courses = await Course.find();
+        res.json(courses);
+    } catch (err) {
+        console.error('Error fetching courses:', err);
+        res.status(500).json({ message: "❌ Error fetching courses", error: err.message });
+    }
+});
+
+// POST - Enroll student in a course
+app.post("/api/courses/:courseId/enroll", async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        const { admissionNo } = req.body;
+        
+        console.log(`Enrolling student ${admissionNo} in course ${courseId}`);
+        
+        if (!admissionNo) {
+            return res.status(400).json({ message: "❌ Admission number is required" });
+        }
+        
+        // Find course by custom id field
+        const course = await Course.findOne({ id: courseId });
+        
+        if (!course) {
+            return res.status(404).json({ message: "❌ Course not found" });
+        }
+        
+        // Check if student is already enrolled
+        if (course.enrolledStudents && course.enrolledStudents.includes(admissionNo)) {
+            return res.status(400).json({ message: "⚠️ Already enrolled in this course" });
+        }
+        
+        // Add student to enrolled list
+        if (!course.enrolledStudents) {
+            course.enrolledStudents = [];
+        }
+        course.enrolledStudents.push(admissionNo);
+        
+        await course.save();
+        
+        res.json({ 
+            message: "✅ Successfully enrolled in course!", 
+            course: course,
+            enrollmentCount: course.enrolledStudents.length
+        });
+    } catch (err) {
+        console.error('Error enrolling student:', err);
+        res.status(500).json({ message: "❌ Error enrolling in course", error: err.message });
     }
 });
 
