@@ -1420,7 +1420,7 @@
                         <div id="Assignment" class="cat-content">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                                 <h3>Assignments</h3>
-                                <button class="btn btn-primary" onclick="createNewExam('Assignment')">Create New Exam</button>
+                                <button class="btn btn-primary" onclick="createNewExam('Assignment')">Create New Assignment</button>
                             </div>
                             <div id="Assignment-exams">
                                 <div class="spinner"></div>
@@ -2401,6 +2401,14 @@
         
         function createNewExam(catType) {
             const mainContent = document.getElementById('mainContent');
+            // Determine if it's an assignment or exam
+            const isAssignment = catType === 'Assignment';
+            const itemType = isAssignment ? 'Assignment' : 'Exam';
+            const itemTypeLower = itemType.toLowerCase();
+            
+            // Generate default ID
+            const defaultId = (isAssignment ? 'assignment_' : 'exam_') + Date.now();
+            
             mainContent.innerHTML = `
                 <div class="page-header">
                     <h1 class="page-title">Create New ${catType}</h1>
@@ -2410,7 +2418,12 @@
                     <div class="card-body">
                         <form id="createExamForm">
                             <div class="form-group">
-                                <label class="form-label" for="examName">Exam Name</label>
+                                <label class="form-label" for="examId">${itemType} ID</label>
+                                <input type="text" id="examId" class="form-control" value="${defaultId}" required />
+                                <small class="form-text">Unique identifier for this ${itemTypeLower}</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="examName">${itemType} Name</label>
                                 <input type="text" id="examName" class="form-control" value="${catType}" required />
                             </div>
                             <div class="form-group">
@@ -2419,7 +2432,7 @@
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label class="form-label" for="examDate">Date</label>
+                                    <label class="form-label" for="examDate">${isAssignment ? 'Due Date' : 'Date'}</label>
                                     <input type="date" id="examDate" class="form-control" required />
                                 </div>
                                 <div class="form-group">
@@ -2428,11 +2441,12 @@
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label class="form-label" for="examDuration">Duration (minutes)</label>
+                                <label class="form-label" for="examDuration">${isAssignment ? 'Submission Days' : 'Duration (minutes)'}</label>
                                 <input type="number" id="examDuration" class="form-control" min="1" required />
+                                ${isAssignment ? '<small class="form-text">Number of days allowed for submission</small>' : ''}
                             </div>
                             <div class="form-actions">
-                                <button type="submit" class="btn btn-primary">Create Exam</button>
+                                <button type="submit" class="btn btn-primary">Create ${itemType}</button>
                                 <button type="button" class="btn btn-secondary" onclick="loadPage('marks', event)">Cancel</button>
                             </div>
                         </form>
@@ -2446,18 +2460,28 @@
                 createExamForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
                     
+                    const examId = document.getElementById('examId').value.trim();
                     const name = document.getElementById('examName').value;
                     const subject = document.getElementById('examSubject').value;
                     const date = document.getElementById('examDate').value;
                     const totalMarks = document.getElementById('examTotalMarks').value;
                     const duration = document.getElementById('examDuration').value;
                     
-                    if (!name || !subject || !date || !totalMarks || !duration) {
+                    if (!examId || !name || !subject || !date || !totalMarks || !duration) {
                         showNotification('Please fill all fields', 'error');
                         return;
                     }
                     
-                    const examId = 'exam_' + Date.now();
+                    // Check if exam ID already exists
+                    const existingExam = exams.find(e => e.id === examId);
+                    if (existingExam) {
+                        showNotification('Exam ID already exists! Please use a unique ID.', 'error');
+                        document.getElementById('examId').style.borderColor = 'red';
+                        document.getElementById('examId').focus();
+                        setTimeout(() => { document.getElementById('examId').style.borderColor = ''; }, 3000);
+                        return;
+                    }
+                    
                     const newExam = {
                         id: examId,
                         name,
@@ -2468,8 +2492,13 @@
                         marks: {}
                     };
                     
+                    // Determine item type for messages
+                    const isAssignment = name === 'Assignment' || examId.startsWith('assignment_');
+                    const itemType = isAssignment ? 'Assignment' : 'Exam';
+                    const itemTypeLower = itemType.toLowerCase();
+                    
                     try {
-                        showNotification('Creating exam...', 'info');
+                        showNotification(`Creating ${itemTypeLower}...`, 'info');
                         
                         const createdExam = await handleApiCall('/api/exams', {
                             method: 'POST',
@@ -2477,29 +2506,29 @@
                         });
                         
                         // Update local exams array with the created exam
-                        console.log('Exam created successfully, adding to local array');
+                        console.log(`${itemType} created successfully, adding to local array`);
                         exams.push(createdExam);
                         
                         // Save to localStorage as backup using proper key
                         saveToLocalStorage('exams', exams);
                         console.log('Total exams after creation:', exams.length);
                         
-                        showNotification('Exam created successfully', 'success');
+                        showNotification(`${itemType} created successfully`, 'success');
                         
                         // Go back to marks page
                         setTimeout(() => {
                             loadPage('marks', event);
                         }, 1000);
                     } catch (error) {
-                        console.error('Error creating exam:', error);
+                        console.error(`Error creating ${itemTypeLower}:`, error);
                         
                         // Still add to local data and proceed
-                        console.log('Adding exam locally due to API failure');
+                        console.log(`Adding ${itemTypeLower} locally due to API failure`);
                         exams.push(newExam);
                         saveToLocalStorage('exams', exams);
                         console.log('Total exams after local creation:', exams.length);
                         
-                        showNotification('Exam created locally. Will sync when server is available.', 'warning');
+                        showNotification(`${itemType} created locally. Will sync when server is available.`, 'warning');
                         
                         // Go back to marks page
                         setTimeout(() => {
@@ -2939,14 +2968,17 @@
                     : [5, 6, 7, 8];
             
             const attendancePromises = periods.map(period => {
+                // Create records object with the student's rollNo as key
+                const records = {};
+                records[rollNo] = 'Leave';
+                
                 return handleApiCall('/api/attendance', {
                     method: 'POST',
                     body: JSON.stringify({
                         date: date,
                         period: period.toString(),
-                        subject: 'Leave',
-                        staff: window.staffId,
-                        [rollNo]: 'Leave'
+                        records: records,
+                        staffId: window.staffId
                     })
                 });
             });

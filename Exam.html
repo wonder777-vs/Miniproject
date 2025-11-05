@@ -435,6 +435,7 @@
                     <div class="form-group">
                         <label class="form-label" for="examId">Exam ID</label>
                         <input type="text" class="form-control" id="examId" required>
+                        <small style="color: #6c757d; font-size: 0.875rem; margin-top: 4px; display: block;">Unique identifier for this exam (e.g., exam_1234567890)</small>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="subject">Subject</label>
@@ -591,6 +592,16 @@
                 
                 try {
                     if (currentAction === 'create') {
+                        // Check if exam ID already exists
+                        const existingExam = exams.find(e => (e.id || e._id) === examId);
+                        if (existingExam) {
+                            showNotification('Exam ID already exists! Please use a unique ID.', 'error');
+                            document.getElementById('examId').style.borderColor = 'red';
+                            document.getElementById('examId').focus();
+                            setTimeout(() => { document.getElementById('examId').style.borderColor = ''; }, 3000);
+                            return;
+                        }
+                        
                         showNotification("Creating exam...", "warning");
                         const result = await handleApiCall('/api/exams', {
                             method: 'POST',
