@@ -1586,20 +1586,25 @@
         // Initialize the app
         window.onload = async () => {
             try {
+                // Prevent back button after logout
+                window.history.pushState(null, null, window.location.href);
+                window.onpopstate = function() {
+                    window.history.pushState(null, null, window.location.href);
+                };
+                
                 // Get staffId from URL
                 const urlParams = new URLSearchParams(window.location.search);
                 const staffId = urlParams.get('id');
                 
                 if (!staffId) {
-                    showNotification('No staff ID found. Please login again.', 'error');
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 2000);
+                    alert('Session expired. Please login again.');
+                    window.location.replace('index.html');
                     return;
                 }
                 
-                // Store staffId globally
+                // Store staffId globally and in session
                 window.staffId = staffId;
+                sessionStorage.setItem('staffSession', staffId);
                 
                 // Try to load cached data first (will be replaced by fresh API data if available)
                 const cachedStudents = getFromLocalStorage('students');
@@ -1814,7 +1819,12 @@
         function loadPage(page, evt) {
             if (page === 'logout') {
                 if (confirm('Are you sure you want to logout?')) {
-                    window.location.href = 'index.html';
+                    // Clear all session data
+                    sessionStorage.clear();
+                    localStorage.clear();
+                    
+                    // Prevent going back to this page
+                    window.location.replace('index.html');
                 }
                 return;
             }

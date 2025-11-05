@@ -518,6 +518,21 @@
     }
     
     document.addEventListener('DOMContentLoaded', async function() {
+      // Check if admin session exists (accessed through parent/iframe)
+      try {
+        const adminSession = window.parent.sessionStorage?.getItem('adminSession') || 
+                             window.sessionStorage?.getItem('adminSession');
+        if (!adminSession && window.self === window.top) {
+          // Only redirect if not in iframe and no session
+          alert('Session expired. Please login again.');
+          window.location.replace('index.html');
+          return;
+        }
+      } catch (e) {
+        // Ignore cross-origin errors when in iframe
+        console.log('Session check skipped (iframe)');
+      }
+      
       // Get references to all elements
       const elements = {
         addStudentBtn: document.getElementById('addStudentBtn'),

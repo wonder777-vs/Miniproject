@@ -322,6 +322,33 @@
     <div class="notification" id="notification"></div>
     
     <script>
+        // Prevent back button after logout
+        window.onload = function() {
+            window.history.pushState(null, null, window.location.href);
+            window.onpopstate = function() {
+                window.history.pushState(null, null, window.location.href);
+            };
+            
+            // Check URL for session parameter (from login redirect)
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionParam = urlParams.get('session');
+            
+            if (sessionParam === 'admin') {
+                // Set session from login redirect
+                sessionStorage.setItem('adminSession', 'true');
+                // Clean URL by removing session parameter
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            
+            // Check if admin session exists
+            const adminSession = sessionStorage.getItem('adminSession');
+            if (!adminSession) {
+                alert('Session expired. Please login again.');
+                window.location.replace('index.html');
+                return;
+            }
+        };
+        
         function loadPage(page) {
             document.getElementById("co-frame").src = page;
             
@@ -340,9 +367,14 @@
         
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
+                // Clear all session data
+                sessionStorage.clear();
+                localStorage.clear();
+                
                 showNotification('Logging out...', 'success');
                 setTimeout(() => {
-                    window.location.href = "index.html";
+                    // Prevent going back to this page
+                    window.location.replace("index.html");
                 }, 1000);
             }
         }

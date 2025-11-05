@@ -1547,6 +1547,12 @@
         };
         
         document.addEventListener('DOMContentLoaded', function() {
+            // Prevent back button after logout
+            window.history.pushState(null, null, window.location.href);
+            window.onpopstate = function() {
+                window.history.pushState(null, null, window.location.href);
+            };
+            
             // Get DOM elements
             const tabs = document.querySelectorAll('.tab');
             const tabContents = document.querySelectorAll('.tab-content');
@@ -1564,6 +1570,16 @@
             // Extract admission number from URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             admissionNo = urlParams.get('admissionno');
+            
+            // Authentication check - redirect if no admission number
+            if (!admissionNo) {
+                alert('Session expired. Please login again.');
+                window.location.replace('index.html');
+                return;
+            }
+            
+            // Store session
+            sessionStorage.setItem('studentSession', admissionNo);
             
             // Tab switching functionality
             tabs.forEach(tab => {
@@ -2253,7 +2269,12 @@
             
             // Logout function
             window.logout = function() {
-                window.location.href = 'index.html';
+                // Clear all session data
+                sessionStorage.clear();
+                localStorage.clear();
+                
+                // Prevent going back to this page
+                window.location.replace('index.html');
             }
         });
         
@@ -2403,7 +2424,12 @@
         });
 
         window.logout = function() {
-            window.location.href = '/index.html';
+            // Clear all session data
+            sessionStorage.clear();
+            localStorage.clear();
+            
+            // Prevent going back to this page
+            window.location.replace('index.html');
         }
 
         // Discussion/Chat functions

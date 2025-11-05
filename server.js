@@ -430,7 +430,7 @@ app.post('/post', async (req, res) => {
     
     // Admin login
     if (username === "admin" && password === "admin") {
-        return res.redirect('/adminlead.html');
+        return res.redirect('/adminlead.html?session=admin');
     }
     
     // Try Student login - check if username exists as admission number
